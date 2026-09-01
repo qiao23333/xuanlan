@@ -1,0 +1,17 @@
+{
+  "name": "@xuanlan/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "玄览算法内核：纯函数、无 IO、确定性排盘 + 归一化断言",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./types": "./src/types.ts",
+    "./adapters": "./src/adapters/index.ts"
+  },
+  "dependencies": {
+    "mingyu-core": "0.2.0",
+    "iztro": "^2.5.8"
+  }
+}

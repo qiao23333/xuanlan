@@ -1,0 +1,11 @@
+node_modules/
+dist/
+*.local
+.DS_Store
+.vite/
+npm-debug.log*
+.idea/
+.vscode/
+
+# 临时探测脚本（开发期调试用，不入库）
+.probe/

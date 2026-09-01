@@ -1,0 +1,39 @@
+{
+  "name": "xuanlan",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "玄览 · 术数聚合平台 —— 内核严肃，外壳科普",
+  "engines": {
+    "node": ">=22"
+  },
+  "_comment_workspaces": "未启用 npm workspaces：Windows 无管理员权限时 symlink 会报 EISDIR。改用扁平结构 + 相对路径 import，待需要多包时再拆分。",
+  "_comment_runtime": "Node 22.18+ 原生支持 type stripping，无需 tsx/ts-node 即可直接跑 .ts",
+  "scripts": {
+    "test": "node --experimental-strip-types --test packages/core/test/*.test.ts",
+    "test:golden": "node --experimental-strip-types --test packages/core/test/golden.test.ts",
+    "test:duel": "node --experimental-strip-types --test packages/core/test/duel.test.ts",
+    "test:boundary": "node --experimental-strip-types --test packages/core/test/boundary.test.ts",
+    "demo": "node --experimental-strip-types packages/core/scripts/demo.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --host"
+  },
+  "dependencies": {
+    "iztro": "^2.5.8",
+    "mingyu-core": "0.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "liuren-ts-lib": "3.1.0",
+    "lunar-typescript": "^1.3.10",
+    "typescript": "^5.7.2",
+    "vite": "^5.4.11"
+  }
+}
