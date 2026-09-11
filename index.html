@@ -16,6 +16,9 @@
           document.documentElement.setAttribute('data-theme', t);
           var meta = document.querySelector('meta[name=theme-color]');
           if (meta) meta.setAttribute('content', t === 'light' ? '#f3ecdd' : '#0a0e1a');
+          var f = localStorage.getItem('xuanlan.font');
+          if (f !== 'serif' && f !== 'sans') f = 'serif';
+          document.documentElement.setAttribute('data-font', f);
         } catch (e) {}
       })();
     </script>

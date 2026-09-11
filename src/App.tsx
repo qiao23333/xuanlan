@@ -19,6 +19,7 @@ import { GlossaryModal } from './GlossaryModal';
 import { ConsentGate, PrivacyModal, hasConsented } from './Legal';
 import { Onboarding, hasOnboarded } from './Onboarding';
 import { ThemeToggle } from './ThemeToggle';
+import { FontToggle } from './FontToggle';
 import { MobileTabBar, type MobileTab } from './MobileTabBar';
 import { useRevealOnScroll } from './useReveal';
 import {
@@ -91,6 +92,10 @@ export default function App() {
   const [history, setHistory] = useState<SavedReading[]>(() => loadHistory());
   const [toast, setToast] = useState<string | null>(null);
   const [view, setView] = useState<'landing' | 'divination' | 'case'>('landing');
+  // 两段式流程：① 填写信息 → ② 推演结果。
+  // 之前两者上下堆在同一页，算完还得自己往下翻，等于「没跳转」。
+  // 现在算完自动切到结果段；表单仍在，点顶部「① 填写信息」随时回去改。
+  const [stage, setStage] = useState<'form' | 'result'>('form');
   const [seedMode, setSeedMode] = useState<'question' | 'random'>('random');
   const [readOnly, setReadOnly] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
@@ -153,6 +158,9 @@ export default function App() {
         random,
       });
       setResult(res);
+      // 算完就进结果页，不用手动往下翻
+      setStage('result');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       if (save) {
         const saved: SavedReading = {
           id: newReadingId(),
@@ -220,6 +228,7 @@ export default function App() {
     setSeed(r.seed);
     setAskedAt(r.question?.askedAt ?? null);
     setShowRaw({});
+    setStage('result');
     flash('已载入历史记录');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -291,6 +300,7 @@ export default function App() {
     setReadOnly(false);
     setResult(null);
     setSeed(null);
+    setStage('form');
     setView('landing');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -316,7 +326,7 @@ export default function App() {
   useRevealOnScroll(result);
 
   return (
-    <div className={`app${view !== 'landing' ? ' has-mtb' : ''}`}>
+    <div className={`app${view !== 'landing' ? ' has-mtb' : ' is-landing'}`}>
       {view !== 'landing' && (
         <nav className="nav">
           <button className="nav-brand" type="button" onClick={() => setView('divination')}>
@@ -346,6 +356,7 @@ export default function App() {
             隐私
           </button>
           <ThemeToggle />
+          <FontToggle />
         </nav>
       )}
 
@@ -373,7 +384,31 @@ export default function App() {
             </div>
           )}
 
-          {!readOnly && (
+          {/* 两段式切换：有结果后才能在「填写信息 / 推演结果」之间跳 */}
+          {!readOnly && result && (
+            <div className="stage-tabs" role="tablist" aria-label="推演流程">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={stage === 'form'}
+                className={`stage-tab${stage === 'form' ? ' on' : ''}`}
+                onClick={() => setStage('form')}
+              >
+                <span className="st-num">①</span> 填写信息
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={stage === 'result'}
+                className={`stage-tab${stage === 'result' ? ' on' : ''}`}
+                onClick={() => setStage('result')}
+              >
+                <span className="st-num">②</span> 推演结果
+              </button>
+            </div>
+          )}
+
+          {!readOnly && (stage === 'form' || !result) && (
             <DivinationForm
               form={form}
               setForm={setForm}
@@ -385,7 +420,7 @@ export default function App() {
             />
           )}
 
-          {!readOnly && (
+          {!readOnly && (stage === 'form' || !result) && (
             <HistoryPanel
               history={history}
               onRestore={restoreReading}
@@ -414,7 +449,7 @@ export default function App() {
             />
           )}
 
-          {result && (
+          {result && (readOnly || stage === 'result') && (
             <ErrorBoundary label="结果墙">
               <ResultsView
                 result={result}
@@ -465,13 +500,17 @@ export default function App() {
         />
       )}
 
-      <footer className="app-foot">
-        玄览 v{APP_VERSION} · 内核 iztro / mingyu-core · 文化体验，非预测
-        <span className="foot-sep">·</span>
-        <button className="link foot-link" type="button" onClick={() => setPrivacyOpen(true)}>
-          隐私与数据说明
-        </button>
-      </footer>
+      {/* 入口页自带 .l2-footer，这里再垫一个全局页脚会重复、还把首屏顶出 190px
+          （实测 1440×900：scrollHeight 1090 vs 视口 900），所以入口页不渲染它。 */}
+      {view !== 'landing' && (
+        <footer className="app-foot">
+          玄览 v{APP_VERSION} · 内核 iztro / mingyu-core · 文化体验，非预测
+          <span className="foot-sep">·</span>
+          <button className="link foot-link" type="button" onClick={() => setPrivacyOpen(true)}>
+            隐私与数据说明
+          </button>
+        </footer>
+      )}
 
       {!consentDone && <ConsentGate onClose={() => setConsentDone(true)} />}
       {consentDone && onboardOpen && <Onboarding onClose={() => setOnboardOpen(false)} />}

@@ -15,7 +15,7 @@ function CelestialWheel({ size = 360 }: { size?: number }) {
   const cx = 50, cy = 50;
   return (
     <svg
-      className="taiji-ring spinning"
+      className="taiji-ring wheel-slow"
       viewBox="0 0 100 100"
       width={size}
       height={size}

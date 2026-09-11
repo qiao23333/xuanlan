@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import type { CalculateResult, SystemId } from './core';
 import { SYSTEM_META } from './core';
 import { SystemSigil, ACCENTS } from './systemIdentity';
+import { systemIconSrc } from './systemIcons';
 import { SystemRenderer } from './renderers';
 import { InterpretationBlock } from './Interpretation';
 import { SystemEvidence } from './SystemEvidence';
@@ -20,17 +21,33 @@ interface SystemOverviewProps {
  */
 export function SystemOverview({ result, showRaw, setShowRaw }: SystemOverviewProps) {
   const [activeId, setActiveId] = useState<SystemId | null>(null);
+  const detailRef = useRef<HTMLElement>(null);
 
   // 找到当前激活的 chart
   const activeChart = activeId ? result.charts.find((c) => c.systemId === activeId) : null;
   const activeMeta = activeId ? SYSTEM_META[activeId] : null;
+
+  /** 选中卡片后把详情带进视野，避免"点了没反应、要自己往下找" */
+  const pick = (id: SystemId) => {
+    const next = activeId === id ? null : id;
+    setActiveId(next);
+    if (!next) return;
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    requestAnimationFrame(() => {
+      detailRef.current?.scrollIntoView({
+        behavior: reduced ? 'auto' : 'smooth',
+        block: 'start',
+      });
+    });
+  };
 
   return (
     <section className="sys-overview">
       <h3 className="so-head">八大体系观点一览</h3>
       <p className="so-hint">点击任意卡片查看完整解读</p>
 
-      <div className="so-scroll">
+      {/* 网格而非横排：8 个一次看全，不需要左右拖，也不会被裁掉一半 */}
+      <div className="so-grid">
         {result.charts.map((c) => {
           const meta = SYSTEM_META[c.systemId as SystemId];
           const isActive = activeId === c.systemId;
@@ -44,14 +61,22 @@ export function SystemOverview({ result, showRaw, setShowRaw }: SystemOverviewPr
               type="button"
               className={`so-card${isActive ? ' so-active' : ''}`}
               key={c.systemId}
-              onClick={() => setActiveId(isActive ? null : (c.systemId as SystemId))}
+              onClick={() => pick(c.systemId as SystemId)}
               style={{ '--so-accent': ACCENTS[c.systemId as SystemId] } as React.CSSProperties}
               aria-pressed={isActive}
             >
-              <SystemSigil id={c.systemId as SystemId} size={24} />
-              <span className={`so-cat cat-${meta?.category}`}>{meta?.category === 'chart' ? '命盘' : '卜卦'}</span>
-              <span className="so-name">{meta?.name ?? c.systemId}</span>
-              <span className="so-brief">{firstLine.slice(0, 20)}{firstLine.length > 20 ? '…' : ''}</span>
+              <span className="so-icon">
+                {/* 深浅两版都在 DOM 里，靠 CSS 按主题显隐，切换主题不用重渲染 */}
+                <img className="ic-dark" src={systemIconSrc(c.systemId as SystemId, 'dark')} alt="" width={22} height={22} />
+                <img className="ic-light" src={systemIconSrc(c.systemId as SystemId, 'light')} alt="" width={22} height={22} />
+              </span>
+              <span className="so-text">
+                <span className="so-line1">
+                  <span className="so-name">{meta?.name ?? c.systemId}</span>
+                  <span className={`so-cat cat-${meta?.category}`}>{meta?.category === 'chart' ? '命盘' : '卜卦'}</span>
+                </span>
+                <span className="so-brief">{firstLine}</span>
+              </span>
             </button>
           );
         })}
@@ -59,7 +84,11 @@ export function SystemOverview({ result, showRaw, setShowRaw }: SystemOverviewPr
 
       {/* 展开详情面板 */}
       {activeChart && activeMeta && (
-        <article className="so-detail" style={{ '--accent': ACCENTS[activeChart.systemId as SystemId] } as React.CSSProperties}>
+        <article
+          className="so-detail"
+          ref={detailRef}
+          style={{ '--accent': ACCENTS[activeChart.systemId as SystemId] } as React.CSSProperties}
+        >
           <header className="so-detail-head">
             <SystemSigil id={activeChart.systemId as SystemId} size={22} />
             <h4>{activeMeta.name}</h4>

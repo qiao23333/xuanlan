@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>玄览 · 体系图标对照确认</title>
+<style>
+  body { font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+         background:#14101c; color:#e8e2d4; margin:0; padding:28px; }
+  h1 { font-size:18px; font-weight:600; margin:0 0 6px; }
+  p  { color:#9c9483; font-size:13px; margin:0 0 22px; line-height:1.7; }
+  .grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; max-width:900px; }
+  .cell { background:#1d1828; border:1px solid #2e2740; border-radius:12px; padding:14px; text-align:center; }
+  .cell img { width:76px; height:76px; object-fit:contain; background:#0d0a14; border-radius:10px; padding:6px; }
+  .no { font-size:11px; color:#7d7666; margin:8px 0 6px; letter-spacing:.08em; }
+  select { width:100%; background:#0d0a14; color:#e9c47c; border:1px solid #3a3252;
+           border-radius:8px; padding:6px 8px; font-size:13px; font-family:inherit; }
+  .bar { margin-top:22px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  button { background:#3674cc; color:#fff; border:none; border-radius:8px; padding:9px 18px;
+           font-size:13px; cursor:pointer; font-family:inherit; }
+  button:hover { background:#2b61b5; }
+  code { display:block; margin-top:14px; background:#0d0a14; border:1px solid #2e2740;
+         border-radius:10px; padding:12px 14px; font-size:12px; color:#9fe0bd;
+         white-space:pre-wrap; word-break:break-all; }
+</style>
+</head>
+<body>
+<h1>玄览 · 体系图标对照确认</h1>
+<p>下面是 8 个图标（深色版）。请给每个图标选它应该代表的体系，选完点「生成映射」，
+把生成的代码发给我，我改一行就完成。当前默认值是我的推测，不保证对。</p>
+
+<div class="grid" id="grid"></div>
+
+<div class="bar">
+  <button onclick="gen()">生成映射代码</button>
+  <span style="color:#7d7666;font-size:12px">生成后点代码框复制即可</span>
+</div>
+<code id="out">（点上面的按钮）</code>
+
+<script>
+const SYS = [
+  ['bazi','八字'],['ziwei','紫微'],['qimen','奇门'],['liuren','大六壬'],
+  ['xiaoliuren','小六壬'],['meihua','梅花'],['astrolabe','西洋占星'],['tarot','塔罗']
+];
+// 当前默认推测：序号 1..8 → 八字/紫微/奇门/大六壬/小六壬/占星/塔罗/梅花
+const DEF = ['bazi','ziwei','qimen','liuren','xiaoliuren','astrolabe','tarot','meihua'];
+
+const grid = document.getElementById('grid');
+for (let i = 1; i <= 8; i++) {
+  const n = String(i).padStart(2, '0');
+  const cell = document.createElement('div');
+  cell.className = 'cell';
+  cell.innerHTML =
+    '<img src="../public/icons/system/dark/sys-' + n + '.png" alt="icon ' + n + '">' +
+    '<div class="no">sys-' + n + '</div>' +
+    '<select id="s' + n + '">' +
+      SYS.map(s => '<option value="' + s[0] + '"' + (s[0] === DEF[i-1] ? ' selected' : '') + '>' + s[1] + '</option>').join('') +
+    '</select>';
+  grid.appendChild(cell);
+}
+
+function gen() {
+  const map = {};
+  const used = {};
+  for (let i = 1; i <= 8; i++) {
+    const n = String(i).padStart(2, '0');
+    const v = document.getElementById('s' + n).value;
+    if (used[v]) { alert('体系重复了：' + v + '（sys-' + n + '）'); return; }
+    used[v] = true;
+    map[v] = i;
+  }
+  const order = ['bazi','ziwei','qimen','liuren','xiaoliuren','meihua','astrolabe','tarot'];
+  const lines = order.map(k => '  ' + k + ': ' + map[k] + ',').join('\n');
+  document.getElementById('out').textContent =
+    'export const SYSTEM_ICON = {\n' + lines + '\n};';
+}
+</script>
+</body>
+</html>

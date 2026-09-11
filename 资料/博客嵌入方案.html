@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>玄览 · 博客嵌入方案</title>
+<style>
+  :root { --bg:#14101c; --panel:#1d1828; --line:#2e2740; --ink:#e8e2d4; --muted:#9c9483; --gold:#e9c47c; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:32px 24px 60px; background:var(--bg); color:var(--ink);
+         font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif; line-height:1.75; }
+  .wrap { max-width:940px; margin:0 auto; }
+  h1 { font-size:22px; margin:0 0 8px; }
+  .lede { color:var(--muted); font-size:14px; margin:0 0 30px; }
+  h2 { font-size:16px; margin:38px 0 10px; padding-left:10px; border-left:3px solid var(--gold); }
+  p { font-size:14px; color:var(--ink); }
+  .note { background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--gold);
+          border-radius:10px; padding:12px 16px; font-size:13px; color:var(--muted); margin:14px 0; }
+  pre { background:#0d0a14; border:1px solid var(--line); border-radius:10px; padding:14px 16px;
+        overflow:auto; font-size:12.5px; line-height:1.65; color:#9fe0bd; }
+  code { font-family:"SF Mono",Consolas,monospace; }
+  .demo { border:1px solid var(--line); border-radius:14px; padding:20px; background:var(--panel); margin:14px 0; }
+  .btn { display:inline-flex; align-items:center; gap:8px; padding:10px 18px; border-radius:999px;
+         text-decoration:none; font-size:13.5px; font-weight:600; transition:.2s; }
+  .btn-p { background:linear-gradient(135deg,#3674cc,#2b61b5); color:#fff; }
+  .btn-s { border:1px solid var(--line); color:var(--ink); }
+  .btn:hover { transform:translateY(-1px); }
+  .card { display:flex; gap:16px; align-items:flex-start; }
+  .card-ico { width:56px; height:56px; flex:none; border-radius:14px; background:#0d0a14;
+              display:flex; align-items:center; justify-content:center; }
+  .card-ico img { width:40px; height:40px; }
+  .card h3 { margin:0 0 4px; font-size:16px; }
+  .card p { margin:0 0 12px; font-size:13px; color:var(--muted); }
+  .tags span { display:inline-block; font-size:11px; color:var(--gold); border:1px solid #4a3f2a;
+               border-radius:999px; padding:2px 9px; margin:0 6px 6px 0; }
+  table { width:100%; border-collapse:collapse; font-size:13px; margin:10px 0; }
+  th,td { border:1px solid var(--line); padding:8px 10px; text-align:left; }
+  th { background:var(--panel); color:var(--gold); font-weight:600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>玄览 · 博客嵌入方案</h1>
+  <p class="lede">你的博客是自建 GitHub + Cloudflare。下面三种放法，按推荐顺序排列，代码可直接复制。</p>
+
+  <div class="note">
+    <b>前提：先把 GitHub Pages 打开一次</b><br>
+    GitHub → qiao23333/xuanlan → Settings → Pages → <b>Source 选 GitHub Actions</b>。<br>
+    工作流已经写好了（<code>.github/workflows/pages.yml</code>，push 到 master 就自动部署，测试全过才发布）。<br>
+    开好后地址固定为 <code>https://qiao23333.github.io/xuanlan/</code> —— 这是唯一一个不会变的链接。
+  </div>
+
+  <h2>方案 A · 项目展示卡片（推荐）</h2>
+  <p>放在博客「项目展示」页里最稳：不依赖 iframe、不影响页面加载速度、手机上也好看。下面是实时效果：</p>
+
+  <div class="demo">
+    <div class="card">
+      <div class="card-ico"><img src="../public/icons/system/dark/sys-01.png" alt=""></div>
+      <div style="flex:1;min-width:0">
+        <h3>玄览 · 八顾问合议</h3>
+        <p>一次输入，八字 / 紫微 / 奇门 / 六壬 / 小六壬 / 梅花 / 西洋占星 / 塔罗 八套体系并排推演同一问题，把结论投影到六条决策轴，明确告诉你「哪些体系一致、哪些在打架」。纯前端、零后端，数据不出浏览器。</p>
+        <div class="tags"><span>React + TypeScript</span><span>纯函数内核</span><span>本地计算</span><span>可复现</span><span>开源</span></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px">
+          <a class="btn btn-p" href="https://qiao23333.github.io/xuanlan/" target="_blank" rel="noopener">在线体验 ↗</a>
+          <a class="btn btn-s" href="https://github.com/qiao23333/xuanlan" target="_blank" rel="noopener">查看源码</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <pre><code>&lt;!-- 粘贴到博客项目展示页 --&gt;
+&lt;div style="display:flex;gap:16px;align-items:flex-start;background:#1d1828;
+     border:1px solid #2e2740;border-radius:14px;padding:20px;color:#e8e2d4;
+     font-family:system-ui,sans-serif;max-width:720px"&gt;
+  &lt;div style="width:56px;height:56px;flex:none;border-radius:14px;background:#0d0a14;
+       display:flex;align-items:center;justify-content:center"&gt;
+    &lt;img src="/images/xuanlan-icon.png" style="width:40px;height:40px" alt=""&gt;
+  &lt;/div&gt;
+  &lt;div style="flex:1;min-width:0"&gt;
+    &lt;h3 style="margin:0 0 4px;font-size:16px"&gt;玄览 · 八顾问合议&lt;/h3&gt;
+    &lt;p style="margin:0 0 10px;font-size:13px;color:#9c9483;line-height:1.7"&gt;
+      一次输入，八套术数体系并排推演同一问题，结论投影到六条决策轴，
+      明确告诉你哪些体系一致、哪些在打架。纯前端、零后端，数据不出浏览器。
+    &lt;/p&gt;
+    &lt;div style="display:flex;gap:10px;flex-wrap:wrap"&gt;
+      &lt;a href="https://qiao23333.github.io/xuanlan/" target="_blank" rel="noopener"
+         style="padding:10px 18px;border-radius:999px;background:#3674cc;color:#fff;
+         text-decoration:none;font-size:13.5px;font-weight:600"&gt;在线体验 ↗&lt;/a&gt;
+      &lt;a href="https://github.com/qiao23333/xuanlan" target="_blank" rel="noopener"
+         style="padding:10px 18px;border-radius:999px;border:1px solid #3a3252;color:#e8e2d4;
+         text-decoration:none;font-size:13.5px"&gt;查看源码&lt;/a&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+
+  <h2>方案 B · iframe 直接内嵌</h2>
+  <p>想让读者在你的博客页面里就玩起来，用这个。玄览本身是全屏应用，iframe 给它足够高度即可。</p>
+
+  <pre><code>&lt;iframe
+  src="https://qiao23333.github.io/xuanlan/"
+  title="玄览 · 八顾问合议"
+  loading="lazy"
+  allow="clipboard-write"
+  style="width:100%;height:min(88vh,900px);border:1px solid #2e2740;
+         border-radius:14px;background:#0a0e1a"&gt;
+&lt;/iframe&gt;
+&lt;p style="font-size:12px;color:#9c9483"&gt;
+  数据全部在你本机浏览器里计算，不上传服务器。
+  &lt;a href="https://qiao23333.github.io/xuanlan/" target="_blank" rel="noopener"&gt;新窗口打开体验更好 ↗&lt;/a&gt;
+&lt;/p&gt;
+</code></pre>
+
+  <div class="note">
+    <b>iframe 的一个坑，提前说</b><br>
+    Safari 的 ITP 和 Chrome 逐步收紧的第三方存储策略下，<b>iframe 里的 localStorage 可能被隔离或清空</b>，
+    也就是「历史记录 / 复盘」在嵌入状态下可能存不住。<b>算法本身不受影响</b>（纯内存计算），
+    只是不落盘。所以我建议卡片上保留「新窗口打开」的入口。
+  </div>
+
+  <h2>方案 C · 用 Cloudflare 绑个自己的域名（可选）</h2>
+  <p>嫌 github.io 域名不够自己的，可以绑个子域。玄览是纯静态站，绑域名很简单：</p>
+  <table>
+    <tr><th>位置</th><th>做什么</th></tr>
+    <tr><td>GitHub Pages</td><td>Settings → Pages → Custom domain 填 <code>xuanlan.你的域名.com</code></td></tr>
+    <tr><td>Cloudflare DNS</td><td>加一条 CNAME：<code>xuanlan</code> → <code>qiao23333.github.io</code>，<b>Proxy 状态先关（DNS only）</b></td></tr>
+    <tr><td>验证 HTTPS 后</td><td>再把 Proxy 打开（橙色云），SSL/TLS 模式设为 <b>Full</b>（不要 Flexible，会重定向循环）</td></tr>
+    <tr><td>仓库里</td><td>GitHub 会自动写入 <code>CNAME</code> 文件；下次我 push 时记得别覆盖它</td></tr>
+  </table>
+
+  <h2>怎么保证博客里永远是最新版</h2>
+  <p>不用做任何事。<code>.github/workflows/pages.yml</code> 会在每次 push 到 master 时自动跑：
+  类型检查 → 内核 49 个测试 → 前端 51 个测试 → 构建 → 部署。<b>测试不过就不发布</b>，
+  所以博客上的链接永远指向「通过全部测试的最新版」，不存在链接失效或版本落后的问题。</p>
+
+  <div class="note">
+    顺带一提：玄览的分享功能生成的 <code>#/r=</code> 链接，会把生辰与起卦种子编码进 URL，
+    别人打开能<b>逐字重现同一份结果</b>。写博客时如果想展示某个具体案例，
+    直接贴分享链接比截图更有说服力 —— 读者点进去能自己翻、自己验。
+  </div>
+</div>
+</body>
+</html>
