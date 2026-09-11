@@ -20,6 +20,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "dev": "vite",
     "build": "vite build",
+    "_comment_build_pages": "GitHub Pages 部署在 /xuanlan/ 子路径（qiao23333.github.io/xuanlan/），必须用 --base 改写资源前缀。sw.js / manifest 在代码里用相对路径 './'，会自动跟着 base 走。",
+    "build:pages": "vite build --base=/xuanlan/",
     "preview": "vite preview --host"
   },
   "dependencies": {

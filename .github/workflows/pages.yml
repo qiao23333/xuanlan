@@ -1,0 +1,60 @@
+name: Deploy to GitHub Pages
+
+# 玄览是纯前端、零后端、全本地计算的静态站，天然适合 Pages。
+# 目的：给项目一个**永久稳定**的公开地址（qiao23333.github.io/xuanlan/），
+# 不依赖任何会过期的沙箱链接，也方便直接挂到博客里。
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同时多次推送时，只跑最后一次，避免互相取消部署
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # 门禁：类型 + 内核 49 + 前端 51。构建不过就不部署。
+      - name: Type check
+        run: npm run typecheck
+      - name: Core tests
+        run: npm test
+      - name: UI tests
+        run: npm run test:ui
+
+      - name: Build (sub-path base)
+        run: npm run build:pages
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
