@@ -694,16 +694,22 @@ body::before {
   border-color: var(--gold-soft); box-shadow: 0 0 0 3px rgba(237, 201, 124, .12);
 }
 
-/* ── 顶部导航 ── */
+/* ── 顶部导航（v0.18：固定置顶，不再用 sticky）──
+   sticky 容易受祖先元素的 overflow/transform/padding 干扰而失效，
+   这里改 fixed 加上对应的 padding-top 补偿，最稳。 */
 .nav {
-  position: sticky; top: 0; z-index: 30;
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
   display: flex; align-items: center; gap: 8px;
-  margin: -28px -18px 18px; padding: 11px 18px;
-  background: rgba(10, 8, 16, .78);
-  backdrop-filter: blur(12px);
+  padding: 10px 22px;
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
   border-bottom: 1px solid var(--line);
+  box-shadow: 0 6px 24px rgba(0,0,0,.22);
   animation: fadeIn .4s ease both;
 }
+/* 导航固定后，给页面内容留出顶部空间（仅非 landing） */
+.app:not(.is-landing) { padding-top: 64px; }
 .nav-brand {
   background: none; border: none; cursor: pointer; padding: 0 12px 0 0;
   font-size: 19px; letter-spacing: 4px; color: var(--gold);
@@ -896,7 +902,7 @@ body::before {
   .landing-title { font-size: 44px; letter-spacing: 12px; }
   .case-hero h2 { font-size: 26px; }
   .decision { flex-direction: column; gap: 8px; }
-  .nav { margin: -28px -18px 14px; }
+  /* .nav 已是 fixed，padding 在基础规则里管，这里不动 */
 }
 
 /* 尊重系统的"减少动态效果"设置 */
@@ -1016,7 +1022,7 @@ body::before {
   .tarot-row { grid-template-columns: repeat(auto-fit, minmax(78px, 1fr)); }
   .case-cards, .skills, .metrics { grid-template-columns: 1fr; }
   .decision { flex-direction: column; gap: 8px; }
-  .nav { margin: -18px -12px 14px; }
+  /* .nav 已是 fixed，padding 在基础规则里管 */
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -1304,8 +1310,8 @@ select:focus:not(:focus-visible) { outline: none; }
   .landing-title { font-size: 52px; }
   .landing-sub { font-size: 12px; letter-spacing: 3px; }
   .hero h1 { font-size: 26px; }
-  .nav { position: sticky; top: 0; z-index: 40; background: var(--glass); backdrop-filter: blur(10px);
-    margin: -8px -6px 12px; padding: 8px 6px; border-bottom: 1px solid var(--line); }
+  /* .nav 已是 fixed，小屏这里只调 padding 收紧一点 */
+  .nav { padding: 8px 14px; gap: 6px; }
   .result-head-actions .btn-ghost { flex: 1; }
   .timebar { gap: 10px; font-size: 12px; }
 }
