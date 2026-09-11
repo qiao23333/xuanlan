@@ -2,7 +2,6 @@ import React, { useRef, useState } from 'react';
 import type { CalculateResult, SystemId } from './core';
 import { SYSTEM_META } from './core';
 import { SystemSigil, ACCENTS } from './systemIdentity';
-import { systemIconSrc } from './systemIcons';
 import { SystemRenderer } from './renderers';
 import { InterpretationBlock } from './Interpretation';
 import { SystemEvidence } from './SystemEvidence';
@@ -66,9 +65,9 @@ export function SystemOverview({ result, showRaw, setShowRaw }: SystemOverviewPr
               aria-pressed={isActive}
             >
               <span className="so-icon">
-                {/* 深浅两版都在 DOM 里，靠 CSS 按主题显隐，切换主题不用重渲染 */}
-                <img className="ic-dark" src={systemIconSrc(c.systemId as SystemId, 'dark')} alt="" width={22} height={22} />
-                <img className="ic-light" src={systemIconSrc(c.systemId as SystemId, 'light')} alt="" width={22} height={22} />
+                {/* 用矢量 sigil（systemIdentity.tsx），保证八体系图标语义正确、深浅主题一致；
+                    不再依赖 public/icons 下的 PNG（曾出现 astrolabe 错配咖啡杯的回归） */}
+                <SystemSigil id={c.systemId as SystemId} size={28} />
               </span>
               <span className="so-text">
                 <span className="so-line1">

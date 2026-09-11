@@ -1521,6 +1521,7 @@ select:focus:not(:focus-visible) { outline: none; }
   border: 1px solid color-mix(in srgb, var(--so-accent, var(--gold)) 28%, transparent);
 }
 .so-icon img { width: 28px; height: 28px; }
+.so-icon .sigil { color: var(--so-accent, var(--gold)); }
 .so-text { min-width: 0; display: flex; flex-direction: column; gap: 4px; align-items: center; }
 .so-line1 { display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .so-name { font-size: 14px; font-weight: 600; letter-spacing: .05em; }
@@ -3738,6 +3739,17 @@ details.legacy-wall[open] .wall {
   padding: 8vh 3vw 2vh;
   align-items: center;
 }
+/* ── 入口页入场动效（参考稿：各元素错峰浮入；hover 元素用 fadeIn 避免覆盖 hover 位移） ── */
+.l2-left      { animation: riseIn .7s cubic-bezier(.22,.61,.36,1) both .05s; }
+.l2-hero      { animation: riseIn .8s cubic-bezier(.22,.61,.36,1) both .12s; }
+.l2-right     { animation: riseIn .7s cubic-bezier(.22,.61,.36,1) both .05s; }
+.l2-wheel-wrap{ animation: riseIn .9s cubic-bezier(.22,.61,.36,1) both .18s; }
+.l2-features  { animation: riseIn .8s cubic-bezier(.22,.61,.36,1) both .3s; }
+.l2-feat:nth-child(1) { animation: fadeIn .6s ease both .42s; }
+.l2-feat:nth-child(2) { animation: fadeIn .6s ease both .52s; }
+.l2-feat:nth-child(3) { animation: fadeIn .6s ease both .62s; }
+.l2-feat:nth-child(4) { animation: fadeIn .6s ease both .72s; }
+.l2-footer     { animation: fadeIn .8s ease both .5s; }
 /* ── 左侧：品牌标语 ── */
 .l2-left { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; }
 .l2-left-zh {
