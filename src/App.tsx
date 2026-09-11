@@ -15,7 +15,7 @@ import ResultsView from './features/results/ResultsView';
 import { ShareCard } from './ShareCard';
 import { parseShareFromHash, type ShareDoc } from './share';
 import { ErrorBoundary } from './ErrorBoundary';
-import { GlossaryModal } from './GlossaryModal';
+import { GlossaryPage } from './GlossaryPage';
 import { ConsentGate, PrivacyModal, hasConsented } from './Legal';
 import { Onboarding, hasOnboarded } from './Onboarding';
 import { ThemeToggle } from './ThemeToggle';
@@ -90,7 +90,7 @@ export default function App() {
   const [showRaw, setShowRaw] = useState<Record<string, boolean>>({});
   const [history, setHistory] = useState<SavedReading[]>(() => loadHistory());
   const [toast, setToast] = useState<string | null>(null);
-  const [view, setView] = useState<'landing' | 'divination' | 'case'>('landing');
+  const [view, setView] = useState<'landing' | 'divination' | 'case' | 'glossary'>('landing');
   // 两段式流程：① 填写信息 → ② 推演结果。
   // 之前两者上下堆在同一页，算完还得自己往下翻，等于「没跳转」。
   // 现在算完自动切到结果段；表单仍在，点顶部「① 填写信息」随时回去改。
@@ -104,7 +104,6 @@ export default function App() {
   // 内核是懒加载的（见 src/loadCore.ts）。core 一旦就绪便常驻，
   // 供 consensus / report 派生与历史回放复用，避免重复下载。
   const [core, setCore] = useState<Core | null>(null);
-  const [glossaryOpen, setGlossaryOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [consentDone, setConsentDone] = useState<boolean>(() => hasConsented());
   const [onboardOpen, setOnboardOpen] = useState<boolean>(() => !hasOnboarded());
@@ -306,7 +305,11 @@ export default function App() {
 
   // ── 移动端底部导航：view ↔ tab 双向映射 ──
   const activeTab: MobileTab =
-    view === 'landing' ? 'explore' : view === 'case' ? 'case' : 'divination';
+    view === 'landing' || view === 'glossary'
+      ? 'explore'
+      : view === 'case'
+        ? 'case'
+        : 'divination';
 
   const handleTab = (t: MobileTab) => {
     if (t === 'history') {
@@ -345,7 +348,11 @@ export default function App() {
         >
           项目故事
         </button>
-        <button className="nav-item" type="button" onClick={() => setGlossaryOpen(true)}>
+        <button
+          className={`nav-item${view === 'glossary' ? ' active' : ''}`}
+          type="button"
+          onClick={() => setView('glossary')}
+        >
           术语百科
         </button>
         <button className="nav-item" type="button" onClick={() => setOnboardOpen(true)}>
@@ -480,6 +487,8 @@ export default function App() {
 
       {view === 'case' && <CaseStudy onBack={() => setView('divination')} />}
 
+      {view === 'glossary' && <GlossaryPage onBack={() => setView('landing')} />}
+
       {/* 移动端底部导航（桌面端由 CSS 隐藏；入口页沉浸式，不显示） */}
       {view !== 'landing' && <MobileTabBar active={activeTab} onChange={handleTab} />}
 
@@ -522,7 +531,6 @@ export default function App() {
 
       {!consentDone && <ConsentGate onClose={() => setConsentDone(true)} />}
       {consentDone && onboardOpen && <Onboarding onClose={() => setOnboardOpen(false)} />}
-      {glossaryOpen && <GlossaryModal onClose={() => setGlossaryOpen(false)} />}
       {privacyOpen && <PrivacyModal onClose={() => setPrivacyOpen(false)} />}
     </div>
   );

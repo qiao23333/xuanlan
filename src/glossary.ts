@@ -1,8 +1,8 @@
 /**
  * 术语词典（前端科普层）
  *
- * 解释层 highlights 里的 term 字段命中此处即提供点开解释；GlossaryModal
- * 则把全部词条做成可搜索总览。文案定位：白话、短、诚实——只说"这是什么"，
+ * 解释层 highlights 里的 term 字段命中此处即提供点开解释；GlossaryPage
+ * 则把全部词条做成可搜索全页总览。文案定位：白话、短、诚实——只说"这是什么"，
  * 不夸大"准不准"。共 38 条，覆盖八大体系的关键概念（评审 P1）。
  */
 export interface GlossaryEntry {
@@ -186,4 +186,55 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
 
 export function lookupTerm(key?: string): GlossaryEntry | undefined {
   return key ? GLOSSARY[key] : undefined;
+}
+
+/* ═══════════════ 百科全页（v0.20）：系统分类与侧栏元数据 ═══════════════ */
+
+export type GlossarySys =
+  | 'bazi'
+  | 'ziwei'
+  | 'qimen'
+  | 'liuren'
+  | 'xiaoliuren'
+  | 'meihua'
+  | 'astrolabe'
+  | 'tarot';
+
+/** 八大体系展示元数据（侧栏 + 概览卡共用） */
+export const SYS_META: { id: GlossarySys; name: string; intro: string }[] = [
+  { id: 'bazi', name: '八字', intro: '以出生年月日时四柱干支，论命主强弱与喜忌方向。' },
+  { id: 'ziwei', name: '紫微斗数', intro: '以命宫主星与十二宫格局，论性格与人生走势。' },
+  { id: 'qimen', name: '奇门遁甲', intro: '以九宫星门神仪格局，断时势与方位吉凶。' },
+  { id: 'liuren', name: '大六壬', intro: '以四课三传，模拟事件起因、发展、结局全过程。' },
+  { id: 'xiaoliuren', name: '小六壬', intro: '民间掌诀，三数落宫断事之缓急吉凶。' },
+  { id: 'meihua', name: '梅花易数', intro: '以体用生克与本互变三态，推事之始终。' },
+  { id: 'astrolabe', name: '西洋占星', intro: '以星盘行星宫位相位，看性格与人生面向。' },
+  { id: 'tarot', name: '塔罗', intro: '以牌阵与正逆位，提供心理投射式建议。' },
+];
+
+/** 每条术语归属的体系（key 与 GLOSSARY 一致） */
+export const GLOSSARY_SYS: Record<string, GlossarySys> = {
+  // 八字
+  日主: 'bazi', 五行: 'bazi', 四柱: 'bazi', 藏干: 'bazi', 十神: 'bazi', 旺衰: 'bazi',
+  用神: 'bazi', 神煞: 'bazi', 大运: 'bazi', 流年: 'bazi', 流月: 'bazi',
+  // 紫微斗数
+  紫微主星: 'ziwei', 命宫: 'ziwei', 三方四正: 'ziwei', 四化: 'ziwei', 庙旺利陷: 'ziwei',
+  // 奇门遁甲
+  奇门吉门: 'qimen', 九星: 'qimen', 八神: 'qimen', 吉格凶格: 'qimen',
+  // 大六壬
+  六壬课体: 'liuren', 天将: 'liuren', 三传: 'liuren', 发用: 'liuren',
+  // 小六壬
+  小六壬六神: 'xiaoliuren',
+  // 梅花易数
+  八卦: 'meihua', 体用: 'meihua', 互卦: 'meihua', 变卦: 'meihua', 错卦综卦: 'meihua',
+  动爻: 'meihua', 应期: 'meihua',
+  // 西洋占星
+  星座: 'astrolabe', 分宫制: 'astrolabe', 宫位: 'astrolabe', 相位: 'astrolabe', 元素: 'astrolabe',
+  // 塔罗
+  牌阵: 'tarot', 正位逆位: 'tarot',
+};
+
+/** 取某体系下的术语 key 列表（用于侧栏计数与默认排序） */
+export function termsOfSys(sys: GlossarySys): string[] {
+  return Object.keys(GLOSSARY_SYS).filter((k) => GLOSSARY_SYS[k] === sys);
 }
