@@ -187,6 +187,7 @@ export function Landing({
   return (
     <section className="landing-v2">
       {/* ====== 背景层（AI 山水画） ====== */}
+      {/* 背景图路径由 App 注入的全局 --app-bg-dark / --app-bg-light 提供（BASE_URL 感知，子路径部署不 404） */}
       <div className="l2-bg" aria-hidden="true" />
 
       {/* ====== 三栏布局：左侧标语 | 中央主角 | 右侧竖文 ====== */}

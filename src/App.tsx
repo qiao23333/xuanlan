@@ -231,6 +231,14 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // 背景山水画路径用 BASE_URL 拼接后注入 :root，保证 GitHub Pages 子路径(/xuanlan/)部署下也能取到，
+  // 避免 CSS 里硬编码 /bg-scene-*.jpg 在子路径 404 的回归。
+  React.useEffect(() => {
+    const root = document.documentElement.style;
+    root.setProperty('--app-bg-dark', `url(${import.meta.env.BASE_URL}bg-scene-dark.jpg)`);
+    root.setProperty('--app-bg-light', `url(${import.meta.env.BASE_URL}bg-scene-light.jpg)`);
+  }, []);
+
   // 打开带 #/r= 的只读分享链接时：填充生辰与所问、按相同种子重算、进入只读模式。
   React.useEffect(() => {
     let cancelled = false;

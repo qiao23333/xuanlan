@@ -2582,6 +2582,7 @@ select:focus:not(:focus-visible) { outline: none; }
    ============================================================ */
 
 /* ====== Landing 背景：真实山水画 ====== */
+/* 背景图路径由组件用 BASE_URL 注入到 --l2-bg-dark / --l2-bg-light（base 感知，子路径部署不 404） */
 .landing-v2 .l2-bg {
   background:
     linear-gradient(180deg,
@@ -2589,7 +2590,7 @@ select:focus:not(:focus-visible) { outline: none; }
       color-mix(in srgb, var(--bg) 12%, transparent) 34%,
       color-mix(in srgb, var(--bg) 30%, transparent) 62%,
       var(--bg) 96%),
-    url('/bg-scene-dark.jpg') center 30% / cover no-repeat;
+    var(--app-bg-dark, none) center 30% / cover no-repeat;
 }
 .landing-v2 .l2-bg::before,
 .landing-v2 .l2-bg-mist,
@@ -2601,7 +2602,7 @@ select:focus:not(:focus-visible) { outline: none; }
       color-mix(in srgb, var(--bg) 8%, transparent) 34%,
       color-mix(in srgb, var(--bg) 26%, transparent) 62%,
       var(--bg) 96%),
-    url('/bg-scene-light.jpg') center 30% / cover no-repeat;
+    var(--app-bg-light, none) center 30% / cover no-repeat;
 }
 
 /* 星盘轮在山水画上更通透 */
@@ -2627,7 +2628,7 @@ select:focus:not(:focus-visible) { outline: none; }
       color-mix(in srgb, var(--bg) 78%, transparent) 0%,
       color-mix(in srgb, var(--bg) 70%, transparent) 50%,
       var(--bg) 100%),
-    url('/bg-scene-dark.jpg') center 20% / cover no-repeat fixed;
+    var(--app-bg-dark, none) center 20% / cover no-repeat fixed;
 }
 .form-v2 .f2-bg::before,
 .form-v2 .f2-bg-mist,
@@ -2638,7 +2639,7 @@ select:focus:not(:focus-visible) { outline: none; }
       color-mix(in srgb, var(--bg) 72%, transparent) 0%,
       color-mix(in srgb, var(--bg) 62%, transparent) 50%,
       var(--bg) 100%),
-    url('/bg-scene-light.jpg') center 20% / cover no-repeat fixed;
+    var(--app-bg-light, none) center 20% / cover no-repeat fixed;
 }
 
 /* ====== 步骤条 ====== */
@@ -2698,7 +2699,7 @@ select:focus:not(:focus-visible) { outline: none; }
       transparent 30%,
       color-mix(in srgb, var(--bg) 55%, transparent) 78%,
       color-mix(in srgb, var(--bg) 85%, transparent) 100%),
-    url('/bg-scene-dark.jpg') center 65% / cover no-repeat;
+    var(--app-bg-dark, none) center 65% / cover no-repeat;
   box-shadow: var(--shadow);
   display: flex; align-items: flex-end;
   padding: 1.6rem;
@@ -2711,7 +2712,7 @@ select:focus:not(:focus-visible) { outline: none; }
       transparent 30%,
       color-mix(in srgb, var(--bg) 45%, transparent) 78%,
       color-mix(in srgb, var(--bg) 80%, transparent) 100%),
-    url('/bg-scene-light.jpg') center 65% / cover no-repeat;
+    var(--app-bg-light, none) center 65% / cover no-repeat;
 }
 .f2-side-quote { line-height: 1.9; }
 .f2-side-line1 {
@@ -2795,7 +2796,7 @@ select:focus:not(:focus-visible) { outline: none; }
       color-mix(in srgb, var(--bg) 30%, transparent) 34%,
       color-mix(in srgb, var(--bg) 42%, transparent) 62%,
       var(--bg) 96%),
-    url('/bg-scene-light.jpg') center 30% / cover no-repeat;
+    var(--app-bg-light, none) center 30% / cover no-repeat;
 }
 [data-theme="light"] .l2-title,
 [data-theme="light"] .l2-tagline,
