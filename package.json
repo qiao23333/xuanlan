@@ -10,7 +10,8 @@
   "_comment_workspaces": "未启用 npm workspaces：Windows 无管理员权限时 symlink 会报 EISDIR。改用扁平结构 + 相对路径 import，待需要多包时再拆分。",
   "_comment_runtime": "Node 22.18+ 原生支持 type stripping，无需 tsx/ts-node 即可直接跑 .ts",
   "scripts": {
-    "test": "node --experimental-strip-types --test packages/core/test/*.test.ts",
+    "_comment_test_concurrency": "必须串行：Windows + Node 22 并发起 9 个 worker 时会随机崩 4-8 个用例（与 vitest forks 崩溃同源）。串行实测 49/49 稳定。CI 走的就是这条命令，别改回去。",
+    "test": "node --experimental-strip-types --test --test-concurrency=1 packages/core/test/*.test.ts",
     "test:golden": "node --experimental-strip-types --test packages/core/test/golden.test.ts",
     "test:duel": "node --experimental-strip-types --test packages/core/test/duel.test.ts",
     "test:boundary": "node --experimental-strip-types --test packages/core/test/boundary.test.ts",

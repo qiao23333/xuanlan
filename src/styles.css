@@ -3371,3 +3371,76 @@ details.legacy-wall[open] .wall {
   .re-pick { grid-template-columns: repeat(2, 1fr); }
   .rt-name { width: 52px; }
 }
+
+/* ═══════════════ 分层共识 LayerView（v0.14） ═══════════════
+   命盘层（长期底色）与卜卦层（当下窗口）各算各的。
+   刻意不提供「两层平均」这个数 —— 取中间值没有信息量。      */
+
+.layer-view { padding: 18px 20px; margin-bottom: 16px; }
+.lv-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+.lv-head h3 { margin: 0; font-size: 15.5px; color: var(--ink); letter-spacing: .04em; }
+.lv-sub { font-size: 11.5px; color: var(--muted); }
+
+.lv-legend { display: flex; gap: 14px; margin: 10px 0 8px; flex-wrap: wrap; }
+.lv-lg { font-size: 11.5px; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--line); }
+.lv-lg-chart { color: var(--blue); border-color: color-mix(in srgb, var(--blue) 45%, transparent); }
+.lv-lg-div { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 45%, transparent); }
+
+.lv-rows { display: grid; gap: 8px; }
+.lv-row {
+  display: grid; grid-template-columns: 92px 1fr; grid-template-areas: 'axis axis' 'chart div';
+  gap: 4px 10px; align-items: center;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px;
+}
+.lv-axis {
+  grid-area: axis; font-size: 11.5px; color: var(--ink-soft); letter-spacing: .04em;
+}
+.lv-arrow { color: var(--muted); margin: 0 4px; }
+
+.lv-bar { grid-area: auto; display: flex; align-items: center; gap: 7px; font-size: 11.5px; }
+.lv-bar-chart { grid-area: chart; }
+.lv-bar-div { grid-area: div; }
+.lv-bar-side {
+  width: 17px; height: 17px; flex: none; display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 5px; font-size: 10px; font-weight: 600;
+}
+.lv-bar-chart .lv-bar-side { background: color-mix(in srgb, var(--blue) 22%, transparent); color: var(--blue); }
+.lv-bar-div .lv-bar-side { background: color-mix(in srgb, var(--gold) 22%, transparent); color: var(--gold); }
+.lv-track {
+  position: relative; flex: 1; height: 5px; border-radius: 3px;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--red) 28%, transparent),
+    var(--line),
+    color-mix(in srgb, var(--jade) 28%, transparent));
+}
+.lv-track-mid { position: absolute; left: 50%; top: -3px; width: 1px; height: 11px; background: var(--line); }
+.lv-knob {
+  position: absolute; top: 50%; width: 10px; height: 10px; border-radius: 50%;
+  transform: translate(-50%, -50%); border: 1.5px solid var(--bg);
+}
+.lv-bar-chart .lv-knob { background: var(--blue); }
+.lv-bar-div .lv-knob { background: var(--gold); }
+.lv-bar-word { width: 34px; flex: none; color: var(--ink); font-weight: 600; }
+.lv-bar-meta { width: 76px; flex: none; text-align: right; color: var(--muted); }
+.lv-empty { grid-column: 1 / -1; font-size: 11px; color: var(--muted); padding-left: 2px; }
+
+.lv-gaps { margin-top: 14px; border-top: 1px dashed var(--line); padding-top: 12px; }
+.lv-gaps-title { font-size: 12.5px; color: var(--ink); margin-bottom: 8px; }
+.lv-bolt { color: var(--gold); }
+.lv-gap {
+  background: color-mix(in srgb, var(--gold) 7%, var(--panel));
+  border: 1px solid color-mix(in srgb, var(--gold) 30%, transparent);
+  border-radius: 9px; padding: 9px 11px; margin-bottom: 7px;
+}
+.lv-gap-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 5px; }
+.lv-gap-axis { font-size: 12.5px; color: var(--ink); font-weight: 600; }
+.lv-gap-num { font-size: 11.5px; color: var(--gold); font-family: var(--font-serif); }
+.lv-gap-read { margin: 0; font-size: 12.5px; color: var(--ink-soft); line-height: 1.75; }
+.lv-gap-note { margin: 8px 0 0; font-size: 11.5px; color: var(--muted); line-height: 1.7; }
+.lv-gap-note b { color: var(--ink-soft); }
+
+@media (max-width: 640px) {
+  .layer-view { padding: 15px 14px; }
+  .lv-row { grid-template-columns: 1fr; grid-template-areas: 'axis' 'chart' 'div'; }
+  .lv-bar-meta { width: 68px; }
+}

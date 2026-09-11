@@ -23,7 +23,14 @@ export {
 } from './adapters/index.ts';
 export type { CalculateOptions, CalculateResult, Adapter, AdapterContext } from './adapters/index.ts';
 export { SYSTEM_META, getSystemMeta, listSystemMeta } from './registry.ts';
-export { aggregateConsensus, overallAgreement } from './consensus.ts';
+export {
+  aggregateConsensus,
+  aggregateConsensusByLayer,
+  overallAgreement,
+  axisWord,
+  readCrossLayerGap,
+} from './consensus.ts';
+export type { LayerId, CrossLayerGap, LayeredConsensus } from './consensus.ts';
 export { synthesizeReport } from './report.ts';
 export type { SynthesisReport, SynthesisByAxis, SynthesisPerSystem } from './report.ts';
 export type { InterpretationData, InterpretationHighlight, InterpretationTimelineItem } from './types.ts';

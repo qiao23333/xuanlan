@@ -10,6 +10,7 @@ import { TopicPath } from '../../TopicPath';
 import { ResultSummary } from '../../ResultSummary';
 import { DimensionGauges } from '../../DimensionGauges';
 import { AlignmentView } from '../../AlignmentView';
+import { LayerView } from '../../LayerView';
 import { DissentView } from '../../DissentView';
 import { SystemOverview } from '../../SystemOverview';
 import { SynthesisReport } from '../../SynthesisReport';
@@ -175,6 +176,8 @@ export default function ResultsView({
       {/* ═══════ Level 2: 1分钟看懂全貌 ═══════ */}
       <DimensionGauges consensus={consensus} topic={form.topic} />
       <AlignmentView consensus={consensus} topic={form.topic} />
+      {/* 命盘层与卜卦层分开算：混算会把「底色」和「当下」两个不同的问题压成一个数 */}
+      <LayerView result={result} />
       <DissentView result={result} consensus={consensus} topic={form.topic} />
       <TopicPath topic={form.topic} qtext={form.qtext} />
 
