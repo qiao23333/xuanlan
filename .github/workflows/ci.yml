@@ -8,6 +8,10 @@ on:
 jobs:
   build-test:
     runs-on: ubuntu-latest
+    # 内核测试（大六壬等）按时区解析出生时刻，用例按北京时间(Asia/Shanghai)编写。
+    # 不固定时区时 CI(UTC) 与本机(+8) 差 8 小时会跨节气边界致三传不符 → 测试红。
+    env:
+      TZ: Asia/Shanghai
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
