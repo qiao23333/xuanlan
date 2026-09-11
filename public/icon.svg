@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="96" fill="#14101c"/>
+  <g transform="translate(256 256)">
+    <circle r="150" fill="none" stroke="#edc97c" stroke-width="10"/>
+    <path d="M0,-150 A75,75 0 0 1 0,0 A75,75 0 0 0 0,150 A150,150 0 0 1 0,-150 Z" fill="#edc97c"/>
+    <path d="M0,-150 A75,75 0 0 0 0,0 A75,75 0 0 1 0,150 A150,150 0 0 0 0,-150 Z" fill="#2a2336"/>
+    <circle cx="0" cy="-75" r="26" fill="#2a2336"/>
+    <circle cx="0" cy="75" r="26" fill="#edc97c"/>
+  </g>
+  <g fill="#edc97c" font-family="serif" font-size="150" text-anchor="middle" font-weight="700">
+    <text x="256" y="470" letter-spacing="20" opacity="0">玄</text>
+  </g>
+</svg>

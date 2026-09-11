@@ -1,5 +1,26 @@
 import type { SystemId, SystemMeta } from './types.ts';
-import { ALL_SYSTEMS } from './adapters/index.ts';
+
+/**
+ * 体系顺序。**刻意在此内联，不 import adapters**。
+ *
+ * 原因：adapters 会连带 iztro、mingyu-core 等体积近 2MB 的算法库。
+ * 若本文件 import 它，那么任何只想显示「八字」「塔罗」这类中文名的组件
+ * 都会把整个内核拖进首屏 —— 用户还没点开始推演，就先下载了全部算法。
+ * 这里保持零依赖，前端才能安全地静态 import SYSTEM_META。
+ *
+ * 唯一代价：新增体系时要记得同步这份列表。adapters 那份是运行时权威源，
+ * 由 assertions.test 中的「两份体系顺序必须一致」用例兜底。
+ */
+export const ALL_SYSTEMS: readonly SystemId[] = [
+  'bazi',
+  'ziwei',
+  'qimen',
+  'liuren',
+  'xiaoliuren',
+  'meihua',
+  'astrolabe',
+  'tarot',
+] as const;
 
 /**
  * 体系元数据注册表。

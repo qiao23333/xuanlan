@@ -181,6 +181,18 @@ export function interpretBazi(data: any, ctx: AdapterContext): { assertions: Ass
       confidence: 0.45,
       evidence: [`${y} 流年 ${lyGz}（${lyEl}），与日主${rel}`],
     },
+    {
+      systemId: 'bazi', schoolId, topicId: topic, axis: 'timing',
+      score: clamp(rel === '生扶日主' || rel === '比和（同我）' ? 1 : rel === '克泄日主' ? -1 : 0),
+      confidence: 0.45,
+      evidence: [`${y} 流年 ${lyGz}（${lyEl}）与日主${rel}，主当前时机${rel === '生扶日主' || rel === '比和（同我）' ? '得令宜进' : rel === '克泄日主' ? '受泄宜守' : '平顺'}`],
+    },
+    {
+      systemId: 'bazi', schoolId, topicId: topic, axis: 'social',
+      score: clamp(((side.bi - side.guan) / (side.bi + side.guan || 1)) * 1.5),
+      confidence: 0.45,
+      evidence: [`比劫 ${pct(side.bi)} / 官杀 ${pct(side.guan)}，主同辈助力与人际张力之对比`],
+    },
   ];
 
   const hl: InterpretationHighlight[] = [
@@ -240,6 +252,15 @@ export function interpretZiwei(data: any, ctx: AdapterContext): { assertions: As
     const r = p?.decadal?.range;
     if (r && age >= r[0] && age <= r[1]) curDa = p;
   }
+  const curStars = curDa?.majorStars ?? [];
+  const curBright = curStars.length
+    ? curStars.reduce((s: number, st: any) => s + (BRIGHT_MAP[st.brightness] ?? 0), 0) / curStars.length
+    : brightAvg;
+  const sibPalace = astro?.palace?.('兄弟宫');
+  const sibStars = sibPalace?.majorStars ?? [];
+  const sibBright = sibStars.length
+    ? sibStars.reduce((s: number, st: any) => s + (BRIGHT_MAP[st.brightness] ?? 0), 0) / sibStars.length
+    : 0;
 
   const schoolId = `ziwei.${ctx.config.ziwei?.algorithm ?? 'default'}`;
   const assertions: Assertion[] = [
@@ -255,6 +276,20 @@ export function interpretZiwei(data: any, ctx: AdapterContext): { assertions: As
       confidence: 0.5,
       evidence: [`命宫主星亮度 ${mingStars.map((s) => `${s.name}(${s.brightness})`).join('、') || '—'}`],
     },
+    {
+      systemId: 'ziwei', schoolId, topicId: topic, axis: 'timing',
+      score: clamp(curBright),
+      confidence: 0.45,
+      evidence: [curDa ? `当前大限「${curDa.name}」宫主星亮度 ${pct(curBright)}（${curDa.heavenlyStem}${curDa.earthlyBranch}）` : `命宫主星亮度 ${pct(brightAvg)}`],
+    },
+    ...(sibStars.length
+      ? [{
+          systemId: 'ziwei' as const, schoolId, topicId: topic, axis: 'social' as const,
+          score: clamp(sibBright),
+          confidence: 0.4,
+          evidence: [`兄弟宫主星 ${sibStars.map((s: any) => s.name).join('、') || '—'} 亮度 ${pct(sibBright)}`],
+        }]
+      : []),
   ];
 
   const summary = [
@@ -310,6 +345,12 @@ export function interpretQimen(data: any, ctx: AdapterContext): { assertions: As
       confidence: 0.5,
       evidence: [`三奇得使等吉格 ${goodP} 项`],
     },
+    {
+      systemId: 'qimen', schoolId, topicId: topic, axis: 'timing',
+      score: clamp((jiMen - xiongMen) * 0.5),
+      confidence: 0.5,
+      evidence: [`吉门 ${jiMen} / 凶门 ${xiongMen}，门为时空之户，主宜进宜守`],
+    },
   ];
 
   return {
@@ -348,6 +389,12 @@ export function interpretLiuren(data: any, ctx: AdapterContext): { assertions: A
   const badWord = /(凶|忌|破|败|空|陷)/.test(`${pattern ?? ''}${lesson ?? ''}`);
   const goodWord = /(吉|成|利|顺|泰|和)/.test(`${pattern ?? ''}${lesson ?? ''}`);
   const ax = badWord ? -1 : goodWord ? 1 : 0;
+  const lrMid = tt.find((t) => t.stage === '中传');
+  const lrGods = [chu?.god, lrMid?.god, mo?.god].filter(Boolean) as string[];
+  const LR_GOOD = ['六合', '青龙', '太阴'];
+  const LR_BAD = ['勾陈', '朱雀', '玄武'];
+  const lrGood = lrGods.filter((g) => LR_GOOD.includes(g)).length;
+  const lrBad = lrGods.filter((g) => LR_BAD.includes(g)).length;
 
   const assertions: Assertion[] = [
     {
@@ -361,6 +408,12 @@ export function interpretLiuren(data: any, ctx: AdapterContext): { assertions: A
       score: clamp(ax),
       confidence: 0.45,
       evidence: [`课体 ${pattern ?? '?'}；${lesson ?? ''}`.slice(0, 80)],
+    },
+    {
+      systemId: 'liuren', schoolId: 'liuren.default', topicId: topic, axis: 'social',
+      score: clamp(lrGood - lrBad),
+      confidence: 0.4,
+      evidence: [`三传天将 ${lrGods.join('、') || '?'}（六合/青龙/太阴主和合，勾陈/朱雀/玄武主争斗）`],
     },
   ];
 
@@ -397,6 +450,12 @@ export function interpretXiaoliuren(data: any, ctx: AdapterContext): { assertion
       score: clamp(ax),
       confidence: 0.6,
       evidence: [`落宫六神「${name}」`],
+    },
+    {
+      systemId: 'xiaoliuren', schoolId: 'xiaoliuren.time', topicId: topic, axis: 'timing',
+      score: clamp(XL_JI.includes(name) ? 1 : XL_XIONG.includes(name) ? -1 : 0),
+      confidence: 0.55,
+      evidence: [`落宫六神「${name}」，${XL_JI.includes(name) ? '宜进' : XL_XIONG.includes(name) ? '宜守' : '平'}`],
     },
   ];
 
@@ -452,6 +511,18 @@ export function interpretMeihua(data: any, ctx: AdapterContext): { assertions: A
       score: clamp(acMap[rel] ?? 0),
       confidence: 0.5,
       evidence: [`体用${rel}`],
+    },
+    {
+      systemId: 'meihua', schoolId: 'meihua.time', topicId: topic, axis: 'timing',
+      score: clamp(tiState === '旺' ? 1 : tiState === '相' ? 0.5 : tiState === '休' ? 0 : tiState === '囚' ? -0.5 : tiState === '衰' || tiState === '死' ? -1.2 : 0),
+      confidence: 0.45,
+      evidence: [`体卦${tiState ?? '?'}（时令${an.season ?? ''}），旺则速成、衰则应期晚`],
+    },
+    {
+      systemId: 'meihua', schoolId: 'meihua.time', topicId: topic, axis: 'social',
+      score: clamp(rel === '用生体' ? 1 : rel === '比和' ? 0.5 : rel === '体克用' ? 0.5 : rel === '体生用' ? -0.5 : rel === '用克体' ? -1.5 : 0),
+      confidence: 0.45,
+      evidence: [`体用${rel}（体为问者、用为所问之事/他人）`],
     },
   ];
 

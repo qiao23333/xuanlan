@@ -105,13 +105,27 @@ const ITERATIONS = [
       '入场仪式：太极八卦缓转，点「启」而入',
     ],
   },
+  {
+    v: 'v5',
+    title: '差异化与传播 · 凭什么不用 AI 直接问',
+    points: [
+      '八顾问合议英雄视图：八体系化作八位顾问环坐一圈，中央共识环 + 「异」字分歧徽，分歧本身就是信息（竞品全是平铺罗列，没有「合议」叙事）',
+      '首屏价值主张正面回答「为什么不用 AI」：八体系交叉验证 / 确定性可溯源 / 全本地零隐私上传',
+      '两步引导输入：生辰 → 所问之事，首次使用零门槛，手机端尤甚',
+      '合议卡分享 + 只读链接：链接只携「生辰+问题+起卦种子」，对方浏览器同内核确定性重算、逐字一致 —— 零后端即可传播与回放',
+      '修掉真 bug：页面「起卦数」此前从未接入塔罗，所有人抽到同一副牌；改为注入 config.tarot.seed，并加端到端确定性回放测试守护',
+      '分歧辩论视图：自动挑出八家分歧最大的一轴，把「主张动/吉」与「主张静/凶」两派摊开各自判词——AI 揉碎成一段自信叙事，玄览偏把分歧演给你看',
+      'PWA：manifest + Service Worker 让全站（含 1.2MB 算法内核）可安装、可离线，兑现「全本地零服务器」的隐私卖点',
+      '测试升级：核心 42 + UI 20 = 62 项，覆盖决策轴全覆盖与确定性复现护栏',
+    ],
+  },
 ];
 
 const SKILLS = [
   { area: '产品', items: '竞品拆解 · 需求取舍 · 路线图 · 诚实边界 · 免责与合规判断' },
   { area: '建模', items: '决策轴抽象 · 断言协议 · 共识聚合 · 可复现性设计（禁 IO/时间/随机）' },
   { area: '工程', items: 'TypeScript strict · 纯函数内核 · Vite/React · 分层与别名 · 扁平架构取舍' },
-  { area: '质量', items: '黄金用例 · 对拍权威库 · 边界告警 · 30 项内核测试' },
+  { area: '质量', items: '黄金用例 · 对拍权威库 · 边界告警 · 62 项测试（内核 42 + UI 20）' },
   { area: '设计', items: '暗色设计系统 · 玄学视觉语言 · SVG 图形（太极/八卦）· 入场动效' },
   { area: '数据', items: 'configHash 溯源 · randomTrace 重放 · 快照不可变 · 结构化导出' },
 ];
@@ -283,8 +297,12 @@ export function CaseStudy({ onBack }: { onBack: () => void }) {
             <div className="m-l">决策轴抽象</div>
           </div>
           <div className="metric">
-            <div className="m-v">30</div>
-            <div className="m-l">内核测试（含对拍权威库）</div>
+            <div className="m-v">42</div>
+            <div className="m-l">内核测试（含对拍 / 决策轴 / 确定性回放）</div>
+          </div>
+          <div className="metric">
+            <div className="m-v">18</div>
+            <div className="m-l">前端组件测试</div>
           </div>
           <div className="metric">
             <div className="m-v">0</div>

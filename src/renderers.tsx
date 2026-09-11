@@ -15,6 +15,18 @@ function Tag({ children, tone = 'default' }: { children: React.ReactNode; tone?:
 
 /* ───────────────────────── 四柱八字 ───────────────────────── */
 
+/** 十神颜色 */
+const TEN_GOD_COLOR: Record<string, string> = {
+  比肩: 'jade', 劫财: 'jade',
+  食神: 'gold', 伤官: 'gold',
+  偏财: 'blue', 正财: 'blue',
+  七杀: 'red', 正官: 'red',
+  偏印: 'default', 正印: 'default',
+};
+
+/** 五行颜色 */
+const WX_COLOR: Record<string, string> = { 木: 'jade', 火: 'red', 土: 'gold', 金: 'blue', 水: 'default' };
+
 export function BaziView({ data }: { data: any }) {
   const pillars = data?.pillars ?? {};
   const order: Array<['year' | 'month' | 'day' | 'hour', string]> = [
@@ -27,35 +39,197 @@ export function BaziView({ data }: { data: any }) {
   const lunar = data?.lunarDate;
   const solar = data?.solarDate;
   const ws = data?.wuxingStrength;
+  const analysis = data?.analysis as {
+    dayMasterStrength?: { status?: string; details?: { timely?: boolean; seasonalEffect?: string; hasRoot?: boolean; hasSupport?: boolean } };
+    mingGe?: { pattern?: string; isSpecial?: boolean; isKuiGang?: boolean };
+    usefulGod?: { useful?: string; avoid?: string; favorable?: string[]; unfavorable?: string[]; favorableWuxing?: string[] };
+  } | undefined;
+  const luckInfo = data?.luckInfo as {
+    startInfo?: string;
+    handoverInfo?: string;
+    cycles?: Array<{
+      age: number; year: number; ganZhi: string; isXiaoyun: boolean; type: string;
+      years?: Array<{ year: number; age: number; ganZhi: string; tenGod: string; tenGodZhi: string }>;
+    }>;
+  } | undefined;
+  const tenGods = data?.tenGods as Record<string, string> | undefined;
+  const shenSha = data?.shenShaAnalysis as Record<string, string[]> | undefined;
+  const lifeStages = data?.lifeStages as Record<string, string> | undefined;
+  const nayin = data?.nayin as Record<string, string> | undefined;
+  const liunian = data?.liunian as Array<{ year: number; age: number; ganZhi: string; tenGod: string; tenGodZhi: string }> | undefined;
+
+  // 当前年龄：优先用 data.age，否则用今年 - 出生年
+  const currentAge = data?.age ?? (new Date().getFullYear() - (solar?.year ?? 1990));
+  // 当前大运
+  const currentCycle = luckInfo?.cycles?.find((c) => {
+    const next = luckInfo.cycles![luckInfo.cycles!.indexOf(c) + 1];
+    return currentAge >= c.age && (!next || currentAge < next.age);
+  });
+
   return (
     <div className="sys bazi">
+      {/* 四柱 */}
       <div className="pillar-row">
         {order.map(([k, label]) => {
           const p = pillars[k] ?? {};
+          const stage = lifeStages?.[k];
+          const ny = nayin?.[k];
           return (
             <div className="pillar" key={k}>
-              <div className="pillar-label">{label}</div>
+              <div className="pillar-label">{label}{ny ? <span className="pillar-ny">{ny}</span> : null}</div>
               <div className="pillar-gan">{s(p.gan)}</div>
               <div className="pillar-zhi">{s(p.zhi)}</div>
               <div className="pillar-gz">{s(p.ganZhi)}</div>
+              {stage && <div className="pillar-stage">{stage}</div>}
             </div>
           );
         })}
       </div>
+
+      {/* 日主与基础信息 */}
       <div className="kv-row">
         {dm && <Tag tone="gold">日主 {s(dm.gan)}{s(dm.element)}{s(dm.yinYang)}</Tag>}
         {data?.zodiac && <Tag>生肖 {s(data.zodiac)}</Tag>}
         {solar && <Tag>公历 {s(solar.year)}-{s(solar.month)}-{s(solar.day)}</Tag>}
         {lunar && <Tag>农历 {s(lunar.year)}年{s(lunar.monthName)}{s(lunar.dayName)}</Tag>}
       </div>
+
+      {/* 旺衰与格局 */}
+      {analysis && (
+        <div className="bazi-analysis">
+          {analysis.dayMasterStrength?.status && (
+            <div className="ba-row">
+              <span className="ba-label">日主强弱</span>
+              <Tag tone={analysis.dayMasterStrength.status === '偏强' ? 'red' : analysis.dayMasterStrength.status === '偏弱' ? 'blue' : 'jade'}>
+                {analysis.dayMasterStrength.status}
+              </Tag>
+              {analysis.dayMasterStrength.details?.timely !== undefined && (
+                <span className="ba-detail">{analysis.dayMasterStrength.details.timely ? '得令' : '不得令'} · {analysis.dayMasterStrength.details.seasonalEffect ?? ''}</span>
+              )}
+            </div>
+          )}
+          {analysis.mingGe?.pattern && (
+            <div className="ba-row">
+              <span className="ba-label">格局</span>
+              <Tag tone="gold">{analysis.mingGe.pattern}</Tag>
+              {analysis.mingGe.isSpecial && <span className="ba-detail">特殊格局</span>}
+              {analysis.mingGe.isKuiGang && <span className="ba-detail">魁罡日</span>}
+            </div>
+          )}
+          {analysis.usefulGod?.useful && (
+            <div className="ba-row">
+              <span className="ba-label">用神</span>
+              <Tag tone="jade">{analysis.usefulGod.useful}</Tag>
+              {analysis.usefulGod.avoid && <Tag tone="red">忌 {analysis.usefulGod.avoid}</Tag>}
+              {analysis.usefulGod.favorableWuxing?.length ? (
+                <span className="ba-detail">喜 {analysis.usefulGod.favorableWuxing.join('、')}</span>
+              ) : null}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 十神映射 */}
+      {tenGods && Object.keys(tenGods).length > 0 && (
+        <details className="bazi-fold">
+          <summary>十神映射</summary>
+          <div className="bazi-tg">
+            {Object.entries(tenGods).map(([stem, god]) => (
+              <span className={`tag tag-${TEN_GOD_COLOR[god] ?? 'default'}`} key={stem}>{stem} → {god}</span>
+            ))}
+          </div>
+        </details>
+      )}
+
+      {/* 神煞 */}
+      {shenSha && Object.keys(shenSha).length > 0 && (
+        <details className="bazi-fold">
+          <summary>神煞</summary>
+          <div className="bazi-ss">
+            {Object.entries(shenSha).flatMap(([pillar, list]) =>
+              (list ?? []).map((item, i) => (
+                <span className="tag" key={`${pillar}-${i}`}>{item}</span>
+              ))
+            )}
+          </div>
+        </details>
+      )}
+
+      {/* 大运 */}
+      {luckInfo?.cycles && luckInfo.cycles.length > 0 && (
+        <details className="bazi-fold" open>
+          <summary>大运（共 {luckInfo.cycles.length} 步）</summary>
+          <div className="bazi-luck">
+            <div className="luck-head">
+              <span className="luck-h-age">起运年龄</span>
+              <span className="luck-h-gz">大运干支</span>
+              <span className="luck-h-type">类型</span>
+              <span className="luck-h-status">状态</span>
+            </div>
+            {luckInfo.cycles.map((c) => {
+              const isCurrent = currentCycle?.ganZhi === c.ganZhi;
+              return (
+                <div className={`luck-row${isCurrent ? ' luck-current' : ''}`} key={c.ganZhi + c.age}>
+                  <span className="luck-age">{c.age} 岁</span>
+                  <span className="luck-gz">{c.ganZhi}</span>
+                  <span className="luck-type">{c.isXiaoyun ? '小运' : '大运'}</span>
+                  <span className="luck-status">{isCurrent ? '当前' : c.age > currentAge ? '未来' : '已过'}</span>
+                </div>
+              );
+            })}
+          </div>
+          {currentCycle && (
+            <div className="luck-current-detail">
+              <div className="lcd-title">
+                当前大运 · {currentCycle.ganZhi}（{currentCycle.age} 岁起）
+                {luckInfo.handoverInfo ? <span className="lcd-handover">{luckInfo.handoverInfo}</span> : null}
+              </div>
+              {currentCycle.years && currentCycle.years.length > 0 && (
+                <div className="luck-years">
+                  {currentCycle.years.slice(0, 10).map((y) => (
+                    <div className={`ly-row${y.year === new Date().getFullYear() ? ' ly-now' : ''}`} key={y.year}>
+                      <span className="ly-year">{y.year}</span>
+                      <span className="ly-gz">{y.ganZhi}</span>
+                      <span className="ly-tg">{y.tenGod}</span>
+                      <span className="ly-age">{y.age} 岁</span>
+                    </div>
+                  ))}
+                  {currentCycle.years.length > 10 && (
+                    <span className="ly-more">+{currentCycle.years.length - 10} 年</span>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </details>
+      )}
+
+      {/* 全局流年 */}
+      {liunian && liunian.length > 0 && (
+        <details className="bazi-fold">
+          <summary>流年一览（{liunian.length} 年）</summary>
+          <div className="luck-years">
+            {liunian.slice(0, 12).map((y) => (
+              <div className={`ly-row${y.year === new Date().getFullYear() ? ' ly-now' : ''}`} key={y.year}>
+                <span className="ly-year">{y.year}</span>
+                <span className="ly-gz">{y.ganZhi}</span>
+                <span className="ly-tg">{y.tenGod}</span>
+                <span className="ly-age">{y.age} 岁</span>
+              </div>
+            ))}
+            {liunian.length > 12 && <span className="ly-more">+{liunian.length - 12} 年</span>}
+          </div>
+        </details>
+      )}
+
+      {/* 五行旺衰 */}
       {ws && typeof ws === 'object' && (
         <div className="kv-row">
           {Object.entries(ws).slice(0, 5).map(([k, v]) => (
-            <Tag key={k} tone="jade">{s(k)} {s(v)}</Tag>
+            <Tag key={k} tone={WX_COLOR[k] ?? 'jade'}>{s(k)} {s(v)}</Tag>
           ))}
         </div>
       )}
-      {data?.analysis && <p className="note">{s(data.analysis).slice(0, 80)}</p>}
     </div>
   );
 }

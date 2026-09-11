@@ -9,7 +9,8 @@
  */
 
 import type { BirthProfile, CalculateResult, Question } from './core';
-import { aggregateConsensus, synthesizeReport } from './core';
+import { loadCore } from './loadCore';
+import type { StoredOutcome } from './reflection';
 
 export interface SavedReading {
   id: string;
@@ -20,17 +21,34 @@ export interface SavedReading {
   seed: number;
   result: CalculateResult;
   topicLabel: string;
+  /** 收藏标记（评审 P1：历史记录支持标签/收藏，便于高频用户快速定位）。 */
+  favorite?: boolean;
+  /**
+   * 复盘结果。**仅本人可见**，随备份一起导出导入，平台不上传、不聚合。
+   * 见 reflection.ts 顶部关于「为什么不叫准确率」的说明。
+   */
+  outcome?: StoredOutcome;
 }
 
 const KEY = 'xuanlan.history.v1';
 const MAX = 50;
+export const SCHEMA_VERSION = 1;
+
+/**
+ * 旧数据兼容：老版本没有 favorite 字段，缺失时补默认 false。
+ * 评审曾指出 localStorage 无版本控制，未来 SavedReading 结构变化时，
+ * 这里集中做字段迁移，保证旧记录不静默失效。
+ */
+export function migrate(list: unknown): SavedReading[] {
+  if (!Array.isArray(list)) return [];
+  return list.map((r: any) => ({ ...r, favorite: !!r?.favorite, outcome: r?.outcome ?? undefined }));
+}
 
 export function loadHistory(): SavedReading[] {
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return [];
-    const arr = JSON.parse(raw);
-    return Array.isArray(arr) ? (arr as SavedReading[]) : [];
+    return migrate(JSON.parse(raw));
   } catch {
     return [];
   }
@@ -75,6 +93,73 @@ export function newReadingId(): string {
   }
 }
 
+/** 切换收藏标记，返回更新后的列表（写入 localStorage）。 */
+export function toggleFavorite(id: string): SavedReading[] {
+  const list = loadHistory().map((r) => (r.id === id ? { ...r, favorite: !r.favorite } : r));
+  try {
+    localStorage.setItem(KEY, JSON.stringify(list));
+  } catch {
+    /* ignore */
+  }
+  return list;
+}
+
+/**
+ * 写入 / 清除一条复盘。传 null 表示撤销标注。
+ *
+ * 注意 resolvedAt 由调用方传入而非内部 new Date()：内核禁 Date.now 是为了
+ * 可复现，这里是为了让「多久之后回来复盘」这件事可被测试与回放。
+ */
+export function setOutcome(id: string, outcome: StoredOutcome | null): SavedReading[] {
+  const list = loadHistory().map((r) => (r.id === id ? { ...r, outcome: outcome ?? undefined } : r));
+  try {
+    localStorage.setItem(KEY, JSON.stringify(list));
+  } catch {
+    /* ignore */
+  }
+  return list;
+}
+
+/** 全量导出为 JSON 备份（含 schemaVersion，便于跨设备/跨版本恢复）。 */
+export function exportAllJson(history: SavedReading[]): string {
+  return JSON.stringify(
+    { schemaVersion: SCHEMA_VERSION, exportedAt: new Date().toISOString(), readings: history },
+    null,
+    2
+  );
+}
+
+/**
+ * 导入备份 JSON，与现有记录按 id 去重合并。
+ * 返回合并后的完整列表与统计，供 UI 提示「新增 N / 跳过 M」。
+ */
+export function importBackup(json: string): { list: SavedReading[]; added: number; skipped: number } {
+  const data = JSON.parse(json);
+  const incoming: SavedReading[] = Array.isArray(data) ? data : (data?.readings ?? []);
+  if (!Array.isArray(incoming)) throw new Error('备份格式无法识别');
+  const existing = loadHistory();
+  const seen = new Set(existing.map((r) => r.id));
+  const merged = [...existing];
+  let added = 0;
+  let skipped = 0;
+  for (const r of incoming) {
+    if (!r?.id) continue;
+    if (seen.has(r.id)) {
+      skipped++;
+      continue;
+    }
+    merged.push(migrate([r])[0]);
+    added++;
+  }
+  const trimmed = merged.slice(0, MAX);
+  try {
+    localStorage.setItem(KEY, JSON.stringify(trimmed));
+  } catch {
+    /* ignore */
+  }
+  return { list: trimmed, added, skipped };
+}
+
 const TOPIC_LABELS: Record<string, string> = {
   general: '综合',
   career: '事业',
@@ -86,10 +171,16 @@ const TOPIC_LABELS: Record<string, string> = {
   relationship: '人际',
 };
 
-/** 把一条记录渲染成自包含的 Markdown 长文（含共识 + 综合解读 + 各体系要点 + 诚实边界） */
-export function readingToMarkdown(r: SavedReading): string {
+/**
+ * 把一条记录渲染成自包含的 Markdown 长文（含共识 + 综合解读 + 各体系要点 + 诚实边界）。
+ *
+ * 异步：合成报告要用到内核，而内核是懒加载的。导出是低频操作，
+ * 等一次动态 import 完全可接受 —— 换来的是首屏不背这 1.6MB。
+ */
+export async function readingToMarkdown(r: SavedReading): Promise<string> {
+  const { aggregateConsensus, synthesizeReport } = await loadCore();
   const consensus = aggregateConsensus(r.result.charts.flatMap((c) => c.assertions));
-  const report = synthesizeReport(r.result, consensus, (r.question?.topicId as any) ?? 'general');
+  const report = synthesizeReport(r.result, consensus, { topic: r.question?.topicId, question: r.question?.text });
 
   const lines: string[] = [];
   lines.push(`# 玄览 · 综合解读报告`);

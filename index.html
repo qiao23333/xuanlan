@@ -2,9 +2,44 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="玄览 · 术数聚合平台 —— 一次输入，八大体系并排推演；内核严肃，外壳科普。" />
-    <title>玄览 · 术数聚合</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="玄览 · 术数聚合平台 —— 一次输入，八字·紫微·奇门·六壬·梅花·占星·塔罗八大体系并排推演，六轴共识交叉验证；确定性内核，结果可复现、可溯源。" />
+    <meta name="theme-color" content="#0a0e1a" />
+    <meta name="color-scheme" content="dark light" />
+
+    <!-- 首屏防闪：在 CSS/JS 加载前确定主题，避免浅色模式刷新时闪一下暗色 -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('xuanlan.theme');
+          if (t !== 'light' && t !== 'dark') t = 'dark';
+          document.documentElement.setAttribute('data-theme', t);
+          var meta = document.querySelector('meta[name=theme-color]');
+          if (meta) meta.setAttribute('content', t === 'light' ? '#f3ecdd' : '#0a0e1a');
+        } catch (e) {}
+      })();
+    </script>
+
+    <!-- 中文衬线/无衬线（展示级字体；离线时由 CSS 系统字体兜底） -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap"
+    />
+
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" type="image/svg+xml" href="./icon.svg" />
+    <title>玄览 · 八顾问合议 —— 术数聚合推演</title>
+
+    <!-- 社交分享预览卡（微信 / Telegram / Twitter 等） -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="玄览" />
+    <meta property="og:title" content="玄览 · 八顾问合议" />
+    <meta property="og:description" content="八大术数体系并排推演同一问题，六轴共识告诉你它们想到一块没有。确定性内核：同一输入永远同一输出，分享链接可逐字回放。" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="玄览 · 八顾问合议" />
+    <meta name="twitter:description" content="八字·紫微·奇门·六壬·梅花·占星·塔罗同台交叉验证，结果可复现可溯源。" />
   </head>
   <body>
     <div id="root"></div>

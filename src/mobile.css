@@ -1,0 +1,351 @@
+/* ============================================================
+   v0.9 —— 移动端信息架构 · 桌面端适配 · 触控与动效升级
+   断点统一：  ≥1024 桌面 ｜ 768–1023 平板 ｜ <768 手机
+   （本文件在 styles.css 之后加载，同特异性下覆盖前者）
+   ============================================================ */
+
+/* ============================================================
+   1. 滚动进入视口渐显（照参考图 3 的 Motion System）
+   ============================================================ */
+html.js-reveal .reveal {
+  opacity: 0;
+  transform: translateY(20px);
+}
+html.js-reveal .reveal.is-in {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.68s cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 0.68s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+/* reveal 元素交给 IO 控制，关掉旧的入场动画避免打架 */
+html.js-reveal .results > .reveal,
+html.js-reveal .so-detail.reveal,
+html.js-reveal .history > .reveal {
+  animation: none !important;
+}
+
+/* 锚点跳转 / scrollIntoView 时留出吸附栏高度，避免标题被盖住 */
+.results > *,
+.history,
+.sys-overview,
+.so-detail,
+.topic-path {
+  scroll-margin-top: 64px;
+}
+
+/* ============================================================
+   2. 移动端底部主导航（桌面端隐藏）
+   ============================================================ */
+.mtb { display: none; }
+
+/* ============================================================
+   3. 手机端（<768）
+   ============================================================ */
+@media (max-width: 767.98px) {
+  /* ---------- 3.1 底部 Tab Bar ---------- */
+  .mtb {
+    display: block;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 70;
+    padding: 4px 8px calc(4px + env(safe-area-inset-bottom, 0px));
+    background: linear-gradient(
+      180deg,
+      transparent 0,
+      color-mix(in srgb, var(--bg) 86%, transparent) 26%,
+      color-mix(in srgb, var(--bg) 97%, transparent) 100%
+    );
+    backdrop-filter: blur(20px) saturate(1.25);
+    -webkit-backdrop-filter: blur(20px) saturate(1.25);
+    border-top: 1px solid color-mix(in srgb, var(--gold) 14%, transparent);
+  }
+  .mtb-inner {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    max-width: 560px;
+    margin: 0 auto;
+  }
+  .mtb-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 8px 2px 7px;
+    background: none;
+    border: none;
+    border-radius: 14px;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: inherit;
+    -webkit-tap-highlight-color: transparent;
+    transition: color 0.22s ease, background 0.22s ease, transform 0.16s ease;
+  }
+  .mtb-ico { display: block; line-height: 0; transition: transform 0.3s cubic-bezier(0.22, 0.61, 0.36, 1); }
+  .mtb-txt { font-size: 10.5px; letter-spacing: 0.1em; line-height: 1; }
+  .mtb-item.is-active { color: var(--gold); }
+  .mtb-item.is-active .mtb-ico {
+    transform: translateY(-1px) scale(1.08);
+    filter: drop-shadow(0 0 9px color-mix(in srgb, var(--gold) 58%, transparent));
+  }
+  .mtb-item.is-active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 20px;
+    height: 2px;
+    border-radius: 2px;
+    transform: translateX(-50%);
+    background: var(--gold);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--gold) 75%, transparent);
+  }
+  .mtb-item:active { transform: scale(0.94); }
+
+  /* 有底部导航时预留空间 */
+  .app.has-mtb { padding-bottom: calc(86px + env(safe-area-inset-bottom, 0px)); }
+
+  /* 锚点在手机端留出更矮的吸附栏高度 */
+  .results > *,
+  .history,
+  .sys-overview,
+  .so-detail { scroll-margin-top: 56px; }
+
+  /* 刘海屏安全区：顶部别被状态栏压住 */
+  .nav { padding-top: calc(8px + env(safe-area-inset-top, 0px)); }
+
+  /* ---------- 3.2 顶栏：单行横滑，主题开关常驻右侧 ---------- */
+  .nav {
+    margin: -18px -14px 14px;
+    padding: 8px 14px;
+    gap: 2px;
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    /* 提高不透明度：滚动时内容从吸附栏下方穿过，太透会显脏 */
+    background: color-mix(in srgb, var(--bg) 94%, transparent);
+    border-bottom-color: color-mix(in srgb, var(--gold) 12%, transparent);
+  }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav-brand { font-size: 17px; letter-spacing: 3px; padding-right: 8px; flex: none; }
+  .nav-item { flex: none; font-size: 12.5px; padding: 6px 11px; }
+  .nav .theme-toggle {
+    position: sticky;
+    right: 0;
+    margin-left: auto;
+    flex: none;
+    padding: 5px 10px;
+    background: color-mix(in srgb, var(--bg) 90%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  /* ---------- 3.3 容器与排印 ---------- */
+  .app { padding: 18px 14px 34px; max-width: 100%; }
+  /* 移动端已有顶部品牌 + 底部导航，隐藏重复的页面大标题以省出首屏空间 */
+  .hero { display: none; }
+  .disclaimer {
+    font-size: 11px;
+    line-height: 1.65;
+    padding: 10px 12px;
+    border-radius: 14px;
+    margin: 0 0 12px;
+  }
+  .readonly-banner { flex-direction: column; align-items: flex-start; gap: 10px; font-size: 12px; padding: 12px 13px; }
+  .readonly-banner .btn-gold { width: 100%; justify-content: center; }
+
+  /* ---------- 3.4 结果页 ---------- */
+  .results { margin-top: 16px; display: flex; flex-direction: column; gap: 14px; }
+  .result-head { flex-direction: column; align-items: stretch; gap: 10px; }
+  .result-head h2 { font-size: 20px; letter-spacing: 2px; }
+  .result-head-actions {
+    width: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 8px;
+    padding-bottom: 3px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .result-head-actions::-webkit-scrollbar { display: none; }
+  .result-head-actions > * { flex: none; }
+
+  /* 生辰条 */
+  .profile-bar { flex-wrap: wrap; gap: 6px 10px; padding: 11px 13px; font-size: 12px; border-radius: 16px; }
+  .pb-topic { flex-basis: 100%; order: 5; opacity: 0.9; }
+  .pb-reroll { margin-left: auto; }
+
+  /* 结论卡 */
+  .result-summary { padding: 16px 15px; border-radius: 18px; }
+  .rs-headline { font-size: 17px; line-height: 1.55; }
+
+  /* 六大维度：3 列 */
+  .dg-grid { grid-template-columns: repeat(3, 1fr); gap: 10px 2px; }
+  .dg-item { padding: 10px 2px 8px; }
+  .dg-item svg { width: 72px; height: 72px; }
+  .dg-label { font-size: 12px; }
+  .dg-head-row { flex-wrap: wrap; gap: 4px 8px; }
+  .dg-sub { flex-basis: 100%; }
+
+  /* 对齐度：双卡转纵向 */
+  .al-body { flex-direction: column; align-items: stretch; gap: 16px; }
+  .al-donut-wrap { align-self: center; }
+  .al-legend { width: 100%; }
+
+  /* 体系卡横滑：一屏约 1.8 张，露出下一张提示可滑 */
+  .so-scroll { gap: 10px; padding: 2px 2px 12px; }
+  .so-card { flex: 0 0 156px; padding: 13px 12px; }
+  .so-detail { padding: 15px 13px; border-radius: 18px; }
+  .so-detail-body { flex-direction: column; gap: 14px; }
+  .so-detail-head { flex-wrap: wrap; gap: 6px 8px; }
+
+  .card, .xl-card, .panel, .history, .consensus, .synthesis { border-radius: 18px; }
+  .wall { grid-template-columns: 1fr; }
+
+  /* 综合报告 / 长文本可读性 */
+  .syn-body, .report-body { font-size: 13.5px; line-height: 1.85; }
+
+  /* ---------- 3.5 输入页 ---------- */
+  /* 表单自带的顶栏与全局导航 / 底部 Tab 重复：移动端只留「页码 + 品牌」 */
+  .f2-header { padding: 2px 0 0; }
+  .f2-header .f2-nav,
+  .f2-header .f2-header-right { display: none; }
+  .f2-header .f2-logo { font-size: 14px; letter-spacing: 0.24em; }
+
+  .f2-main { padding: 12px 0 22px; gap: 14px; max-width: 100%; }
+  .f2-card { padding: 16px 14px; border-radius: 18px; }
+  .f2-title { font-size: 19px; letter-spacing: 3px; }
+  .f2-calendar-toggle, .f2-gender-toggle { width: 100%; display: flex; }
+  .f2-toggle-btn, .f2-gender-btn { flex: 1; padding: 9px 0; text-align: center; }
+  .f2-submit, .f2-back { width: 100%; max-width: none; justify-content: center; }
+  .f2-submit { padding: 13px 0; min-height: 46px; }
+  .f2-actions-row { flex-direction: column-reverse; gap: 10px; }
+  .f2-custom-coords { grid-template-columns: 1fr 1fr; }
+
+  /* 日期 / 时间行：按内容比例分配，年份不再被截断 */
+  .f2-date-row { flex-wrap: nowrap; gap: 5px; }
+  .f2-date-row .f2-input-sm { width: auto; flex: 1 1 0; min-width: 0; text-align: center; }
+  .f2-date-row .f2-input-sm:first-of-type { flex: 1.45 1 0; }
+  .f2-date-row .f2-sep { flex: none; }
+  .f2-time-wrap { gap: 4px; }
+  .f2-time-wrap .f2-input-sm { width: auto; flex: 1 1 0; min-width: 0; text-align: center; }
+
+  /* 触控命中：输入控件不低于 44px */
+  .f2-input, .f2-select, .f2-textarea { min-height: 46px; font-size: 15px; }
+  .f2-topic-chip { padding: 9px 15px; font-size: 13.5px; }
+
+  /* 两步向导步骤条 */
+  .f2-steps, .form-steps { gap: 8px; }
+
+  /* ---------- 3.6 历史 ---------- */
+  .history { padding: 15px 13px; }
+  .history-head, .hi-top { flex-wrap: wrap; gap: 8px; }
+  .history-item-head { flex-wrap: wrap; gap: 6px; }
+
+  /* ---------- 3.7 底部信息 ---------- */
+  .app-foot { flex-wrap: wrap; gap: 4px 8px; font-size: 11px; padding: 14px 2px 6px; line-height: 1.7; }
+}
+
+/* ============================================================
+   4. Landing 手机端专项（沉浸式，无底部导航）
+   ============================================================ */
+@media (max-width: 767.98px) {
+  .landing-v2 { padding: 0; }
+  .l2-header {
+    padding: calc(14px + env(safe-area-inset-top, 0px)) 16px 0;
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+  .l2-header-right { display: none; }
+  .l2-nav { order: 3; flex-basis: 100%; justify-content: center; gap: 4px; }
+  .l2-nav-link { font-size: 11.5px; }
+  .l2-logo { font-size: 15px; letter-spacing: 0.24em; }
+
+  .l2-hero { padding: 18px 16px 26px; gap: 6px; }
+  .l2-taiji-wrap { margin-bottom: 6px; }
+  .l2-taiji-wrap svg { width: min(66vw, 268px) !important; height: auto !important; }
+  .l2-title { font-size: 34px; letter-spacing: 0.34em; }
+  .l2-tagline { font-size: 13.5px; letter-spacing: 0.16em; }
+  .l2-subtitle { font-size: 12.5px; letter-spacing: 0.14em; }
+  .l2-systems-badge { font-size: 11.5px; padding: 6px 14px; margin-top: 12px; }
+  .l2-system-list { font-size: 11px; line-height: 1.9; letter-spacing: 0.1em; padding: 0 6px; }
+  /* CTA 撑满一栏：父容器是 shrink-to-fit，必须先撑开 */
+  .l2-actions { width: 100%; display: flex; justify-content: center; }
+  .l2-enter-btn { width: 100%; max-width: 300px; justify-content: center; padding: 14px 0; font-size: 15px; min-height: 48px; }
+  .l2-action-hint { font-size: 11.5px; letter-spacing: 0.22em; }
+  .l2-case-link { font-size: 12px; }
+
+  .l2-footer {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    text-align: center;
+    padding: 14px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+  .l2-footer-brand, .l2-footer-brand-right { align-items: center; }
+}
+
+/* ============================================================
+   5. 平板（768–1023）：两栏收一栏，卡片放宽
+   ============================================================ */
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  .app { max-width: 880px; padding: 24px 20px 60px; }
+  .dg-grid { grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .al-body { gap: 18px; }
+  .wall { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+  .f2-main { max-width: 620px; }
+}
+
+/* ============================================================
+   6. 桌面端（≥1024）：放宽节奏 + 提升质感
+   ============================================================ */
+@media (min-width: 1024px) {
+  .app { max-width: 1260px; padding: 30px 26px 84px; }
+  .results { margin-top: 30px; }
+
+  /* 卡片悬停：轻微浮起 + 金色柔光（触控设备无 hover 干扰） */
+  .xl-card, .panel, .history, .so-card {
+    transition: transform 0.24s cubic-bezier(0.22, 0.61, 0.36, 1), box-shadow 0.24s ease, border-color 0.24s ease;
+  }
+  .xl-card:hover, .history:hover {
+    border-color: color-mix(in srgb, var(--gold) 34%, transparent);
+    box-shadow: 0 14px 40px color-mix(in srgb, #000 26%, transparent),
+                0 0 0 1px color-mix(in srgb, var(--gold) 12%, transparent);
+  }
+  /* 八大体系卡：悬停放大一点，暗示可点 */
+  .so-card:hover { transform: translateY(-3px) scale(1.015); }
+
+  /* 桌面端维度环更大更清晰 */
+  .dg-item svg { width: 92px; height: 92px; }
+  .dg-grid { gap: 16px; }
+}
+
+/* 超宽屏：给内容更多呼吸，但不超过舒适阅读宽度 */
+@media (min-width: 1600px) {
+  .app { max-width: 1340px; }
+}
+
+/* ============================================================
+   7. 移动浏览器视口高度（地址栏收缩导致的 100vh 抖动）
+   ============================================================ */
+@supports (min-height: 100dvh) {
+  .landing-v2, .form-v2 { min-height: 100dvh; }
+}
+
+/* ============================================================
+   8. 无障碍：减少动态时全部直出
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  html.js-reveal .reveal,
+  html.js-reveal .reveal.is-in {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .mtb-item .mtb-ico { transition: none !important; }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "玄览 · 八顾问合议",
+  "short_name": "玄览",
+  "description": "八大术数体系并排推演同一问题，六轴共识交叉验证；确定性内核，结果可复现可溯源，全本地计算。",
+  "lang": "zh-CN",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#14101c",
+  "theme_color": "#14101c",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

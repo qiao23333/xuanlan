@@ -135,6 +135,81 @@ export const LIUREN_GOLDEN: LiurenCase[] = [
   },
 ];
 
+/**
+ * 紫微本命盘黄金用例。
+ *
+ * 2026-09-04 实测（降载后）：本平台只消费本命盘（astrolabe.palaces），
+ * 故只锁定「有人消费」的三个字段：
+ * - 命宫地支：决定整盘排布的锚点，最具区分度
+ * - 命宫主星（含亮度）：解读层判断格局与吉凶的输入
+ * - 命宫大限起运：解读层定位「当前大限」的输入
+ *
+ * 「早子时」样本命宫无主星 —— 这是紫微的**空宫**现象（须借对宫安星），
+ * 不是 bug，保留它正是为了让这条边界永远有回归保护。
+ */
+export interface ZiweiCase {
+  tag: string;
+  profile: BirthProfile;
+  algorithm?: 'default' | 'zhongzhou';
+  /** 命宫地支 */
+  expectedMingBranch: string;
+  /** 命宫主星，含亮度，如 '紫微(得)'。空数组 = 空宫 */
+  expectedMingStars: string[];
+  /** 命宫大限起运年龄段 */
+  expectedMingDecadal: [number, number];
+}
+
+export const ZIWEI_GOLDEN: ZiweiCase[] = [
+  {
+    tag: '北京 1990-05-15 14:30',
+    profile: mk(1990, 5, 15, 14, 30, 116.41, 39.9),
+    expectedMingBranch: '戌',
+    expectedMingStars: ['紫微(得)', '天相(得)'],
+    expectedMingDecadal: [5, 14],
+  },
+  {
+    tag: '上海 1988-02-04 03:20（女）',
+    profile: { ...mk(1988, 2, 4, 3, 20, 121.47, 31.23), gender: 'female' },
+    expectedMingBranch: '亥',
+    expectedMingStars: ['武曲(平)', '破军(平)'],
+    expectedMingDecadal: [4, 13],
+  },
+  {
+    tag: '广州 2000-12-31 23:59（早子时·空宫）',
+    profile: mk(2000, 12, 31, 23, 59, 113.26, 23.13),
+    expectedMingBranch: '丑',
+    expectedMingStars: [],
+    expectedMingDecadal: [6, 15],
+  },
+  {
+    tag: '1995-闰八月-初十 午时（农历闰月·女）',
+    profile: {
+      ...mk(1995, 8, 10, 12, 0, 116.41, 39.9),
+      gender: 'female',
+      calendarType: 'lunar',
+      isLeapMonth: true,
+    },
+    expectedMingBranch: '卯',
+    expectedMingStars: ['紫微(旺)', '贪狼(利)'],
+    expectedMingDecadal: [5, 14],
+  },
+  {
+    tag: '乌鲁木齐 1985-06-20 22:10（西部经度）',
+    profile: mk(1985, 6, 20, 22, 10, 87.6, 43.8),
+    expectedMingBranch: '未',
+    expectedMingStars: ['天梁(旺)'],
+    expectedMingDecadal: [3, 12],
+  },
+  {
+    tag: '1972-11-08 09:45（中州派·女）',
+    profile: { ...mk(1972, 11, 8, 9, 45, 116.41, 39.9), gender: 'female' },
+    algorithm: 'zhongzhou',
+    expectedMingBranch: '午',
+    expectedMingStars: ['廉贞(平)', '天相(庙)'],
+    expectedMingDecadal: [2, 11],
+  },
+];
+
 /** 真太阳时边界：乌鲁木齐 23:30 应回退到 21:24:14 */
 export const TRUE_SOLAR_CASE = {
   profile: mk(1990, 5, 15, 23, 30, 87.62, 43.82, true),

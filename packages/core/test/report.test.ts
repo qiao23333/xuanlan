@@ -32,8 +32,12 @@ const consensus: Consensus[] = [
   },
 ];
 
+// 注意：第三参是 { topic, question } 对象，不是裸字符串。
+// 早期版本曾写成 synthesizeReport(result, consensus, 'career')，
+// 那会让 opts.topic 静默变成 undefined —— 测试看似通过，实则从未覆盖 topic。
 test('synthesizeReport 高共识给出「高度一致」头条', () => {
-  const r: SynthesisReport = synthesizeReport(result, consensus, 'career');
+  const r: SynthesisReport = synthesizeReport(result, consensus, { topic: 'career' });
+  assert.equal(r.topic, 'career', 'topic 必须透传到报告上');
   assert.ok(r.headline.includes('高度一致'), 'overall=0.75 应命中高共识分支');
   assert.equal(r.byAxis.length, 2);
   const firstAxis = r.byAxis[0];
@@ -43,6 +47,21 @@ test('synthesizeReport 高共识给出「高度一致」头条', () => {
   assert.equal(firstAxis.direction, 'positive');
   assert.equal(secondAxis.direction, 'negative');
   assert.equal(secondAxis.outliers[0], 'tarot');
+});
+
+test('synthesizeReport 回填用户原文问题', () => {
+  const r: SynthesisReport = synthesizeReport(result, consensus, {
+    topic: 'career',
+    question: '  今年该不该换工作  ',
+  });
+  assert.equal(r.question, '今年该不该换工作', '问题文本应去空白后回填');
+  assert.ok(r.sensitivityNote?.includes('已注入'), '填写问题时应说明问题已注入卜卦类体系');
+});
+
+test('synthesizeReport 未填问题时给出降级说明', () => {
+  const r: SynthesisReport = synthesizeReport(result, consensus, { topic: 'career' });
+  assert.equal(r.question, undefined);
+  assert.ok(r.sensitivityNote?.includes('未填写具体问题'), '未填问题时应说明卜卦类按当前时刻起局');
 });
 
 test('synthesizeReport 抽取各体系要点并保留诚实边界', () => {

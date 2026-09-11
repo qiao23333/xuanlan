@@ -34,7 +34,7 @@ export function SynthesisReport({ report, topic }: { report: Report; topic?: str
       for (const p of s.points) lines.push(`  ${p}`);
     }
     lines.push('');
-    lines.push('—— 诚实边界 ——');
+    lines.push('—— 各体系的局限与说明 ——');
     for (const c of report.caveats) lines.push(`· ${c}`);
     return lines.join('\n');
   }, [report, topicLabel]);
@@ -84,8 +84,8 @@ export function SynthesisReport({ report, topic }: { report: Report; topic?: str
       )}
 
       {report.perSystem.length > 0 && (
-        <div className="syn-section">
-          <div className="syn-sub">各体系要点</div>
+        <details className="syn-details">
+          <summary className="syn-sub">各体系要点（{report.perSystem.length} 套 · 点击展开）</summary>
           <div className="syn-systems">
             {report.perSystem.map((s) => (
               <div className="syn-sys" key={s.systemId}>
@@ -98,12 +98,13 @@ export function SynthesisReport({ report, topic }: { report: Report; topic?: str
               </div>
             ))}
           </div>
-        </div>
+        </details>
       )}
 
       <div className="syn-caveats">
+        <div className="syn-caveats-head">各体系的局限与说明</div>
         {report.caveats.map((c, i) => (
-          <div key={i}>⚠ {c}</div>
+          <div key={i} className="syn-caveat">{c}</div>
         ))}
       </div>
     </section>

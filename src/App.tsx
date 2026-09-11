@@ -1,100 +1,42 @@
 import React, { useState, useMemo } from 'react';
-import {
-  calculateAll,
-  createSeededRandom,
-  aggregateConsensus,
-  synthesizeReport,
-  hashObject,
-  SYSTEM_META,
-  listSystemMeta,
-  type BirthProfile,
-  type SchoolConfig,
-  type Question,
-  type DateTimeParts,
-  type TopicId,
-  type CalculateResult,
-  type SystemId,
-  type Consensus,
+import type {
+  BirthProfile,
+  Question,
+  DateTimeParts,
+  CalculateResult,
+  Consensus,
 } from './core';
-import { SystemRenderer, JsonView } from './renderers';
-import { ConsensusDashboard } from './ConsensusDashboard';
-import { SynthesisReport } from './SynthesisReport';
-import { InterpretationBlock } from './Interpretation';
-import { HistoryPanel } from './HistoryPanel';
+import { loadCore, type Core } from './loadCore';
 import { Landing, TaijiRing } from './Landing';
 import { CaseStudy } from './CaseStudy';
+import { HistoryPanel } from './HistoryPanel';
+import DivinationForm, { type AppForm, defaultForm, buildSchoolConfig } from './features/form/DivinationForm';
+import ResultsView from './features/results/ResultsView';
+import { ShareCard } from './ShareCard';
+import { parseShareFromHash, type ShareDoc } from './share';
+import { ErrorBoundary } from './ErrorBoundary';
+import { GlossaryModal } from './GlossaryModal';
+import { ConsentGate, PrivacyModal, hasConsented } from './Legal';
+import { Onboarding, hasOnboarded } from './Onboarding';
+import { ThemeToggle } from './ThemeToggle';
+import { MobileTabBar, type MobileTab } from './MobileTabBar';
+import { useRevealOnScroll } from './useReveal';
 import {
   loadHistory,
   saveReading,
   deleteReading,
   clearHistory,
   newReadingId,
-  readingToMarkdown,
+  toggleFavorite,
+  setOutcome,
+  exportAllJson,
+  importBackup,
   downloadText,
-  safeFileName,
   TOPIC_LABELS,
   type SavedReading,
 } from './history';
 
-/* ───────────── 预设城市（用于真太阳时/星盘坐标） ───────────── */
-const CITIES = [
-  { name: '北京', longitude: 116.41, latitude: 39.9, timezone: 8 },
-  { name: '上海', longitude: 121.47, latitude: 31.23, timezone: 8 },
-  { name: '广州', longitude: 113.26, latitude: 23.13, timezone: 8 },
-  { name: '成都', longitude: 104.07, latitude: 30.57, timezone: 8 },
-  { name: '乌鲁木齐', longitude: 87.62, latitude: 43.82, timezone: 8 },
-  { name: '纽约', longitude: -74.0, latitude: 40.71, timezone: -5 },
-];
-
-const TOPICS: Array<{ id: TopicId; label: string }> = [
-  { id: 'general', label: '综合' },
-  { id: 'career', label: '事业' },
-  { id: 'romance', label: '感情' },
-  { id: 'money', label: '财运' },
-  { id: 'move', label: '出行/搬迁' },
-  { id: 'study', label: '学业' },
-  { id: 'health', label: '健康' },
-  { id: 'relationship', label: '人际' },
-];
-
-/* 把 { 'qimen.juMethod': 'chaibu' } 写回嵌套对象 */
-function buildSchoolConfig(flat: Record<string, string>): SchoolConfig {
-  const cfg: any = {};
-  for (const [key, val] of Object.entries(flat)) {
-    const parts = key.split('.');
-    let cur = cfg;
-    for (let i = 0; i < parts.length - 1; i++) {
-      cur[parts[i]] = cur[parts[i]] ?? {};
-      cur = cur[parts[i]];
-    }
-    cur[parts[parts.length - 1]] = val;
-  }
-  return cfg as SchoolConfig;
-}
-
-type AppForm = {
-  name: string;
-  gender: 'male' | 'female';
-  calendarType: 'solar' | 'lunar';
-  year: number;
-  month: number;
-  day: number;
-  hour: number;
-  minute: number;
-  useTimeIndex: boolean;
-  timeIndex: number;
-  city: string;
-  locName: string;
-  lng: number;
-  lat: number;
-  tz: number;
-  useTrueSolarTime: boolean;
-  applyChinaDst: boolean;
-  topic: TopicId;
-  qtext: string;
-};
-
-/** 表单 → 排盘用的 BirthProfile（handleSubmit 与导出当前记录共用，避免漂移） */
+/** 表单 → 排盘用的 BirthProfile */
 function buildProfile(form: AppForm): BirthProfile {
   return {
     name: form.name || undefined,
@@ -117,14 +59,12 @@ function buildProfile(form: AppForm): BirthProfile {
   };
 }
 
-/**
- * 起卦数：由「所问之事 + 主题 + 问事时刻」确定性导出（时刻精确到分，不含秒）。
- *
- * 这是卜卦类体系的命门：**同一问题同一时刻必然同一结果（可复现），
- * 问题变了或时刻变了则结果必变**。刻掉"秒"是为了让用户在同分钟内能重放验证。
- * 命盘类（八字/紫微/占星）不受此影响——它们只吃生辰，本就不该随问事时刻漂移。
- */
-function seedFromQuestion(text: string, topic: TopicId, askedAt: DateTimeParts): number {
+function seedFromQuestion(
+  hashObject: (o: unknown) => string,
+  text: string,
+  topic: string,
+  askedAt: DateTimeParts
+): number {
   const hex = hashObject({
     text: text.trim(),
     topic,
@@ -138,26 +78,11 @@ const nowParts = () => {
   return { year: d.getFullYear(), month: d.getMonth() + 1, day: d.getDate(), hour: d.getHours(), minute: d.getMinutes(), second: d.getSeconds() };
 };
 
+const APP_VERSION = '0.4.0';
+
 export default function App() {
-  const [form, setForm] = useState({
-    name: '',
-    gender: 'male' as 'male' | 'female',
-    calendarType: 'solar' as 'solar' | 'lunar',
-    year: 1990, month: 5, day: 15, hour: 14, minute: 30,
-    useTimeIndex: false, timeIndex: 7,
-    city: '北京', locName: '北京市', lng: 116.41, lat: 39.9, tz: 8,
-    useTrueSolarTime: false, applyChinaDst: false,
-    topic: 'general' as TopicId, qtext: '',
-  });
-  const [schools, setSchools] = useState<Record<string, string>>(() => {
-    const init: Record<string, string> = {};
-    for (const m of listSystemMeta()) {
-      for (const sc of m.schools) {
-        if (sc.switchable) init[sc.key] = sc.default;
-      }
-    }
-    return init;
-  });
+  const [form, setForm] = useState<AppForm>(defaultForm);
+  const [schools, setSchools] = useState<Record<string, string>>({});
   const [result, setResult] = useState<CalculateResult | null>(null);
   const [seed, setSeed] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
@@ -167,6 +92,18 @@ export default function App() {
   const [toast, setToast] = useState<string | null>(null);
   const [view, setView] = useState<'landing' | 'divination' | 'case'>('landing');
   const [seedMode, setSeedMode] = useState<'question' | 'random'>('random');
+  const [readOnly, setReadOnly] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  // 本次结果对应的问事时刻。分享链接必须携带它：时辰类体系（梅花/奇门等）
+  // 依赖 askedAt 计算，缺了它「逐字一致回放」就会破功。
+  const [askedAt, setAskedAt] = useState<DateTimeParts | null>(null);
+  // 内核是懒加载的（见 src/loadCore.ts）。core 一旦就绪便常驻，
+  // 供 consensus / report 派生与历史回放复用，避免重复下载。
+  const [core, setCore] = useState<Core | null>(null);
+  const [glossaryOpen, setGlossaryOpen] = useState(false);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [consentDone, setConsentDone] = useState<boolean>(() => hasConsented());
+  const [onboardOpen, setOnboardOpen] = useState<boolean>(() => !hasOnboarded());
 
   const flash = (msg: string) => {
     setToast(msg);
@@ -174,58 +111,63 @@ export default function App() {
   };
 
   const consensus: Consensus[] = useMemo(
-    () => (result ? aggregateConsensus(result.charts.flatMap((c) => c.assertions)) : []),
-    [result]
+    () => (result && core ? core.aggregateConsensus(result.charts.flatMap((c) => c.assertions)) : []),
+    [result, core]
   );
 
   const report = useMemo(
-    () => (result ? synthesizeReport(result, consensus, { topic: form.topic, question: form.qtext }) : null),
-    [result, consensus, form.topic, form.qtext]
+    () => (result && core ? core.synthesizeReport(result, consensus, { topic: form.topic, question: form.qtext }) : null),
+    [result, consensus, core, form.topic, form.qtext]
   );
 
-  const set = (patch: Partial<typeof form>) => setForm((f) => ({ ...f, ...patch }));
-
-  const switchableSchools = listSystemMeta().flatMap((m) =>
-    m.schools.filter((s) => s.switchable).map((s) => ({ systemId: m.id, ...s }))
-  );
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const runDivination = async (seedOverride?: number | null, save = true) => {
     setLoading(true);
     setError(null);
+    setReadOnly(false);
     try {
+      // 内核懒加载：首屏不背这 1.6MB，只有用户真正点「开始推演」才下载。
+      const core = await loadCore();
+      setCore(core);
       const profile: BirthProfile = buildProfile(form);
       const question: Question = {
         topicId: form.topic,
         text: form.qtext || undefined,
         askedAt: nowParts(),
       };
+      setAskedAt(question.askedAt);
       const hasQuestion = form.qtext.trim().length > 0;
-      const sd = hasQuestion
-        ? seedFromQuestion(form.qtext, form.topic, question.askedAt)
-        : Math.floor(Math.random() * 1e9);
+      const sd = seedOverride != null
+        ? seedOverride
+        : hasQuestion
+          ? seedFromQuestion(core.hashObject, form.qtext, form.topic, question.askedAt)
+          : Math.floor(Math.random() * 1e9);
       setSeed(sd);
-      setSeedMode(hasQuestion ? 'question' : 'random');
-      const random = createSeededRandom(sd) as any;
-      const res = await calculateAll(profile, {
+      setSeedMode(seedOverride != null ? 'random' : hasQuestion ? 'question' : 'random');
+      const random = core.createSeededRandom(sd) as any;
+      // 关键：塔罗的种子走 config.tarot.seed（底层库契约），必须显式注入，
+      // 否则所有人永远抽到同一副默认牌，「起卦数」就成了摆设。
+      const schoolCfg = buildSchoolConfig(schools) as Record<string, unknown>;
+      const res = await core.calculateAll(profile, {
         question,
-        config: buildSchoolConfig(schools),
+        config: { ...schoolCfg, tarot: { ...(schoolCfg.tarot as object | undefined), seed: sd } },
         random,
       });
       setResult(res);
-      const saved: SavedReading = {
-        id: newReadingId(),
-        savedAt: new Date().toISOString(),
-        profile,
-        schools: { ...schools },
-        question,
-        seed: sd,
-        result: res,
-        topicLabel: TOPIC_LABELS[form.topic] ?? form.topic,
-      };
-      const list = saveReading(saved);
-      setHistory(list);
-      flash(`已存入历史记录（共 ${list.length} 条）`);
+      if (save) {
+        const saved: SavedReading = {
+          id: newReadingId(),
+          savedAt: new Date().toISOString(),
+          profile,
+          schools: { ...schools },
+          question,
+          seed: sd,
+          result: res,
+          topicLabel: TOPIC_LABELS[form.topic] ?? form.topic,
+        };
+        const list = saveReading(saved);
+        setHistory(list);
+        flash(`已存入历史记录（共 ${list.length} 条）`);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -233,10 +175,23 @@ export default function App() {
     }
   };
 
-  const fmtTime = (t?: { year: number; month: number; day: number; hour: number; minute: number; second: number }) =>
-    t ? `${t.year}-${String(t.month).padStart(2, '0')}-${String(t.day).padStart(2, '0')} ${String(t.hour).padStart(2, '0')}:${String(t.minute).padStart(2, '0')}` : '—';
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    runDivination(null, true);
+  };
 
-  const restoreReading = (r: SavedReading) => {
+  // 换一卦：新的随机起卦数 + 当前问事时刻重算，视作一次新的卜问。
+  // 命盘类体系（八字/紫微）依生辰而定，重抽不变属正常玄学行为；
+  // 卜卦类（梅花/塔罗/六壬/奇门）随起卦数与时辰变化，会给出新的视角。
+  const reroll = () => {
+    runDivination(Math.floor(Math.random() * 1e9), false);
+    flash('已换一卦 · 视作一次新的卜问');
+  };
+
+  const restoreReading = async (r: SavedReading) => {
+    // 回放历史也需要内核来重算共识 / 综合报告，先把内核按需拉起来。
+    const core = await loadCore();
+    setCore(core);
     const p = r.profile;
     setForm((f) => ({
       ...f,
@@ -257,35 +212,111 @@ export default function App() {
       tz: p.location?.timezone ?? f.tz,
       useTrueSolarTime: !!p.useTrueSolarTime,
       applyChinaDst: !!p.applyChinaDst,
-      topic: (r.question?.topicId ?? 'general') as TopicId,
+      topic: (r.question?.topicId ?? 'general') as AppForm['topic'],
       qtext: r.question?.text ?? '',
     }));
     setSchools({ ...r.schools });
     setResult(r.result);
     setSeed(r.seed);
+    setAskedAt(r.question?.askedAt ?? null);
     setShowRaw({});
     flash('已载入历史记录');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const exportCurrent = () => {
-    if (!result || seed == null) return;
-    const r: SavedReading = {
-      id: newReadingId(),
-      savedAt: new Date().toISOString(),
-      profile: buildProfile(form),
-      schools: { ...schools },
-      question: { topicId: form.topic, text: form.qtext || undefined, askedAt: nowParts() },
-      seed,
-      result,
-      topicLabel: TOPIC_LABELS[form.topic] ?? form.topic,
-    };
-    downloadText(`${safeFileName(form.name || '玄览')}-${seed}.md`, readingToMarkdown(r));
-    flash('已导出 Markdown');
+  // 打开带 #/r= 的只读分享链接时：填充生辰与所问、按相同种子重算、进入只读模式。
+  React.useEffect(() => {
+    let cancelled = false;
+    const doc = parseShareFromHash();
+    if (!doc) return;
+    (async () => {
+      try {
+        const core = await loadCore();
+        if (cancelled) return;
+        setCore(core);
+        setForm((f) => ({
+          ...f,
+          name: doc.name ?? '',
+          gender: doc.gender,
+          calendarType: doc.calendarType,
+          year: doc.year, month: doc.month, day: doc.day,
+          hour: doc.hour, minute: doc.minute,
+          useTimeIndex: doc.useTimeIndex, timeIndex: doc.timeIndex,
+          city: doc.locName, locName: doc.locName,
+          lng: doc.lng, lat: doc.lat, tz: doc.tz,
+          useTrueSolarTime: !!doc.useTrueSolarTime,
+          applyChinaDst: !!doc.applyChinaDst,
+          topic: doc.topic as AppForm['topic'],
+          qtext: doc.qtext,
+        }));
+        setSchools({ ...doc.schools });
+        const profile = buildProfile({
+          ...defaultForm,
+          name: doc.name ?? '', gender: doc.gender, calendarType: doc.calendarType,
+          year: doc.year, month: doc.month, day: doc.day,
+          hour: doc.hour, minute: doc.minute,
+          useTimeIndex: doc.useTimeIndex, timeIndex: doc.timeIndex,
+          locName: doc.locName, lng: doc.lng, lat: doc.lat, tz: doc.tz,
+          useTrueSolarTime: !!doc.useTrueSolarTime, applyChinaDst: !!doc.applyChinaDst,
+          topic: doc.topic as AppForm['topic'], qtext: doc.qtext,
+        } as AppForm);
+        const question = { topicId: doc.topic as AppForm['topic'], text: doc.qtext || undefined, askedAt: doc.askedAt };
+        const random = core.createSeededRandom(doc.seed) as any;
+        // 与提交路径完全一致：种子必须注入 config.tarot.seed，保证回放逐字一致。
+        const replayCfg = buildSchoolConfig(doc.schools || {}) as Record<string, unknown>;
+        const res = await core.calculateAll(profile, {
+          question,
+          config: { ...replayCfg, tarot: { ...(replayCfg.tarot as object | undefined), seed: doc.seed } },
+          random,
+        });
+        if (cancelled) return;
+        setResult(res);
+        setSeed(doc.seed);
+        setSeedMode(doc.seedMode);
+        setAskedAt(doc.askedAt);
+        setReadOnly(true);
+        setView('divination');
+      } catch {
+        /* 分享链接损坏：静默退回首页 */
+      }
+    })();
+    return () => { cancelled = true; };
+    // 仅挂载时执行一次
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const exitReadOnly = () => {
+    // 清除哈希，避免刷新后再次进入只读
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+    setReadOnly(false);
+    setResult(null);
+    setSeed(null);
+    setView('landing');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // ── 移动端底部导航：view ↔ tab 双向映射 ──
+  const activeTab: MobileTab =
+    view === 'landing' ? 'explore' : view === 'case' ? 'case' : 'divination';
+
+  const handleTab = (t: MobileTab) => {
+    if (t === 'history') {
+      setView('divination');
+      window.setTimeout(() => {
+        document.querySelector('.history')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 80);
+      return;
+    }
+    const next = t === 'explore' ? 'landing' : t === 'case' ? 'case' : 'divination';
+    setView(next);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // 结果/详情区块进入视口时渐显
+  useRevealOnScroll(result);
+
   return (
-    <div className="app">
+    <div className={`app${view !== 'landing' ? ' has-mtb' : ''}`}>
       {view !== 'landing' && (
         <nav className="nav">
           <button className="nav-brand" type="button" onClick={() => setView('divination')}>
@@ -305,6 +336,16 @@ export default function App() {
           >
             项目故事
           </button>
+          <button className="nav-item" type="button" onClick={() => setGlossaryOpen(true)}>
+            术语
+          </button>
+          <button className="nav-item" type="button" onClick={() => setOnboardOpen(true)}>
+            引导
+          </button>
+          <button className="nav-item" type="button" onClick={() => setPrivacyOpen(true)}>
+            隐私
+          </button>
+          <ThemeToggle />
         </nav>
       )}
 
@@ -314,225 +355,90 @@ export default function App() {
 
       {view === 'divination' && (
         <>
-      <header className="hero">
-        <h1>玄览 · 术数聚合</h1>
-        <p className="tagline">一次输入，八大体系并排推演 · 内核严肃，外壳科普</p>
-      </header>
+          <header className="hero">
+            <h1>玄览 · 术数聚合</h1>
+            <p className="tagline">一次输入，八大体系并排推演 · 内核严肃，外壳科普</p>
+          </header>
 
-      <div className="disclaimer">
-        <strong>文化体验与科普声明：</strong>
-        本平台所有结果均由开源术数算法按古籍规则确定性计算，仅供文化体验与学习，<b>不构成任何人生、医疗、法律、投资建议</b>。
-        各体系源流、流派分歧与现代学界评价详见每套盘面的「科普」说明。命理预测之有效性尚无科学共识。
-      </div>
-
-      <form className="panel form" onSubmit={handleSubmit}>
-        <div className="form-grid">
-          <label>姓名（可选）<input value={form.name} onChange={(e) => set({ name: e.target.value })} placeholder="用于盘面署名" /></label>
-          <label>性别
-            <select value={form.gender} onChange={(e) => set({ gender: e.target.value as any })}>
-              <option value="male">男</option>
-              <option value="female">女</option>
-            </select>
-          </label>
-          <label>历法
-            <select value={form.calendarType} onChange={(e) => set({ calendarType: e.target.value as any })}>
-              <option value="solar">公历</option>
-              <option value="lunar">农历</option>
-            </select>
-          </label>
-          <label>出生年<input type="number" value={form.year} onChange={(e) => set({ year: +e.target.value })} /></label>
-          <label>月<input type="number" value={form.month} onChange={(e) => set({ month: +e.target.value })} /></label>
-          <label>日<input type="number" value={form.day} onChange={(e) => set({ day: +e.target.value })} /></label>
-          <label className="chk">
-            <input type="checkbox" checked={!form.useTimeIndex} onChange={(e) => set({ useTimeIndex: !e.target.checked })} />
-            精确到时分
-          </label>
-          {!form.useTimeIndex ? (
-            <>
-              <label>时<input type="number" value={form.hour} onChange={(e) => set({ hour: +e.target.value })} /></label>
-              <label>分<input type="number" value={form.minute} onChange={(e) => set({ minute: +e.target.value })} /></label>
-            </>
-          ) : (
-            <label>时辰(0子…11亥)<input type="number" min={0} max={12} value={form.timeIndex} onChange={(e) => set({ timeIndex: +e.target.value })} /></label>
-          )}
-        </div>
-
-        <div className="form-grid">
-          <label>出生地
-            <select value={form.city} onChange={(e) => {
-              const c = CITIES.find((x) => x.name === e.target.value);
-              set({ city: e.target.value, locName: c?.name ?? form.locName, lng: c?.longitude ?? form.lng, lat: c?.latitude ?? form.lat, tz: c?.timezone ?? form.tz });
-            }}>
-              {CITIES.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}
-              <option value="__custom">自定义</option>
-            </select>
-          </label>
-          {form.city === '__custom' && (
-            <>
-              <label>地名<input value={form.locName} onChange={(e) => set({ locName: e.target.value })} /></label>
-              <label>经度<input type="number" step="0.01" value={form.lng} onChange={(e) => set({ lng: +e.target.value })} /></label>
-              <label>纬度<input type="number" step="0.01" value={form.lat} onChange={(e) => set({ lat: +e.target.value })} /></label>
-              <label>时区偏移<input type="number" value={form.tz} onChange={(e) => set({ tz: +e.target.value })} /></label>
-            </>
-          )}
-        </div>
-
-        <div className="switch-row">
-          <label className="chk">
-            <input type="checkbox" checked={form.useTrueSolarTime} onChange={(e) => set({ useTrueSolarTime: e.target.checked })} />
-            启用真太阳时（东西部可差 2 小时以上，将改变日/时柱）
-          </label>
-          <label className="chk">
-            <input type="checkbox" checked={form.applyChinaDst} onChange={(e) => set({ applyChinaDst: e.target.checked })} />
-            中国夏令时修正（仅 1986–1991 年出生需要）
-          </label>
-        </div>
-
-        <div className="form-grid">
-          <label>所问之事
-            <select value={form.topic} onChange={(e) => set({ topic: e.target.value as any })}>
-              {TOPICS.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
-            </select>
-          </label>
-          <label className="span2">
-            具体问题
-            <span className="hint">
-              参与起卦：卜卦类（六壬/奇门/梅花/小六壬/塔罗）的结果由「问题 + 时刻」共同决定——换时间或换问题，卦就变；
-              命盘类（八字/紫微/占星）只吃生辰，不随问事时刻漂移，但流年大运按当前年份推。留空则随机起卦。
-            </span>
-            <input value={form.qtext} onChange={(e) => set({ qtext: e.target.value })} placeholder="例如：今年适合换工作吗？" />
-          </label>
-        </div>
-
-        {switchableSchools.length > 0 && (
-          <details className="schools">
-            <summary>流派开关（改变排盘结果，非展示偏好）</summary>
-            <div className="schools-grid">
-              {switchableSchools.map((sc) => (
-                <label key={sc.key + sc.systemId} className="school-item">
-                  <span className="school-label">{SYSTEM_META[sc.systemId as SystemId]?.name} · {sc.label}</span>
-                  <select value={schools[sc.key] ?? sc.default} onChange={(e) => setSchools((s) => ({ ...s, [sc.key]: e.target.value }))}>
-                    {sc.options.map((o) => <option key={o.value} value={o.value}>{o.label}{o.note ? `（${o.note}）` : ''}</option>)}
-                  </select>
-                </label>
-              ))}
-            </div>
-          </details>
-        )}
-
-        <button className="submit" type="submit" disabled={loading}>
-          {loading ? '推演中…' : '⚡ 一次排八大体系'}
-        </button>
-        {error && <div className="err">出错了：{error}</div>}
-      </form>
-
-      <HistoryPanel
-        history={history}
-        onRestore={restoreReading}
-        onDelete={(id) => setHistory(deleteReading(id))}
-        onClear={() => { setHistory(clearHistory()); flash('已清空历史记录'); }}
-      />
-
-      {result && (
-        <section className="results">
-          <div className="result-head">
-            <h2>推演结果</h2>
-            <div className="result-head-actions">
-              {seed != null && (
-                <span className="seed" title={seedMode === 'question' ? '起卦数由「所问之事 + 主题 + 问事时刻」哈希导出，同问题同时刻必然同结果' : '未填所问之事，采用随机起卦'}>
-                  {seedMode === 'question' ? '起卦数' : '随机种子'} {seed}
-                  {seedMode === 'question' ? '（随问题与时刻变化）' : '（可复现）'}
-                </span>
-              )}
-              <button className="btn-ghost" type="button" onClick={exportCurrent}>导出 Markdown</button>
-              <button className="btn-ghost" type="button" onClick={() => downloadText(`${safeFileName(form.name || '玄览')}-${seed}.json`, JSON.stringify(result, null, 2), 'application/json')}>导出 JSON</button>
-            </div>
+          <div className="disclaimer">
+            <strong>文化体验与科普声明：</strong>
+            本平台所有结果均由开源术数算法按古籍规则确定性计算，仅供文化体验与学习，<b>不构成任何人生、医疗、法律、投资建议</b>。
+            各体系源流、流派分歧与现代学界评价详见每套盘面的「科普」说明。命理预测之有效性尚无科学共识。
           </div>
 
-          <div className="timebar">
-            <div><b>钟表时间</b>{fmtTime(result.normalized.clockTime)}</div>
-            <div><b>排盘时刻</b>{fmtTime(result.normalized.effectiveTime)}
-              {result.normalized.trueSolarOffsetSeconds ? `（真太阳时修正 ${result.normalized.trueSolarOffsetSeconds}s）` : ''}
-            </div>
-            <div><b>时辰</b>第 {result.normalized.timeIndex} 时 · {result.normalized.timeInputMode === 'traditional-shichen' ? '传统时辰' : '精准钟表'}</div>
-            <div className="span-all"><b>所问</b>{TOPIC_LABELS[form.topic] ?? form.topic}{form.qtext ? ` · ${form.qtext}` : ' · 未填所问之事（随机起卦）'}</div>
-          </div>
-
-          {result.warnings.length > 0 && (
-            <details className="gwarns" open>
-              <summary>全局提示（{result.warnings.length}）</summary>
-              {result.warnings.map((w, i) => (
-                <div className={`warn warn-${w.level}`} key={i}>[{w.level}] {w.message}</div>
-              ))}
-            </details>
-          )}
-
-          {result.failed.length > 0 && (
-            <div className="failed">
-              {result.failed.map((f) => <div className="warn warn-error" key={f.systemId}>{SYSTEM_META[f.systemId]?.name ?? f.systemId} 失败：{f.message}</div>)}
+          {readOnly && (
+            <div className="readonly-banner">
+              <span>📜 这是一份<strong>只读分享</strong>：由分享者的生辰与起卦种子确定性重算，结果逐字一致、可溯源。</span>
+              <button className="btn-gold" type="button" onClick={exitReadOnly}>我也来算一卦</button>
             </div>
           )}
 
-          <ConsensusDashboard consensus={consensus} topic={form.topic} />
+          {!readOnly && (
+            <DivinationForm
+              form={form}
+              setForm={setForm}
+              schools={schools}
+              setSchools={setSchools}
+              loading={loading}
+              error={error}
+              onSubmit={handleSubmit}
+            />
+          )}
 
-          {report && <SynthesisReport report={report} topic={form.topic} />}
+          {!readOnly && (
+            <HistoryPanel
+              history={history}
+              onRestore={restoreReading}
+              onDelete={(id) => setHistory(deleteReading(id))}
+              onClear={() => { setHistory(clearHistory()); flash('已清空历史记录'); }}
+              onToggleFavorite={(id) => setHistory(toggleFavorite(id))}
+              onSetOutcome={(id, outcome) => {
+                setHistory(setOutcome(id, outcome));
+                flash(outcome ? '已记下这条复盘（仅保存在本机）' : '已撤销复盘标注');
+              }}
+              onExportAll={() => {
+                downloadText('玄览-历史备份.json', exportAllJson(history), 'application/json');
+                flash('已导出全部历史（JSON 备份）');
+              }}
+              onImport={(file) => {
+                file.text().then((text) => {
+                  try {
+                    const { added, skipped } = importBackup(text);
+                    setHistory(loadHistory());
+                    flash(`导入完成：新增 ${added} 条 / 跳过重复 ${skipped} 条`);
+                  } catch {
+                    flash('备份解析失败，请确认是玄览导出的 JSON');
+                  }
+                });
+              }}
+            />
+          )}
 
-          <div className="wall">
-            {result.charts.map((c) => {
-              const meta = SYSTEM_META[c.systemId as SystemId];
-              const open = showRaw[c.systemId] ?? false;
-              return (
-                <article className="card" key={c.systemId}>
-                  <header className="card-head">
-                    <span className={`cat cat-${meta?.category}`}>{meta?.category === 'chart' ? '命盘' : '卜卦'}</span>
-                    <h3>{meta?.name ?? c.systemId}</h3>
-                    <span className="engine" title={c.engineVersion}>v{c.engineVersion.split('@')[1]}</span>
-                  </header>
-                  <div className="card-body">
-                    <SystemRenderer systemId={c.systemId} data={c.data} />
-                  </div>
-                  <InterpretationBlock data={c.interpretation} />
-                  <footer className="card-foot">
-                    <span className="hash" title={c.configHash}>hash {c.configHash.slice(0, 8)}</span>
-                    <button className="link" onClick={() => setShowRaw((s) => ({ ...s, [c.systemId]: !open }))}>
-                      {open ? '收起完整盘面' : '查看完整盘面 / 科普'}
-                    </button>
-                  </footer>
-                  {open && (
-                    <div className="card-detail">
-                      <div className="detail-section">
-                        <h4>科普 · {meta?.name}</h4>
-                        <p>{meta?.summary}</p>
-                        {meta?.knownDivergences?.length ? (
-                          <><div className="sub">已知流派分歧</div><ul>{meta.knownDivergences.map((d, i) => <li key={i}>{d}</li>)}</ul></>
-                        ) : null}
-                        {meta?.limitations?.length ? (
-                          <><div className="sub">诚实边界</div><ul>{meta.limitations.map((d, i) => <li key={i}>{d}</li>)}</ul></>
-                        ) : null}
-                      </div>
-                      {c.warnings.length > 0 && (
-                        <div className="detail-section">
-                          <h4>本体系提示</h4>
-                          {c.warnings.map((w, i) => <div className={`warn warn-${w.level}`} key={i}>[{w.level}] {w.message}</div>)}
-                        </div>
-                      )}
-                      <div className="detail-section">
-                        <h4>完整盘面数据（可溯源）</h4>
-                        <JsonView data={c.data} />
-                      </div>
-                    </div>
-                  )}
-                </article>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
+          {result && (
+            <ErrorBoundary label="结果墙">
+              <ResultsView
+                result={result}
+                consensus={consensus}
+                report={report}
+                form={form}
+                schools={schools}
+                seed={seed}
+                seedMode={seedMode}
+                showRaw={showRaw}
+                setShowRaw={setShowRaw}
+                onFlash={flash}
+                onShare={() => setShareOpen(true)}
+                onReroll={reroll}
+              />
+            </ErrorBoundary>
+          )}
         </>
       )}
 
       {view === 'case' && <CaseStudy onBack={() => setView('divination')} />}
+
+      {/* 移动端底部导航（桌面端由 CSS 隐藏；入口页沉浸式，不显示） */}
+      {view !== 'landing' && <MobileTabBar active={activeTab} onChange={handleTab} />}
 
       {loading && (
         <div className="loading-veil">
@@ -544,6 +450,33 @@ export default function App() {
       )}
 
       {toast && <div className="toast">{toast}</div>}
+
+      {shareOpen && result && (
+        <ShareCard
+          result={result}
+          consensus={consensus}
+          report={report}
+          form={form}
+          schools={schools}
+          seed={seed}
+          seedMode={seedMode}
+          askedAt={askedAt}
+          onClose={() => setShareOpen(false)}
+        />
+      )}
+
+      <footer className="app-foot">
+        玄览 v{APP_VERSION} · 内核 iztro / mingyu-core · 文化体验，非预测
+        <span className="foot-sep">·</span>
+        <button className="link foot-link" type="button" onClick={() => setPrivacyOpen(true)}>
+          隐私与数据说明
+        </button>
+      </footer>
+
+      {!consentDone && <ConsentGate onClose={() => setConsentDone(true)} />}
+      {consentDone && onboardOpen && <Onboarding onClose={() => setOnboardOpen(false)} />}
+      {glossaryOpen && <GlossaryModal onClose={() => setGlossaryOpen(false)} />}
+      {privacyOpen && <PrivacyModal onClose={() => setPrivacyOpen(false)} />}
     </div>
   );
 }

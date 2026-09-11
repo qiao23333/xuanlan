@@ -9,3 +9,6 @@ npm-debug.log*
 
 # 临时探测脚本（开发期调试用，不入库）
 .probe/
+
+# Vite 配置热重载临时产物
+vite.config.ts.timestamp-*.mjs
