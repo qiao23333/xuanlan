@@ -3909,7 +3909,8 @@ details.legacy-wall[open] .wall {
 .gl-section-n { font-size: .75rem; color: var(--muted); font-weight: 400; }
 
 .gl-terms { display: grid; grid-template-columns: repeat(2, 1fr); gap: .9rem; }
-.gl-term-card { padding: 1rem 1.1rem; background: var(--bg2); border: 1px solid var(--line); border-radius: 14px; border-left: 3px solid var(--gold-soft); }
+.gl-term-card { padding: 1rem 1.1rem; background: var(--bg2); border: 1px solid var(--line); border-radius: 14px; border-left: 3px solid var(--gold-soft); transition: border-color .3s, box-shadow .3s, background .3s; }
+.gl-term-card:hover { border-color: color-mix(in srgb, var(--gold) 45%, transparent); border-left-color: var(--gold); box-shadow: 0 6px 24px color-mix(in srgb, var(--gold) 10%, transparent); background: color-mix(in srgb, var(--bg2) 70%, var(--gold) 4%); }
 .gl-term-title { font-family: var(--serif); font-size: 1.05rem; color: var(--ink); margin: 0 0 .5rem; letter-spacing: .05em; }
 .gl-term-text { font-size: .82rem; color: var(--ink-soft); line-height: 1.8; margin: 0; }
 .gl-empty { grid-column: 1 / -1; text-align: center; color: var(--muted); padding: 2rem; font-size: .9rem; }
