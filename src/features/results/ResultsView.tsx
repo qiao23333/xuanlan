@@ -114,21 +114,24 @@ export default function ResultsView({
 
   return (
     <section className="results">
-      {/* ===== 工具栏 ===== */}
+      {/* ===== 面包屑 + 标题栏（参考设计稿） ===== */}
       <div className="result-head">
-        <h2>推演结果</h2>
+        <button className="breadcrumb" type="button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+          ← 返回探索
+        </button>
+        <div className="result-title-group">
+          <h2>玄览 · 探索结果</h2>
+          <p className="result-subtitle">一次输入，八大体系并排推演 · 内核严谨，外壳科普</p>
+        </div>
         <div className="result-head-actions">
-          {seed != null && (
-            <span className="seed" title={seedMode === 'question' ? '起卦数由「所问之事 + 主题 + 问事时刻」哈希导出，同问题同时刻必然同结果' : '未填所问之事，采用随机起卦'}>
-              {seedMode === 'question' ? '🔢 问题起卦' : '🎲 随机起卦'}
-            </span>
-          )}
-          <button className="btn-ghost" type="button" onClick={exportCurrent}>导出 MD</button>
-          <button className="btn-ghost" type="button" onClick={exportJSON}>导出 JSON</button>
+          <span className="timebar">
+            <span>{fmtTime(result.normalized.effectiveTime)}</span>
+            <span className="tb-sep">·</span>
+            <span>侦察对象：{form.name || '你自己'}</span>
+          </span>
           {onReroll && (
-            <button className="btn-ghost" type="button" onClick={onReroll} title="用新的随机起卦重算">换一卦 ⟳</button>
+            <button className="btn-gold btn-sm" type="button" onClick={onReroll}>重新演算 →</button>
           )}
-          {onShare && <button className="btn-gold" type="button" onClick={onShare}>分享</button>}
         </div>
       </div>
 

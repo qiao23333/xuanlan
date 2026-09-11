@@ -133,8 +133,23 @@ body {
 
 /* ───── 结果区 ───── */
 .results { margin-top: 26px; }
-.result-head { display: flex; align-items: baseline; justify-content: space-between; }
-.result-head h2 { margin: 0; letter-spacing: 3px; }
+.result-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  flex-wrap: wrap; gap: 8px;
+  padding: 4px 0 12px;
+}
+.breadcrumb {
+  background: none; border: none; cursor: pointer;
+  color: var(--ink-soft); font-size: 13px;
+  padding: 4px 10px; border-radius: 6px;
+  transition: color .15s;
+}
+.breadcrumb:hover { color: var(--gold); }
+.result-title-group { display: flex; flex-direction: column; gap: 2px; }
+.result-head h2 { margin: 0; letter-spacing: 3px; font-size: 20px; }
+.result-subtitle { margin: 0; font-size: 12px; color: var(--ink-soft); letter-spacing: .06em; }
+.result-head-actions { display: flex; align-items: center; gap: 10px; }
+.btn-sm { padding: 5px 14px; font-size: 12px; }
 .seed { font-size: 12px; color: var(--ink-soft); }
 
 .timebar { display: flex; flex-wrap: wrap; gap: 18px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; margin: 12px 0; font-size: 13px; }
@@ -694,22 +709,38 @@ body::before {
   border-color: var(--gold-soft); box-shadow: 0 0 0 3px rgba(237, 201, 124, .12);
 }
 
-/* ── 顶部导航（v0.18：固定置顶，不再用 sticky）──
-   sticky 容易受祖先元素的 overflow/transform/padding 干扰而失效，
-   这里改 fixed 加上对应的 padding-top 补偿，最稳。 */
+/* ── 顶部导航（v0.19：全页面统一，参考设计稿）──
+   fixed 置顶，不受祖先 overflow/transform 干扰。
+   入口页上浮于背景图之上（更透明），内页稍实。 */
 .nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 50;
   display: flex; align-items: center; gap: 8px;
   padding: 10px 22px;
-  background: color-mix(in srgb, var(--bg) 86%, transparent);
-  backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
-  border-bottom: 1px solid var(--line);
-  box-shadow: 0 6px 24px rgba(0,0,0,.22);
+  background: color-mix(in srgb, var(--bg) 78%, transparent);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
+  box-shadow: 0 4px 20px rgba(0,0,0,.18);
   animation: fadeIn .4s ease both;
 }
-/* 导航固定后，给页面内容留出顶部空间（仅非 landing） */
+/* 入口页：导航更透明，融入背景山水画 */
+.app.is-landing .nav {
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  border-bottom-color: color-mix(in srgb, var(--line) 30%, transparent);
+  box-shadow: none;
+}
+/* 导航固定后，给非入口页内容留出顶部空间 */
 .app:not(.is-landing) { padding-top: 64px; }
+.nav-spacer { flex: 1; }
+.nav-cta {
+  background: linear-gradient(135deg, var(--gold), var(--gold-soft));
+  border: none; cursor: pointer; color: #1a1428;
+  font-size: 13px; font-weight: 600; padding: 7px 18px; border-radius: 20px;
+  letter-spacing: 1px; transition: transform .15s, box-shadow .15s;
+  white-space: nowrap;
+}
+.nav-cta:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(233,196,106,.35); }
+.nav-cta-arrow { margin-left: 4px; }
 .nav-brand {
   background: none; border: none; cursor: pointer; padding: 0 12px 0 0;
   font-size: 19px; letter-spacing: 4px; color: var(--gold);
@@ -1316,10 +1347,9 @@ select:focus:not(:focus-visible) { outline: none; }
   .timebar { gap: 10px; font-size: 12px; }
 }
 
-/* 桌面端导航吸顶（滚动时始终可切到术语/隐私） */
+/* 桌面端导航：已在基础规则设为 position: fixed，这里只微调内边距 */
 @media (min-width: 861px) {
-  .nav { position: sticky; top: 0; z-index: 40; backdrop-filter: blur(10px);
-    background: linear-gradient(180deg, var(--bg) 60%, rgba(14,11,20,0)); margin: 0 -18px 14px; padding: 10px 18px; }
+  .nav { padding: 10px 28px; }
 }
 
 /* ═══════════════ 新手引导层 ═══════════════ */
@@ -1555,13 +1585,12 @@ select:focus:not(:focus-visible) { outline: none; }
    背景：纯 CSS 渐变模拟暗夜山水 / 云雾氛围
    ============================================================ */
 
-/* ---- 容器：全屏、暗底、溢出隐藏 ---- */
+/* ---- 容器：全屏、暗底 ---- */
 .landing-v2 {
   position: relative;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
   color: var(--ink);
   font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
 }
@@ -2177,9 +2206,6 @@ select:focus:not(:focus-visible) { outline: none; }
   border-color: var(--gold-soft); color: var(--gold);
   box-shadow: 0 0 14px rgba(216, 184, 120, .14);
 }
-.nav .font-toggle { margin-left: 8px; }
-.nav .theme-toggle + .font-toggle { margin-left: 8px; }
-.nav .font-toggle:not(.nav .theme-toggle + .font-toggle) { margin-left: auto; }
 
 /* ====== 星盘轮 / 山影 / 星空 ====== */
 .l2-stars, .l2-mountains {
@@ -2239,6 +2265,25 @@ select:focus:not(:focus-visible) { outline: none; }
   color: var(--ink-soft);
   font-size: 0.58rem;
   letter-spacing: 0.12em;
+}
+/* ── 新版页脚子元素（参考设计稿） ── */
+.l2-fl-left { display: flex; flex-direction: column; gap: 2px; }
+.l2-fl-brand { font-family: var(--font-serif); font-size: 0.72rem; color: var(--gold); letter-spacing: .15em; }
+.l2-fl-slogan { font-size: 0.6rem; color: var(--ink-soft); letter-spacing: .08em; }
+.l2-fl-links { display: flex; align-items: center; gap: 6px; font-size: 0.65rem; color: var(--ink-soft); letter-spacing: .1em; }
+.l2-fl-sep { color: color-mix(in srgb, var(--gold) 25%, transparent); }
+.l2-fl-right { display: flex; align-items: center; gap: 6px; font-size: 0.6rem; color: color-mix(in srgb, var(--ink) 35%, transparent); }
+
+/* ── 入口页响应式：小屏隐藏左右侧栏 ── */
+@media (max-width: 900px) {
+  .l2-stage { grid-template-columns: 1fr; padding: 6vh 4vw 2vh; justify-items: center; }
+  .l2-left, .l2-right { display: none; }
+  .l2-features { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 480px; margin-left: auto; margin-right: auto; }
+}
+@media (max-width: 560px) {
+  .l2-stage { padding: 4h 3vw 1.5vh; }
+  .l2-footer { grid-template-columns: 1fr !important; gap: 0.6rem; text-align: center; justify-items: center; }
+  .l2-fl-left, .l2-fl-right { align-items: center; }
 }
 .l2-lang-cards {
   display: flex; align-items: center; gap: 1rem;
@@ -3696,34 +3741,104 @@ details.legacy-wall[open] .wall {
   background: color-mix(in srgb, var(--gold) 10%, transparent);
 }
 
-/* ═══════════════ 入口页卖点卡片（v0.17） ═══════════════
-   对齐参考图首页底部那排均匀的 4 个卡片。
-   高度走 vh 缩放，保证加了它之后首屏依然一屏装得下。        */
+/* ═══════════════ 入口页三栏布局（v0.19，参考设计稿） ═══════════════
+   左侧品牌标语 | 中央太极主角 | 右侧竖排文字                          */
+.l2-stage {
+  position: relative; z-index: 5; flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 200px) 1fr minmax(0, 120px);
+  gap: 12px;
+  padding: 8vh 3vw 2vh;
+  align-items: center;
+}
+/* ── 左侧：品牌标语 ── */
+.l2-left { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; }
+.l2-left-zh {
+  font-family: var(--font-serif); font-size: clamp(14px, 1.6vw, 20px);
+  color: var(--ink); letter-spacing: .2em; line-height: 1.4;
+}
+.l2-left-zh-sub {
+  font-size: clamp(11px, 1.1vw, 13px); color: var(--ink-soft);
+  letter-spacing: .15em; margin-top: 2px;
+}
+.l2-left-en {
+  font-size: clamp(9px, 0.85vw, 11px); color: color-mix(in srgb, var(--ink) 40%, transparent);
+  letter-spacing: .2em; text-transform: uppercase; margin-top: 10px;
+}
+.l2-left-en-sub {
+  font-size: clamp(8px, 0.75vw, 10px); color: color-mix(in srgb, var(--ink) 28%, transparent);
+  letter-spacing: .15em; text-transform: uppercase;
+}
+/* ── 中央：太极轮 + 主标题 ── */
+.l2-hero {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; text-align: center; gap: 0.35rem;
+  padding: 0 1rem;
+}
+.l2-wheel-wrap { position: relative; display: inline-block; margin-bottom: 0.3rem; }
+.l2-label {
+  position: absolute; font-family: var(--font-serif);
+  font-size: clamp(11px, 1.1vw, 14px); color: var(--gold);
+  letter-spacing: .3em; opacity: .7;
+}
+.l2-label-top { top: -4px; left: 50%; transform: translateX(-50%); }
+.l2-label-bottom { bottom: -4px; left: 50%; transform: translateX(-50%); }
+.l2-label-left { left: -18px; top: 50%; transform: translateY(-50%); }
+.l2-title-en {
+  font-size: clamp(10px, 1vw, 13px); color: var(--gold-soft);
+  letter-spacing: .4em; margin-top: -4px;
+}
+.l2-seal {
+  display: inline-block; width: 22px; height: 22px; line-height: 22px;
+  text-align: center; background: #c73b3b; color: #fff;
+  font-size: 11px; border-radius: 3px;
+  font-family: var(--font-serif); letter-spacing: 0;
+  vertical-align: middle; margin: 0 4px;
+}
+/* ── 右侧：竖排文字 ── */
+.l2-right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.l2-right-cn {
+  writing-mode: vertical-rl; text-orientation: upright;
+  font-family: var(--font-serif); font-size: clamp(12px, 1.2vw, 15px);
+  color: color-mix(in srgb, var(--ink) 55%, transparent);
+  letter-spacing: .5em;
+}
+.l2-right-en1, .l2-right-en2 {
+  writing-mode: vertical-rl; text-orientation: mixed;
+  font-size: clamp(7px, 0.7vw, 9px); color: color-mix(in srgb, var(--ink) 30%, transparent);
+  letter-spacing: .2em; text-transform: uppercase;
+}
+
+/* ═══════════════ 入口页卖点卡片（v0.19，参考设计稿） ═══════════════ */
 .l2-features {
-  list-style: none; margin: clamp(0.6rem, 2vh, 1.6rem) 0 0; padding: 0;
+  list-style: none; margin: clamp(0.6rem, 2vh, 1.6rem) 3vw 0; padding: 0;
   display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: clamp(6px, 1vw, 12px); width: min(100%, 640px);
+  gap: clamp(8px, 1.2vw, 16px); width: 100%; max-width: 900px;
+  position: relative; z-index: 5;
 }
 .l2-feat {
-  display: flex; flex-direction: column; align-items: center; gap: 2px;
-  padding: clamp(7px, 1.6vh, 13px) 6px;
-  background: color-mix(in srgb, var(--gold) 6%, transparent);
-  border: 1px solid color-mix(in srgb, var(--gold) 18%, transparent);
-  border-radius: 12px;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: clamp(14px, 2vh, 20px) clamp(10px, 1.2vw, 18px);
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  backdrop-filter: blur(8px);
+  border: 1px solid color-mix(in srgb, var(--line) 50%, transparent);
+  border-radius: 14px;
   transition: border-color .25s, background .25s, transform .25s;
+  text-align: center;
 }
 .l2-feat:hover {
   border-color: color-mix(in srgb, var(--gold) 42%, transparent);
-  background: color-mix(in srgb, var(--gold) 11%, transparent);
-  transform: translateY(-2px);
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  transform: translateY(-3px);
 }
-.l2-feat-k {
-  font-family: var(--font-serif); font-size: clamp(15px, 2.6vh, 20px);
-  color: var(--gold); line-height: 1.1;
+.l2-feat-icon { font-size: clamp(22px, 3vh, 32px); line-height: 1; opacity: .8; }
+.l2-feat-title {
+  font-size: clamp(12px, 1.3vw, 15px); color: var(--ink);
+  font-weight: 500; letter-spacing: .08em;
 }
-.l2-feat-v {
-  font-size: clamp(10px, 1.3vh, 12px); color: var(--ink-soft);
-  letter-spacing: .04em; white-space: nowrap;
+.l2-feat-desc {
+  font-size: clamp(10px, 1vw, 12px); color: var(--ink-soft);
+  line-height: 1.6; white-space: pre-line;
 }
 @media (max-width: 640px) {
   .l2-features { grid-template-columns: repeat(2, minmax(0, 1fr)); }

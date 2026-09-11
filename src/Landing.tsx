@@ -1,12 +1,11 @@
 import React from 'react';
-import { ThemeToggle } from './ThemeToggle';
 
-/** 入口页底部四个卖点（参考图首页底部是一排均匀卡片） */
-const FEATURES: { k: string; v: string }[] = [
-  { k: '八', v: '套体系并行' },
-  { k: '六', v: '条决策轴交叉' },
-  { k: '零', v: '数据上传' },
-  { k: '可', v: '复现可溯源' },
+/** 入口页四个卖点（参考设计稿首页底部卡片行） */
+const FEATURES: { icon: string; title: string; desc: string }[] = [
+  { icon: '⊞', title: '多体系融合', desc: '八大体系并行推演\n看见更完整的自己' },
+  { icon: '☯', title: 'AI 深度解读', desc: '结合古典智慧与现代算法\n提供个性化分析' },
+  { icon: '📄', title: '结构化呈现', desc: '从命盘到结论\n清晰、易懂、可实践' },
+  { icon: '🧭', title: '探索自我成长', desc: '不止是预测\n更是理解与选择' },
 ];
 
 /** 先天八卦：1=阳爻，0=阴爻 */
@@ -187,83 +186,85 @@ export function Landing({
 }) {
   return (
     <section className="landing-v2">
-      {/* ====== 背景层（AI 山水画，CSS 叠加渐变保证可读性） ====== */}
+      {/* ====== 背景层（AI 山水画） ====== */}
       <div className="l2-bg" aria-hidden="true" />
 
-      {/* ====== 顶栏 ====== */}
-      <header className="l2-header">
-        <div className="l2-header-left">
-          <span className="l2-page-num">01</span>
-          <span className="l2-logo">玄览</span>
-        </div>
-        <nav className="l2-nav" aria-label="主导航">
-          <button type="button" className="l2-nav-link">探索</button>
-          <span className="l2-nav-sep">·</span>
-          <button type="button" className="l2-nav-link">推演</button>
-          <span className="l2-nav-sep">·</span>
-          <button type="button" className="l2-nav-link">认识自己</button>
-        </nav>
-        <ThemeToggle />
-        <div className="l2-header-right">
-          <span className="l2-tagline-cn">古老的智慧 · 现代的视角 · 更完整的你</span>
-          <span className="l2-tagline-en">ANCIENT WISDOM · A MORE COMPLETE YOU</span>
-        </div>
-      </header>
+      {/* ====== 三栏布局：左侧标语 | 中央主角 | 右侧竖文 ====== */}
+      <div className="l2-stage">
 
-      {/* ====== Hero 主内容区 ====== */}
-      <main className="l2-hero">
-        <div className="l2-taiji-wrap">
-          <CelestialWheel size={420} />
-        </div>
+        {/* ── 左侧：品牌标语 ── */}
+        <aside className="l2-left" aria-hidden="true">
+          <p className="l2-left-zh">古老的智慧</p>
+          <p className="l2-left-zh-sub">在现代与你相遇</p>
+          <p className="l2-left-en">ANCIENT WISDOM</p>
+          <p className="l2-left-en-sub">A MORE COMPLETE YOU</p>
+        </aside>
 
-        <h1 className="l2-title">玄 览</h1>
+        {/* ── 中央：太极轮 + 主标题 + CTA ── */}
+        <main className="l2-hero">
+          <div className="l2-wheel-wrap">
+            {/* 天地人 标签 */}
+            <span className="l2-label l2-label-top">天</span>
+            <span className="l2-label l2-label-bottom">地</span>
+            <span className="l2-label l2-label-left">人</span>
+            <CelestialWheel size={380} />
+          </div>
 
-        <p className="l2-tagline">汇聚东方与西方的智慧</p>
-        <p className="l2-subtitle">让更多维度，看见更真实的你</p>
+          <h1 className="l2-title">玄 览</h1>
+          <p className="l2-title-en">XUANLAN</p>
+          <span className="l2-seal" aria-hidden="true">印</span>
 
-        <div className="l2-systems-badge">
-          <span className="lsb-label">多体系并行推演</span>
-          <span className="lsb-sep">·</span>
-          <span className="lsb-value">呈现共识与分歧</span>
-        </div>
+          <p className="l2-tagline">汇聚东方与西方的智慧</p>
+          <p className="l2-subtitle">让更多维度，看见更真实的你</p>
 
-        <p className="l2-system-list">
-          八字 · 紫微 · 奇门 · 六壬 · 小六壬 · 梅花 · 西洋占星 · 塔罗
-        </p>
-
-        <div className="l2-actions">
           <button className="l2-enter-btn" type="button" onClick={onEnter}>
             开始探索 <span className="l2-arrow">→</span>
           </button>
-        </div>
 
-        <p className="l2-action-hint">一次提问，八种视角</p>
+          <p className="l2-action-hint">一次输入，八大体系并排推演 · 内核严谨，外壳科普</p>
 
-        <button className="l2-case-link" type="button" onClick={onCase}>
-          这个项目是怎么做出来的 →
-        </button>
+          <button className="l2-case-link" type="button" onClick={onCase}>
+            这个项目是怎么做出来的 →
+          </button>
+        </main>
 
-        {/* 四个卖点卡片：参考图首页底部是一排均匀卡片，
-            原来这里空着，白白浪费桌面端横向空间 */}
-        <ul className="l2-features">
-          {FEATURES.map((f) => (
-            <li className="l2-feat" key={f.k}>
-              <span className="l2-feat-k">{f.k}</span>
-              <span className="l2-feat-v">{f.v}</span>
-            </li>
-          ))}
-        </ul>
-      </main>
+        {/* ── 右侧：竖排文字 ── */}
+        <aside className="l2-right" aria-hidden="true">
+          <p className="l2-right-cn">观天识人心未来</p>
+          <p className="l2-right-en1">SEE FURTHER</p>
+          <p className="l2-right-en2">LIVE DEEPER</p>
+        </aside>
+      </div>
 
-      {/* ====== 底部角落文字（照参考图 Screen 01） ====== */}
+      {/* ── 底部卖点卡片行（参考设计稿） ── */}
+      <ul className="l2-features">
+        {FEATURES.map((f) => (
+          <li className="l2-feat" key={f.title}>
+            <span className="l2-feat-icon" aria-hidden="true">{f.icon}</span>
+            <span className="l2-feat-title">{f.title}</span>
+            <span className="l2-feat-desc">{f.desc}</span>
+          </li>
+        ))}
+      </ul>
+
+      {/* ── 页脚（参考设计稿） ── */}
       <footer className="l2-footer">
-        <div className="l2-footer-brand">
-          <span className="l2-fl-title">THE UNSEEN</span>
-          <span className="l2-fl-sub">A CLEARER YOU</span>
+        <div className="l2-fl-left">
+          <span className="l2-fl-brand">玄览 XUANLAN</span>
+          <span className="l2-fl-slogan">让东方智慧，照亮现代生活</span>
         </div>
-        <div className="l2-footer-brand-right">
-          <span className="l2-fl-title">观天道</span>
-          <span className="l2-fl-sub">以窥人之心</span>
+        <nav className="l2-fl-links" aria-label="页脚导航">
+          <span>知命</span><span className="l2-fl-sep">·</span>
+          <span>识己</span><span className="l2-fl-sep">·</span>
+          <span>顺势</span><span className="l2-fl-sep">·</span>
+          <span>致远</span>
+        </nav>
+        <div className="l2-fl-right">
+          <span>V0.4.0</span>
+          <span className="l2-fl-sep">|</span>
+          <span>文化体验，非预测</span>
+          <span className="l2-fl-sep">|</span>
+          <span>隐私与数据说明</span>
         </div>
       </footer>
     </section>

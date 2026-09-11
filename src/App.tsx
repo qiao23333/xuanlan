@@ -19,7 +19,6 @@ import { GlossaryModal } from './GlossaryModal';
 import { ConsentGate, PrivacyModal, hasConsented } from './Legal';
 import { Onboarding, hasOnboarded } from './Onboarding';
 import { ThemeToggle } from './ThemeToggle';
-import { FontToggle } from './FontToggle';
 import { MobileTabBar, type MobileTab } from './MobileTabBar';
 import { useRevealOnScroll } from './useReveal';
 import {
@@ -327,38 +326,47 @@ export default function App() {
 
   return (
     <div className={`app${view !== 'landing' ? ' has-mtb' : ' is-landing'}`}>
-      {view !== 'landing' && (
-        <nav className="nav">
-          <button className="nav-brand" type="button" onClick={() => setView('divination')}>
-            玄览
-          </button>
-          <button
-            className={`nav-item${view === 'divination' ? ' active' : ''}`}
-            type="button"
-            onClick={() => setView('divination')}
-          >
-            推演
-          </button>
-          <button
-            className={`nav-item${view === 'case' ? ' active' : ''}`}
-            type="button"
-            onClick={() => setView('case')}
-          >
-            项目故事
-          </button>
-          <button className="nav-item" type="button" onClick={() => setGlossaryOpen(true)}>
-            术语
-          </button>
-          <button className="nav-item" type="button" onClick={() => setOnboardOpen(true)}>
-            引导
-          </button>
-          <button className="nav-item" type="button" onClick={() => setPrivacyOpen(true)}>
-            隐私
-          </button>
-          <ThemeToggle />
-          <FontToggle />
-        </nav>
-      )}
+      {/* 全局导航栏：所有页面统一显示（参考设计稿） */}
+      <nav className="nav">
+        <button className="nav-brand" type="button" onClick={() => setView('landing')}>
+          玄览
+        </button>
+        <button
+          className={`nav-item${view === 'landing' ? ' active' : ''}`}
+          type="button"
+          onClick={() => setView('landing')}
+        >
+          首页
+        </button>
+        <button
+          className={`nav-item${view === 'case' ? ' active' : ''}`}
+          type="button"
+          onClick={() => setView('case')}
+        >
+          项目故事
+        </button>
+        <button className="nav-item" type="button" onClick={() => setGlossaryOpen(true)}>
+          术语百科
+        </button>
+        <button className="nav-item" type="button" onClick={() => setOnboardOpen(true)}>
+          使用指南
+        </button>
+        <button className="nav-item" type="button" onClick={() => flash('更新日志开发中…')}>
+          更新日志
+        </button>
+        <button className="nav-item" type="button" onClick={() => flash('关于我们开发中…')}>
+          关于我们
+        </button>
+        <div className="nav-spacer" />
+        <ThemeToggle />
+        <button
+          className="nav-cta"
+          type="button"
+          onClick={() => { if (view === 'landing') { /* 由 Landing 内的 CTA 处理 */ } else { setView('divination'); setStage('form'); window.scrollTo({ top: 0, behavior: 'smooth' }); } }}
+        >
+          开始探索 <span className="nav-cta-arrow">→</span>
+        </button>
+      </nav>
 
       {view === 'landing' && (
         <Landing onEnter={() => setView('divination')} onCase={() => setView('case')} />
