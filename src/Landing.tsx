@@ -1,6 +1,14 @@
 import React from 'react';
 import { ThemeToggle } from './ThemeToggle';
 
+/** 入口页底部四个卖点（参考图首页底部是一排均匀卡片） */
+const FEATURES: { k: string; v: string }[] = [
+  { k: '八', v: '套体系并行' },
+  { k: '六', v: '条决策轴交叉' },
+  { k: '零', v: '数据上传' },
+  { k: '可', v: '复现可溯源' },
+];
+
 /** 先天八卦：1=阳爻，0=阴爻 */
 const TRIGRAMS: number[][] = [
   [1, 1, 1], [1, 1, 0], [1, 0, 1], [1, 0, 0],
@@ -234,6 +242,17 @@ export function Landing({
         <button className="l2-case-link" type="button" onClick={onCase}>
           这个项目是怎么做出来的 →
         </button>
+
+        {/* 四个卖点卡片：参考图首页底部是一排均匀卡片，
+            原来这里空着，白白浪费桌面端横向空间 */}
+        <ul className="l2-features">
+          {FEATURES.map((f) => (
+            <li className="l2-feat" key={f.k}>
+              <span className="l2-feat-k">{f.k}</span>
+              <span className="l2-feat-v">{f.v}</span>
+            </li>
+          ))}
+        </ul>
       </main>
 
       {/* ====== 底部角落文字（照参考图 Screen 01） ====== */}

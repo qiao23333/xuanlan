@@ -14,6 +14,7 @@ import { LayerView } from '../../LayerView';
 import { DissentView } from '../../DissentView';
 import { SystemOverview } from '../../SystemOverview';
 import { SynthesisReport } from '../../SynthesisReport';
+import { ResultNav } from '../../ResultNav';
 import {
   downloadText,
   safeFileName,
@@ -165,25 +166,46 @@ export default function ResultsView({
         </div>
       )}
 
-      {/* ═══════ Level 1: 10秒抓到结论 ═══════ */}
-      <ResultSummary
-        consensus={consensus}
-        headline={report?.headline}
-        topicLabel={TOPIC_LABELS[form.topic] ?? form.topic}
-        qtext={form.qtext || undefined}
-      />
+      <div className="results-body">
+        {/* 桌面端粘性章节目录：结果页很长，用它快速定位（小屏自动隐藏） */}
+        <ResultNav />
 
-      {/* ═══════ Level 2: 1分钟看懂全貌 ═══════ */}
-      <DimensionGauges consensus={consensus} topic={form.topic} />
-      <AlignmentView consensus={consensus} topic={form.topic} />
-      {/* 命盘层与卜卦层分开算：混算会把「底色」和「当下」两个不同的问题压成一个数 */}
-      <LayerView result={result} />
-      <DissentView result={result} consensus={consensus} topic={form.topic} />
-      <TopicPath topic={form.topic} qtext={form.qtext} />
+        <div className="results-main">
+          {/* ═══════ Level 1: 10秒抓到结论 ═══════ */}
+          <div id="sec-summary">
+            <ResultSummary
+              consensus={consensus}
+              headline={report?.headline}
+              topicLabel={TOPIC_LABELS[form.topic] ?? form.topic}
+              qtext={form.qtext || undefined}
+            />
+          </div>
 
-      {/* ═══════ Level 3: 深度用户 ═══════ */}
-      <SystemOverview result={result} showRaw={showRaw} setShowRaw={setShowRaw} />
-      {report && <SynthesisReport report={report} topic={form.topic} />}
+          {/* ═══════ Level 2: 1分钟看懂全貌 ═══════ */}
+          <div id="sec-axes">
+            <DimensionGauges consensus={consensus} topic={form.topic} />
+          </div>
+          <div id="sec-align">
+            <AlignmentView consensus={consensus} topic={form.topic} />
+          </div>
+          {/* 命盘层与卜卦层分开算：混算会把「底色」和「当下」两个不同的问题压成一个数 */}
+          <div id="sec-layers">
+            <LayerView result={result} />
+          </div>
+          <div id="sec-dissent">
+            <DissentView result={result} consensus={consensus} topic={form.topic} />
+          </div>
+          <TopicPath topic={form.topic} qtext={form.qtext} />
+
+          {/* ═══════ Level 3: 深度用户 ═══════ */}
+          <div id="sec-systems">
+            <SystemOverview result={result} showRaw={showRaw} setShowRaw={setShowRaw} />
+          </div>
+          <div id="sec-report">
+            {report && <SynthesisReport report={report} topic={form.topic} />}
+          </div>
+        </div>
+      </div>
 
       {/* 兼容：保留旧 card-wall 作为隐藏的完整数据源（可折叠） */}
       <details className="legacy-wall">

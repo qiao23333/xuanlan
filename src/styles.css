@@ -3632,3 +3632,93 @@ details.legacy-wall[open] .wall {
 .ic-light { display: none; }
 [data-theme="light"] .ic-dark { display: none; }
 [data-theme="light"] .ic-light { display: block; }
+
+/* ═══════════════ 结果页桌面端章节导航（v0.17） ═══════════════
+   结果页纵向很长，桌面端两侧留白白白浪费。
+   ≥1024px 时把左栏让给一条粘性目录：既用满宽度，又能一键跳段。
+   窄桌面（1024–1239）用细一点的目录，别挤掉正文。
+   小屏隐藏（那里底部有 TabBar，且横向空间宝贵）。                */
+.result-nav { display: none; }
+
+@media (min-width: 1024px) {
+  .results-body {
+    display: grid;
+    grid-template-columns: 148px minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+  }
+  .result-nav {
+    display: block;
+    position: sticky;
+    top: 74px;
+    padding: 12px 10px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+  }
+  .rn-item { font-size: 12px; padding: 5px 6px; }
+}
+
+@media (min-width: 1240px) {
+  .results-body {
+    grid-template-columns: 176px minmax(0, 1fr);
+    gap: 22px;
+  }
+  .result-nav { padding: 14px 12px; }
+  .rn-item { font-size: 12.5px; padding: 5px 8px; }
+}
+.rn-title {
+  font-size: 11.5px; color: var(--muted); letter-spacing: .1em;
+  padding: 0 6px 8px; border-bottom: 1px solid var(--line); margin-bottom: 8px;
+}
+.rn-list { list-style: none; margin: 0; padding: 0; }
+.rn-level {
+  font-size: 10px; color: var(--gold); opacity: .8; letter-spacing: .12em;
+  padding: 8px 6px 3px;
+}
+.rn-item {
+  display: block; width: 100%; text-align: left;
+  background: none; border: none; border-left: 2px solid transparent;
+  padding: 5px 8px; margin: 1px 0; cursor: pointer;
+  color: var(--ink-soft); font-family: inherit; font-size: 12.5px; line-height: 1.45;
+  transition: color .2s, border-color .2s, background .2s;
+}
+.rn-item:hover { color: var(--ink); background: color-mix(in srgb, var(--gold) 7%, transparent); }
+.rn-item.on {
+  color: var(--gold);
+  border-left-color: var(--gold);
+  background: color-mix(in srgb, var(--gold) 10%, transparent);
+}
+
+/* ═══════════════ 入口页卖点卡片（v0.17） ═══════════════
+   对齐参考图首页底部那排均匀的 4 个卡片。
+   高度走 vh 缩放，保证加了它之后首屏依然一屏装得下。        */
+.l2-features {
+  list-style: none; margin: clamp(0.6rem, 2vh, 1.6rem) 0 0; padding: 0;
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(6px, 1vw, 12px); width: min(100%, 640px);
+}
+.l2-feat {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: clamp(7px, 1.6vh, 13px) 6px;
+  background: color-mix(in srgb, var(--gold) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gold) 18%, transparent);
+  border-radius: 12px;
+  transition: border-color .25s, background .25s, transform .25s;
+}
+.l2-feat:hover {
+  border-color: color-mix(in srgb, var(--gold) 42%, transparent);
+  background: color-mix(in srgb, var(--gold) 11%, transparent);
+  transform: translateY(-2px);
+}
+.l2-feat-k {
+  font-family: var(--font-serif); font-size: clamp(15px, 2.6vh, 20px);
+  color: var(--gold); line-height: 1.1;
+}
+.l2-feat-v {
+  font-size: clamp(10px, 1.3vh, 12px); color: var(--ink-soft);
+  letter-spacing: .04em; white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .l2-features { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
