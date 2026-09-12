@@ -1519,13 +1519,19 @@ select:focus:not(:focus-visible) { outline: none; }
   transform: translateY(-3px);
   box-shadow: 0 6px 20px rgba(0,0,0,.15);
 }
+/* 参考稿：体系图标置于细圆环内，下方只跟体系名 */
 .so-icon {
-  flex: none; width: 44px; height: 44px; border-radius: 12px;
+  flex: none; width: 60px; height: 60px; border-radius: 50%;
   display: inline-flex; align-items: center; justify-content: center;
-  background: color-mix(in srgb, var(--so-accent, var(--gold)) 12%, transparent);
-  border: 1px solid color-mix(in srgb, var(--so-accent, var(--gold)) 28%, transparent);
+  background: color-mix(in srgb, var(--so-accent, var(--gold)) 9%, transparent);
+  border: 1px solid color-mix(in srgb, var(--so-accent, var(--gold)) 30%, transparent);
+  transition: border-color .25s ease, transform .25s ease;
 }
-.so-icon img { width: 28px; height: 28px; }
+.so-card:hover .so-icon,
+.so-card.so-active .so-icon {
+  border-color: color-mix(in srgb, var(--so-accent, var(--gold)) 65%, transparent);
+  transform: translateY(-2px);
+}
 .so-icon .sigil { color: var(--so-accent, var(--gold)); }
 .so-text { min-width: 0; display: flex; flex-direction: column; gap: 4px; align-items: center; }
 .so-line1 { display: flex; flex-direction: column; align-items: center; gap: 2px; }
@@ -3670,11 +3676,19 @@ details.legacy-wall[open] .wall {
 .tp-chip { background: var(--panel); }
 .so-cat { font-weight: 600; }
 
-/* 体系图标：深浅两版同在 DOM，按主题显隐（避免切主题时闪烁） */
-.so-icon img { width: 100%; height: auto; display: block; }
-.ic-light { display: none; }
-[data-theme="light"] .ic-dark { display: none; }
-[data-theme="light"] .ic-light { display: block; }
+/* ═══════════════ 体系图标（用户标准素材，透明底 PNG） ═══════════════
+   深浅两版同在 DOM，按主题显隐（避免切主题时闪烁）。
+   注意特异性：旧写法 `.so-icon img{display:block}` (0,1,1) 会盖掉
+   `.ic-light{display:none}` (0,1,0)，导致两张图同时显示 —— 这里统一收口到
+   .sys-icon 下、用两级类选择器(0,2,0) 保证 [data-theme] 规则(0,3,0) 能生效。 */
+.sys-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: none; line-height: 0;
+}
+.sys-icon img { width: 100%; height: 100%; object-fit: contain; }
+.sys-icon .ic-light { display: none; }
+[data-theme="light"] .sys-icon .ic-dark { display: none; }
+[data-theme="light"] .sys-icon .ic-light { display: block; }
 
 /* ═══════════════ 结果页桌面端章节导航（v0.17） ═══════════════
    结果页纵向很长，桌面端两侧留白白白浪费。
@@ -3900,6 +3914,7 @@ details.legacy-wall[open] .wall {
   border-radius: 14px; cursor: pointer; transition: border-color .2s, transform .2s, box-shadow .2s;
 }
 .gl-syscard:hover { border-color: color-mix(in srgb, var(--gold) 50%, transparent); transform: translateY(-2px); box-shadow: var(--glow); }
+.gl-sysicon { align-self: flex-start; margin-bottom: .25rem; }
 .gl-sysname { font-family: var(--serif); font-size: 1.05rem; color: var(--ink); letter-spacing: .1em; }
 .gl-sysintro { font-size: .72rem; color: var(--ink-soft); line-height: 1.5; }
 .gl-syscount { font-size: .68rem; color: var(--muted); margin-top: .2rem; }

@@ -45,3 +45,51 @@ export function SystemSigil({ id, size = 22 }: { id: SystemId; size?: number }) 
     />
   );
 }
+
+/**
+ * 八体系专用图标 —— 用户指定的标准素材（资料/新参考/图标/*.png，透明底 1254px）。
+ *
+ * 为什么这里用位图而不是 <SystemSigil>：
+ *   用户给的是带细节的渲染稿（四柱牌位 / 紫微十二宫 / 九宫格 / 六壬日月盘 /
+ *   小六壬六宫 / 梅花五瓣 / 黄道十二宫 / 塔罗双牌），矢量简笔画不出这个信息量；
+ *   而这套素材本身就是透明底 PNG，直接引用即 100% 保真，也不会再出现
+ *   「按缩略图猜图导致 astrolabe 配成咖啡杯」这类回归。
+ *
+ * 深浅两套都在 DOM 里，靠 .ic-dark / .ic-light + [data-theme] 切换，换主题不重渲染。
+ * 路径用 import.meta.env.BASE_URL 拼接，保证 GitHub Pages 子路径(/xuanlan/)下也能取到。
+ * 小尺寸（<24px）请用 <SystemSigil>，位图在这个尺寸会糊。
+ */
+export function SystemIcon({
+  id,
+  size = 40,
+  className = '',
+}: {
+  id: SystemId;
+  size?: number;
+  className?: string;
+}) {
+  const base = import.meta.env.BASE_URL || '/';
+  return (
+    // 显式给 span 定尺寸，img 才能用 width/height:100% 稳定撑满（否则 inline-flex 会出现宽度循环依赖）
+    <span className={`sys-icon ${className}`.trim()} style={{ width: size, height: size }}>
+      <img
+        className="ic-dark"
+        src={`${base}icons/system/dark/${id}.png`}
+        alt=""
+        width={size}
+        height={size}
+        loading="lazy"
+        decoding="async"
+      />
+      <img
+        className="ic-light"
+        src={`${base}icons/system/light/${id}.png`}
+        alt=""
+        width={size}
+        height={size}
+        loading="lazy"
+        decoding="async"
+      />
+    </span>
+  );
+}

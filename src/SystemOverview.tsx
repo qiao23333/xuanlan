@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import type { CalculateResult, SystemId } from './core';
 import { SYSTEM_META } from './core';
-import { SystemSigil, ACCENTS } from './systemIdentity';
+import { SystemIcon, ACCENTS } from './systemIdentity';
 import { SystemRenderer } from './renderers';
 import { InterpretationBlock } from './Interpretation';
 import { SystemEvidence } from './SystemEvidence';
@@ -61,9 +61,8 @@ export function SystemOverview({ result, showRaw, setShowRaw }: SystemOverviewPr
               aria-pressed={isActive}
             >
               <span className="so-icon">
-                {/* 用矢量 sigil（systemIdentity.tsx），保证八体系图标语义正确、深浅主题一致；
-                    不再依赖 public/icons 下的 PNG（曾出现 astrolabe 错配咖啡杯的回归） */}
-                <SystemSigil id={c.systemId as SystemId} size={28} />
+                {/* 用户指定的标准图标素材（透明底 PNG，深浅两套），见 systemIdentity.tsx 的 SystemIcon */}
+                <SystemIcon id={c.systemId as SystemId} size={40} />
               </span>
               {/* 参考稿排版：上面图标、下面名字，不放分类标签与详细描述 */}
               <span className="so-name">{meta?.name ?? c.systemId}</span>
@@ -80,7 +79,7 @@ export function SystemOverview({ result, showRaw, setShowRaw }: SystemOverviewPr
           style={{ '--accent': ACCENTS[activeChart.systemId as SystemId] } as React.CSSProperties}
         >
           <header className="so-detail-head">
-            <SystemSigil id={activeChart.systemId as SystemId} size={22} />
+            <SystemIcon id={activeChart.systemId as SystemId} size={30} />
             <h4>{activeMeta.name}</h4>
             <span className={`cat cat-${activeMeta.category}`}>{activeMeta.category === 'chart' ? '命盘类 · 长期结构' : '卜卦类 · 当前事件'}</span>
             <button className="so-close" type="button" onClick={() => setActiveId(null)} aria-label="关闭详情">✕</button>

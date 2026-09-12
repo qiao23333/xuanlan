@@ -6,6 +6,7 @@ import {
   termsOfSys,
   type GlossarySys,
 } from './glossary';
+import { SystemIcon } from './systemIdentity';
 
 type Cat = 'all' | GlossarySys;
 
@@ -129,6 +130,8 @@ export function GlossaryPage({ onBack }: { onBack: () => void }) {
                 key={s.id}
                 onClick={() => setCat(s.id)}
               >
+                {/* 参考稿：体系卡上方为体系图标 */}
+                <SystemIcon id={s.id as never} size={34} className="gl-sysicon" />
                 <div className="gl-sysname">{s.name}</div>
                 <div className="gl-sysintro">{s.intro}</div>
                 <div className="gl-syscount">{termsOfSys(s.id).length} 条术语</div>
