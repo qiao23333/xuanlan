@@ -769,18 +769,23 @@ body::before {
 /* .spinning 只给「加载/计算中」的小太极用，快转表示在忙 */
 .taiji-ring.spinning { animation-duration: 3.4s; }
 
-/* 首屏大轮盘（八卦 + 太极）：
-   ① 降速 —— 原 3.4s/圈太躁，改 90s/圈，慢到"能看出在动但不抢戏"
-   ② 反向 —— 八卦环取逆时针（天道左旋），中心太极取顺时针，
-      两层互为反转，形成阴阳互推的观感，而不是整盘死板同向 */
+/* 首屏大轮盘（八卦 + 太极）—— 按用户要求：
+   ① 位置定住 —— 只绕自身圆心自转，不带任何位移/上下浮动
+   ② 顺时针 —— 统一顺时针（原为逆时针 spinCCW，已改）
+   ③ 48s/圈 —— 原 90s/圈慢到几乎看不出在转，改 48s 让转动明确可感但不抢戏 */
 .taiji-ring.wheel-slow {
-  animation: spinCCW 90s linear infinite;
+  animation: spinSlow 48s linear infinite;
   transform-origin: 50% 50%;
 }
 @keyframes spinCCW { to { transform: rotate(-360deg); } }
+/* 中心太极：同样顺时针、绕自身圆心自转。
+   transform-box: view-box + 50% 50% 明确落在 viewBox 圆心 (50,50)，
+   避免旧写法 transform-origin: 50px 50px 在部分浏览器被当成 CSS 像素
+   而导致太极「绕着偏离圆心转」= 看上去在上下浮动。 */
 .wheel-slow .taiji-core {
-  animation: taijiSpin 64s linear infinite;
-  transform-origin: 50px 50px;
+  animation: taijiSpin 40s linear infinite;
+  transform-box: view-box;
+  transform-origin: 50% 50%;
 }
 .landing-title {
   margin: 6px 0 0; font-size: 60px; letter-spacing: 18px; text-indent: 18px;
@@ -2821,12 +2826,10 @@ select:focus:not(:focus-visible) { outline: none; }
 [data-theme="light"] .l2-case-link { color: var(--ink-soft); }
 [data-theme="light"] .l2-case-link:hover { color: var(--gold); }
 
-/* ====== 动效 1：微漂浮（星盘轮呼吸感） ====== */
-@keyframes floatY {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-10px); }
-}
-.l2-taiji-wrap { animation: floatY 7s ease-in-out infinite; }
+/* ====== 动效 1：微漂浮（已移除） ======
+   原 .l2-taiji-wrap 上的 floatY（上下位移 -10px）会让星盘轮看上去「上下浮动」而不是自转，
+   与用户要求「位置定住 + 顺时针旋转」相悖；该 class 已无任何组件引用，故整体删除。
+   星盘轮现在只绕自身圆心做顺时针自转（见 .taiji-ring.wheel-slow）。 */
 
 /* ====== 动效 2：卡片渐显（由下向上，逐层呈现） ====== */
 @keyframes riseIn {

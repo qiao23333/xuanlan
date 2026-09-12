@@ -24,10 +24,11 @@ function TaijiDecor({ size = 92 }: { size?: number }) {
       <circle cx={cx} cy={cy} r={r - 2} fill="none" stroke="var(--gold)" strokeWidth="0.2" opacity=".15" />
       <circle cx={cx} cy={cy} r={r * 0.48} fill="var(--taiji-ink, #2a1f15)" />
       <path d={`M${cx} ${cy - r * 0.48}A${r * 0.48} ${r * 0.48} 0 0 1 ${cx} ${cy + r * 0.48}Z`} fill="url(#glTjGold)" />
-      <circle cx={cx} cy={cy - r * 0.24} r={r * 0.24} fill="url(#glTjGold)" />
-      <circle cx={cx} cy={cy + r * 0.24} r={r * 0.24} fill="var(--taiji-ink, #2a1f15)" />
-      <circle cx={cx} cy={cy - r * 0.24} r={r * 0.08} fill="var(--taiji-ink, #2a1f15)" />
-      <circle cx={cx} cy={cy + r * 0.24} r={r * 0.08} fill="url(#glTjGold)" />
+      {/* 朝向与参考稿一致：金鱼头在下、墨鱼头在上 */}
+      <circle cx={cx} cy={cy + r * 0.24} r={r * 0.24} fill="url(#glTjGold)" />
+      <circle cx={cx} cy={cy - r * 0.24} r={r * 0.24} fill="var(--taiji-ink, #2a1f15)" />
+      <circle cx={cx} cy={cy + r * 0.24} r={r * 0.08} fill="var(--taiji-ink, #2a1f15)" />
+      <circle cx={cx} cy={cy - r * 0.24} r={r * 0.08} fill="url(#glTjGold)" />
     </svg>
   );
 }

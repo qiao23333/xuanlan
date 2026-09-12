@@ -136,28 +136,31 @@ function CelestialWheel({ size = 360 }: { size?: number }) {
       })}
 
       {/* ====== 中心太极 ======
-          构造顺序保证「两枚鱼眼必与所在鱼身反色」：
-          ① 整圆铺墨（阴鱼底） ② 右半圆盘 + 上半圆盘铺金（阳鱼） ③ 下半圆盘回铺墨
-          其余部分自然形成 S 曲线 → 金鱼头在上、墨鱼头在下，两鱼眼分别取反色。 */}
+          朝向以参考稿为准（对参考图实测像素：墨在左、金在右；
+          垂直中线由上到下为 金·金·墨眼·金 → **金鱼头在下、墨鱼头在上**）。
+          构造顺序：① 整圆铺墨 ② 右半圆盘铺金(阳) ③ 下半圆盘铺金 → 金鱼头在下
+                    ④ 上半圆盘回铺墨 → 墨鱼头在上，切出 S 曲线
+                    ⑤ 鱼眼取所在鱼身反色：金鱼(在下)之眼取墨，墨鱼(在上)之眼取金 */}
       <g className="taiji-core">
-        {/* 底：整圆填「墨」 */}
+        {/* 底：整圆铺墨（阴鱼底） */}
         <circle cx={cx} cy={cy} r="14" fill="var(--taiji-ink)" />
-        {/* 阳鱼：右半圆盘 + 上半圆盘 */}
+        {/* 阳鱼：右半圆盘铺金 */}
         <path d={`M${cx} ${cy - 14} A14 14 0 0 1 ${cx} ${cy + 14} Z`} fill="url(#taijiGold)" />
-        <circle cx={cx} cy={cy - 7} r="7" fill="url(#taijiGold)" />
-        {/* 阴鱼：下半圆盘（切出 S 曲线） */}
-        <circle cx={cx} cy={cy + 7} r="7" fill="var(--taiji-ink)" />
-        {/* 金鱼之眼 = 墨；墨鱼之眼 = 金 */}
-        <circle cx={cx} cy={cy - 7} r="2.5" fill="var(--taiji-ink)" />
-        <circle cx={cx} cy={cy + 7} r="2.5" fill="url(#taijiGold)" />
-        {/* 金鱼眼细环：在暗色底里也能看出眼位 */}
+        {/* 金鱼头在下：下半圆盘铺金，向左下鼓出 */}
+        <circle cx={cx} cy={cy + 7} r="7" fill="url(#taijiGold)" />
+        {/* 墨鱼头在上：上半圆盘回铺墨，向右上鼓出，切出 S 曲线 */}
+        <circle cx={cx} cy={cy - 7} r="7" fill="var(--taiji-ink)" />
+        {/* 鱼眼：金鱼（头在下）之眼 = 墨；墨鱼（头在上）之眼 = 金 */}
+        <circle cx={cx} cy={cy + 7} r="2.5" fill="var(--taiji-ink)" />
+        <circle cx={cx} cy={cy - 7} r="2.5" fill="url(#taijiGold)" />
+        {/* 墨鱼之眼（金，在上）描细环，暗底里也能看出眼位 */}
         <circle
           cx={cx}
           cy={cy - 7}
           r="2.5"
           fill="none"
-          stroke="var(--taiji-light)"
-          strokeOpacity="0.38"
+          stroke="var(--taiji-ink)"
+          strokeOpacity="0.45"
           strokeWidth="0.16"
         />
         {/* 外描边 */}
@@ -287,10 +290,11 @@ function TaijiRing({ size = 104, spinning = false }: { size?: number; spinning?:
       <g className="taiji-core">
         <circle cx="50" cy="50" r="16" fill="var(--taiji-ink)" />
         <path d="M50 34 A16 16 0 0 1 50 66 Z" fill="var(--taiji-light)" />
-        <circle cx="50" cy="42" r="8" fill="var(--taiji-light)" />
-        <circle cx="50" cy="58" r="8" fill="var(--taiji-ink)" />
-        <circle cx="50" cy="42" r="3" fill="var(--taiji-ink)" />
-        <circle cx="50" cy="58" r="3" fill="var(--taiji-light)" />
+        {/* 朝向与参考稿一致：金鱼头在下、墨鱼头在上（其余太极实例同此朝向） */}
+        <circle cx="50" cy="58" r="8" fill="var(--taiji-light)" />
+        <circle cx="50" cy="42" r="8" fill="var(--taiji-ink)" />
+        <circle cx="50" cy="58" r="3" fill="var(--taiji-ink)" />
+        <circle cx="50" cy="42" r="3" fill="var(--taiji-light)" />
         <circle cx="50" cy="50" r="16" fill="none" stroke="var(--gold)" strokeWidth="0.9" strokeOpacity="0.7" />
       </g>
     </svg>

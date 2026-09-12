@@ -14,9 +14,9 @@ interface SystemOverviewProps {
 }
 
 /**
- * 八大体系观点一览 —— 设计稿中的横向滚动卡片墙。
- * 每张卡片显示：图标 + 体系名 + 分类标签(命盘/卜卦) + 一句话倾向。
- * 点击展开为完整详情面板（替代原来的 card-wall）。
+ * 八大体系观点一览 —— 设计稿中的卡片墙。
+ * 每张卡片按参考稿排版：上面图标、下面体系名，不放分类标签与详细描述。
+ * 点击展开为完整详情面板（详情里仍保留完整解读与证据）。
  */
 export function SystemOverview({ result, showRaw, setShowRaw }: SystemOverviewProps) {
   const [activeId, setActiveId] = useState<SystemId | null>(null);
@@ -50,10 +50,6 @@ export function SystemOverview({ result, showRaw, setShowRaw }: SystemOverviewPr
         {result.charts.map((c) => {
           const meta = SYSTEM_META[c.systemId as SystemId];
           const isActive = activeId === c.systemId;
-          // 从 interpretation 提取第一句作为"一句话倾向"
-          const firstLine = c.interpretation?.summary
-            || c.interpretation?.text?.split(/[。\n]/)[0]
-            || '已生成排盘结果';
 
           return (
             <button
@@ -69,13 +65,8 @@ export function SystemOverview({ result, showRaw, setShowRaw }: SystemOverviewPr
                     不再依赖 public/icons 下的 PNG（曾出现 astrolabe 错配咖啡杯的回归） */}
                 <SystemSigil id={c.systemId as SystemId} size={28} />
               </span>
-              <span className="so-text">
-                <span className="so-line1">
-                  <span className="so-name">{meta?.name ?? c.systemId}</span>
-                  <span className={`so-cat cat-${meta?.category}`}>{meta?.category === 'chart' ? '命盘' : '卜卦'}</span>
-                </span>
-                <span className="so-brief">{firstLine}</span>
-              </span>
+              {/* 参考稿排版：上面图标、下面名字，不放分类标签与详细描述 */}
+              <span className="so-name">{meta?.name ?? c.systemId}</span>
             </button>
           );
         })}
