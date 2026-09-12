@@ -64,11 +64,13 @@ export function SystemOverview({ result, consensus, topic, form, showRaw, setSho
               aria-pressed={isActive}
             >
               <span className="so-icon">
-                {/* 用户指定的标准图标素材（透明底 PNG，深浅两套），见 systemIdentity.tsx 的 SystemIcon */}
                 <SystemIcon id={c.systemId as SystemId} size={40} />
               </span>
-              {/* 参考稿排版：上面图标、下面名字，不放分类标签与详细描述 */}
               <span className="so-name">{meta?.name ?? c.systemId}</span>
+              {meta?.summary && (
+                <span className="so-desc">{meta.summary.slice(0, 18)}…</span>
+              )}
+              <span className="so-action">查看 &rarr;</span>
             </button>
           );
         })}
