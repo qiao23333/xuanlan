@@ -1,11 +1,12 @@
 import React from 'react';
 
 /** 入口页四个卖点（参考设计稿首页底部卡片行） */
+/** 参考稿文案。图标一律用单色字符（彩色 emoji 在金线主题里会跳色） */
 const FEATURES: { icon: string; title: string; desc: string }[] = [
-  { icon: '⊞', title: '多体系融合', desc: '八大体系并行推演\n看见更完整的自己' },
+  { icon: '⊞', title: '多体系融合', desc: '八大体系并排推演\n看见更完整的自己' },
   { icon: '☯', title: 'AI 深度解读', desc: '结合古典智慧与现代算法\n提供个性化分析' },
-  { icon: '📄', title: '结构化呈现', desc: '从命盘到结论\n清晰、易懂、可实践' },
-  { icon: '🧭', title: '探索自我成长', desc: '不止是预测\n更是理解与选择' },
+  { icon: '▤', title: '结构化呈现', desc: '从命盘到建议\n清晰、易懂、可实践' },
+  { icon: '✦', title: '探索自我成长', desc: '不仅是预测\n更是理解与选择' },
 ];
 
 /** 先天八卦：1=阳爻，0=阴爻 */
@@ -207,10 +208,10 @@ export function Landing({
         {/* ── 中央：太极轮 + 主标题 + CTA ── */}
         <main className="l2-hero">
           <div className="l2-wheel-wrap">
-            {/* 天地人 标签 */}
+            {/* 天地人 标签 —— 参考稿方位：天在上、人在左、地在右 */}
             <span className="l2-label l2-label-top">天</span>
-            <span className="l2-label l2-label-bottom">地</span>
             <span className="l2-label l2-label-left">人</span>
+            <span className="l2-label l2-label-right">地</span>
             <CelestialWheel size={380} />
           </div>
 
@@ -234,7 +235,10 @@ export function Landing({
 
         {/* ── 右侧：竖排文字 ── */}
         <aside className="l2-right" aria-hidden="true">
-          <p className="l2-right-cn">观天识人心未来</p>
+          {/* 参考稿是三句短句，不是连排的一长串 */}
+          <p className="l2-right-cn">观天道</p>
+          <p className="l2-right-cn">识人心</p>
+          <p className="l2-right-cn">见未来</p>
           <p className="l2-right-en1">SEE FURTHER</p>
           <p className="l2-right-en2">LIVE DEEPER</p>
         </aside>
@@ -255,7 +259,7 @@ export function Landing({
       <footer className="l2-footer">
         <div className="l2-fl-left">
           <span className="l2-fl-brand">玄览 XUANLAN</span>
-          <span className="l2-fl-slogan">让东方智慧，照亮现代生活</span>
+          <span className="l2-fl-slogan">让东方智慧，照见现代生活</span>
         </div>
         <nav className="l2-fl-links" aria-label="页脚导航">
           <span>知命</span><span className="l2-fl-sep">·</span>

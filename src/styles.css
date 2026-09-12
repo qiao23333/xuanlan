@@ -1557,6 +1557,76 @@ select:focus:not(:focus-visible) { outline: none; }
 .so-meta { margin-top: 12px; font-size: 12.5px; color: var(--ink-soft); }
 .so-meta p { margin: 4px 0 0; line-height: 1.7; }
 
+/* ============================================================
+   单体系详情视图（SystemDetailView，照 8 张参考图）
+   ============================================================ */
+.system-detail { margin-top: 1.4rem; }
+.sd-detail-anchor { scroll-margin-top: 80px; }
+
+.sd-breadcrumb { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.9rem; }
+.sd-breadcrumb .breadcrumb { background: none; border: none; color: var(--ink-soft); cursor: pointer; font-size: 0.82rem; padding: 0; }
+.sd-breadcrumb .breadcrumb:hover { color: var(--gold); }
+.sd-crumb-sep { color: var(--muted); }
+.sd-crumb-cur { color: var(--ink); font-size: 0.86rem; letter-spacing: 0.06em; }
+
+/* 用户资料卡 */
+.sd-profile { display: flex; align-items: center; gap: 1rem; padding: 1.1rem 1.4rem; margin-bottom: 1rem; }
+.sd-avatar {
+  flex: none; width: 52px; height: 52px; border-radius: 50%;
+  display: grid; place-items: center;
+  font-family: var(--serif); font-size: 1.5rem; color: #1a1209;
+  background: linear-gradient(135deg, var(--gold), var(--gold-soft));
+  box-shadow: 0 2px 12px rgba(233,196,106,.3);
+}
+.sd-profile-info { flex: 1; min-width: 0; }
+.sd-pi-row { display: flex; align-items: baseline; gap: 0.6rem; }
+.sd-name { font-size: 1.05rem; font-family: var(--serif); color: var(--ink); letter-spacing: 0.06em; }
+.sd-gender { font-size: 0.74rem; color: var(--gold); border: 1px solid var(--gold-soft); border-radius: 8px; padding: 1px 8px; }
+.sd-pi-meta { display: flex; flex-wrap: wrap; gap: 0.5rem 0.9rem; margin-top: 0.35rem; font-size: 0.76rem; color: var(--ink-soft); }
+.sd-loc { color: var(--gold); }
+.sd-badge { font-size: 0.68rem; color: #2dd4bf; border: 1px solid color-mix(in srgb, #2dd4bf 50%, transparent); border-radius: 7px; padding: 1px 7px; }
+.sd-profile-quote { flex: none; max-width: 200px; font-family: var(--serif); font-size: 0.78rem; color: var(--gold); line-height: 1.7; border-left: 2px solid var(--gold-soft); padding-left: 0.8rem; margin: 0; opacity: 0.85; }
+
+/* 体系横幅 */
+.sd-banner { display: flex; gap: 1.2rem; align-items: center; padding: 1.4rem 1.6rem; margin-bottom: 1rem; border-radius: 16px; background:
+  linear-gradient(120deg, color-mix(in srgb, var(--accent, var(--gold)) 14%, var(--panel)), var(--panel)); border: 1px solid var(--line); }
+.sd-banner-icon { flex: none; width: 72px; height: 72px; border-radius: 16px; display: grid; place-items: center; background: var(--bg2); border: 1px solid var(--line); }
+.sd-banner-text { flex: 1; min-width: 0; }
+.sd-banner-title { font-family: var(--serif); font-size: 1.7rem; color: var(--ink); letter-spacing: 0.18em; margin: 0 0 0.4rem; }
+.sd-banner-desc { font-size: 0.85rem; color: var(--ink-soft); line-height: 1.7; margin: 0 0 0.7rem; max-width: 56ch; }
+.sd-banner-tags { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+.sd-tag { font-size: 0.7rem; color: var(--ink-soft); background: var(--bg2); border: 1px solid var(--line); border-radius: 8px; padding: 3px 10px; letter-spacing: 0.04em; }
+.sd-tag.cat-chart { color: #4a90e2; border-color: color-mix(in srgb, #4a90e2 45%, transparent); }
+.sd-tag.cat-divination { color: #a78bfa; border-color: color-mix(in srgb, #a78bfa 45%, transparent); }
+
+/* 共识 + 核心优势 双栏 */
+.sd-dual { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+.sd-dual-card { padding: 1.2rem 1.4rem; }
+.sd-block-title { font-family: var(--serif); font-size: 0.95rem; color: var(--ink); letter-spacing: 0.1em; margin: 0 0 1rem; font-weight: 600; }
+.sd-consensus .sd-donut-body { display: flex; align-items: center; gap: 1.2rem; }
+
+/* 专属盘面 */
+.sd-panel { padding: 1.4rem 1.6rem; margin-bottom: 1rem; }
+.sd-panel-title { display: flex; align-items: center; gap: 0.6rem; font-family: var(--serif); font-size: 1.1rem; color: var(--ink); letter-spacing: 0.1em; margin: 0 0 1.1rem; }
+.sd-render { background: var(--panel); border-radius: 12px; padding: 1rem; overflow-x: auto; margin-bottom: 1rem; }
+.sd-back-overview { text-align: center; margin: 0.6rem 0 1rem; }
+
+/* 对比矩阵 */
+.sd-compare { margin-top: 0.6rem; }
+.sd-compare-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.6rem; }
+.sd-compare-item { display: flex; flex-direction: column; align-items: center; gap: 0.45rem; padding: 0.9rem 0.4rem; background: var(--bg2); border: 1px solid var(--line); border-radius: 12px; cursor: pointer; transition: border-color .2s, transform .2s; }
+.sd-compare-item:hover { border-color: var(--so-accent, var(--gold)); transform: translateY(-2px); }
+.sd-compare-item span { font-size: 0.78rem; color: var(--ink); }
+
+@media (max-width: 900px) {
+  .sd-dual { grid-template-columns: 1fr; }
+  .sd-compare-grid { grid-template-columns: repeat(4, 1fr); }
+  .sd-profile-quote { display: none; }
+}
+@media (max-width: 560px) {
+  .sd-compare-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
 /* 兼容：旧 card-wall 折叠 */
 .legacy-wall { margin: 20px 0; }
 .legacy-wall summary { cursor: pointer; padding: 10px 14px; background: var(--bg2); border: 1px solid var(--line); border-radius: 10px; font-size: 13px; color: var(--muted); }
@@ -2390,6 +2460,25 @@ select:focus:not(:focus-visible) { outline: none; }
 .rs-taiji-wrap { flex: none; opacity: .85; }
 .rs-taiji { filter: drop-shadow(0 0 18px rgba(233,196,106,.2)); }
 .rs-body { flex: 1; min-width: 0; }
+/* 右侧竖排行动指引（参考图 Screen 03） */
+.rs-sidebar {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  padding: 0.6rem 0.9rem;
+  border-left: 1px solid var(--line);
+  margin-left: 0.3rem;
+}
+.rs-sb-item {
+  font-family: var(--serif);
+  font-size: 0.95rem;
+  letter-spacing: 0.25em;
+  color: var(--gold);
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  opacity: 0.8;
+}
 .rs-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
 .rs-kicker-en {
   font-size: 10px; letter-spacing: 2px; color: var(--gold);
@@ -2497,7 +2586,7 @@ select:focus:not(:focus-visible) { outline: none; }
 .alignment { margin: 0 0 1rem; }
 .al-cards {
   display: grid;
-  grid-template-columns: 1.2fr 1fr;
+  grid-template-columns: 1.2fr 1fr 1fr;
   gap: 1rem;
 }
 .al-card { padding: 1.2rem 1.4rem; }
@@ -2565,6 +2654,31 @@ select:focus:not(:focus-visible) { outline: none; }
   border-top: 1px solid var(--line);
 }
 .al-dissent-note b { color: var(--gold); font-weight: 600; }
+
+/* ====== 核心优势卡（第三栏） ====== */
+.al-trophy { font-size: 1.05em; }
+.al-adv-list { display: flex; flex-direction: column; gap: 0.85rem; }
+.al-adv-item {
+  display: flex; align-items: flex-start; gap: 0.65rem;
+  padding: 0.65rem 0.75rem;
+  background: var(--bg2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  transition: background 0.2s;
+}
+.al-adv-item:hover { background: color-mix(in srgb, var(--gold) 6%, transparent); }
+.al-adv-icon { font-size: 1.15em; flex: none; line-height: 1.4; }
+.al-adv-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.al-adv-title { font-size: 0.82rem; font-weight: 600; color: var(--ink); display: block; }
+.al-adv-desc { font-size: 0.72rem; color: var(--ink-soft); line-height: 1.55; display: block; }
+.al-adv-note {
+  margin-top: 0.9rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.7rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
 
 /* ====== Landing 底部（两角落文字版） ====== */
 .l2-footer {
@@ -3690,6 +3804,12 @@ details.legacy-wall[open] .wall {
 [data-theme="light"] .sys-icon .ic-dark { display: none; }
 [data-theme="light"] .sys-icon .ic-light { display: block; }
 
+/* 参考稿区块标题：中文 + 小号英文副标（如「六大人生维度 · LIFE DIMENSIONS」） */
+.sec-en {
+  font-size: .62em; font-weight: 400; letter-spacing: .22em;
+  color: var(--muted); text-transform: uppercase; white-space: nowrap;
+}
+
 /* ═══════════════ 结果页桌面端章节导航（v0.17） ═══════════════
    结果页纵向很长，桌面端两侧留白白白浪费。
    ≥1024px 时把左栏让给一条粘性目录：既用满宽度，又能一键跳段。
@@ -3801,6 +3921,8 @@ details.legacy-wall[open] .wall {
 .l2-label-top { top: -4px; left: 50%; transform: translateX(-50%); }
 .l2-label-bottom { bottom: -4px; left: 50%; transform: translateX(-50%); }
 .l2-label-left { left: -18px; top: 50%; transform: translateY(-50%); }
+/* 参考稿三才方位：天在上、人在左、地在右 */
+.l2-label-right { right: -18px; top: 50%; transform: translateY(-50%); }
 .l2-title-en {
   font-size: clamp(10px, 1vw, 13px); color: var(--gold-soft);
   letter-spacing: .4em; margin-top: -4px;
@@ -3812,8 +3934,14 @@ details.legacy-wall[open] .wall {
   font-family: var(--font-serif); letter-spacing: 0;
   vertical-align: middle; margin: 0 4px;
 }
-/* ── 右侧：竖排文字 ── */
-.l2-right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+/* ── 右侧：竖排文字 ──
+   参考稿是「观天道 / 识人心 / 见未来」三列并排的竖排短句 + 两列英文，
+   所以外层必须 row（若用 column，三个竖排块会上下堆叠而不是并排三列）。 */
+.l2-right {
+  display: flex; flex-direction: row; align-items: flex-start;
+  justify-content: flex-end; gap: .55rem;
+}
+.l2-right-en1 { margin-left: .35rem; }
 .l2-right-cn {
   writing-mode: vertical-rl; text-orientation: upright;
   font-family: var(--font-serif); font-size: clamp(12px, 1.2vw, 15px);

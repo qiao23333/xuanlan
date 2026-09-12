@@ -25,7 +25,7 @@ function useCountUp(target: number, duration = 900): number {
 }
 
 /** 轴 → 中文展示名（贴近设计稿"人生维度"感） */
-const DIM_NAMES: Record<string, string> = {
+export const DIM_NAMES: Record<string, string> = {
   action: '行动',
   timing: '时机',
   social: '人际',
@@ -99,7 +99,9 @@ export function DimensionGauges({ consensus, topic }: DimensionGaugesProps) {
   return (
     <section className="dim-gauges xl-card">
       <div className="dg-head-row">
-        <h3 className="dg-head">六大人生维度</h3>
+        <h3 className="dg-head">
+          六大人生维度 <span className="sec-en">· LIFE DIMENSIONS</span>
+        </h3>
         <span className="dg-sub">基于八大体系的综合评估</span>
         <a className="dg-more" href="#sys-overview" onClick={(e) => {
           e.preventDefault();

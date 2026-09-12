@@ -202,7 +202,14 @@ export default function ResultsView({
 
           {/* ═══════ Level 3: 深度用户 ═══════ */}
           <div id="sec-systems">
-            <SystemOverview result={result} showRaw={showRaw} setShowRaw={setShowRaw} />
+            <SystemOverview
+              result={result}
+              consensus={consensus}
+              topic={form.topic}
+              form={form}
+              showRaw={showRaw}
+              setShowRaw={setShowRaw}
+            />
           </div>
           <div id="sec-report">
             {report && <SynthesisReport report={report} topic={form.topic} />}

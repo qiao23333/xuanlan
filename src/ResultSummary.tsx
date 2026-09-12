@@ -58,7 +58,7 @@ export function ResultSummary({ consensus, headline, topicLabel, qtext }: Result
           <TaijiDecor />
         </div>
 
-        {/* 右侧：文字内容 */}
+        {/* 中间：文字内容 */}
         <div className="rs-body">
           <div className="rs-head">
             <span className="rs-kicker">综合结论</span>
@@ -89,6 +89,14 @@ export function ResultSummary({ consensus, headline, topicLabel, qtext }: Result
             </span>
           </div>
         </div>
+
+        {/* 右侧：竖排行动指引（参考图 Screen 03） */}
+        <aside className="rs-sidebar" aria-hidden="true">
+          <span className="rs-sb-item">知己</span>
+          <span className="rs-sb-item">识己</span>
+          <span className="rs-sb-item">解势</span>
+          <span className="rs-sb-item">趋远</span>
+        </aside>
       </div>
     </section>
   );

@@ -8,6 +8,31 @@ const STRUCTURAL: SystemId[] = ['bazi', 'ziwei', 'astrolabe'];
 /** 卜卦类（当前事件窗口） */
 const SITUATIONAL: SystemId[] = ['qimen', 'liuren', 'xiaoliuren', 'meihua', 'tarot'];
 
+/**
+ * 从 consensus 数据中提炼核心优势条目（参考图 Screen 03 右栏「核心优势」）。
+ * 基于各轴加权均值排序，取 top 维度生成语义化优势描述。
+ */
+export function deriveCoreAdvantages(consensus: Consensus[]): { icon: string; title: string; desc: string }[] {
+  const sorted = [...consensus].sort((a, b) => b.weightedMean - a.weightedMean);
+  const top = sorted.slice(0, 3);
+
+  const ADV_TEMPLATES: Record<string, { icon: string; title: string; desc: string }> = {
+    action:     { icon: '🧠', title: '思想敏锐', desc: '洞察力强，善于在复杂局势中快速定位关键路径。' },
+    timing:     { icon: '⏱️', title: '时机把握', desc: '对节奏变化敏感，懂得在恰当的节点发力，避免盲目行动。' },
+    social:     { icon: '🤝', title: '人际融洽', desc: '善于协调各方关系，在团队与合作场景中能发挥桥梁作用。' },
+    risk:       { icon: '💪', title: '进取有力', desc: '敢于突破舒适区，面对挑战时展现出坚韧的行动力。' },
+    change:     { icon: '🔄', title: '适应力强', desc: '在变化中保持弹性，能较快调整策略以适应新环境。' },
+    auspicious: { icon: '🍀', title: '顺势而为', desc: '整体能量场较为顺畅，做事容易得到外部环境的支持。' },
+  };
+
+  return top.map((c) => {
+    const tpl = ADV_TEMPLATES[c.axis] ?? { icon: '✦', title: DIM_NAMES[c.axis] || c.axis, desc: `${AXIS_LABELS[c.axis]?.positive || c.axis}维度表现突出。` };
+    return { icon: tpl.icon, title: tpl.title, desc: tpl.desc };
+  });
+}
+
+/** 轴 → 中文展示名（贴近设计稿"人生维度"感） */
+
 interface AlignmentViewProps {
   consensus: Consensus[];
   topic: TopicId;
@@ -23,6 +48,7 @@ export function AlignmentView({ consensus, topic }: AlignmentViewProps) {
 
   const overall = overallAgreement(consensus);
   const pct = Math.round(overall * 100);
+  const advantages = deriveCoreAdvantages(consensus);
 
   // 统计各一致率区间的轴数
   const high = consensus.filter((c) => c.agreement >= 0.75).length;
@@ -100,7 +126,10 @@ export function AlignmentView({ consensus, topic }: AlignmentViewProps) {
         {dissent && dissentLab && (
           <div className="al-card al-dissent-card xl-card">
             <div className="al-head">
-              <h3><span className="al-bolt">⚡</span> 最大分歧</h3>
+              <h3>
+                <span className="al-bolt">⚡</span> 最大分歧{' '}
+                <span className="sec-en">· KEY DISAGREEMENT</span>
+              </h3>
             </div>
             <div className="al-dissent-axis">
               {dissentLab.positive} / {dissentLab.negative}
@@ -122,6 +151,30 @@ export function AlignmentView({ consensus, topic }: AlignmentViewProps) {
             </p>
           </div>
         )}
+
+        {/* ===== 卡3：核心优势（参考图 Screen 03 右栏） ===== */}
+        <div className="al-card al-advantages-card xl-card">
+          <div className="al-head">
+            <h3>
+              <span className="al-trophy">🏆</span> 核心优势{' '}
+              <span className="sec-en">· KEY POINTS</span>
+            </h3>
+          </div>
+          <div className="al-adv-list">
+            {advantages.map((adv, i) => (
+              <div className="al-adv-item" key={i}>
+                <span className="al-adv-icon" aria-hidden="true">{adv.icon}</span>
+                <div className="al-adv-text">
+                  <strong className="al-adv-title">{adv.title}</strong>
+                  <span className="al-adv-desc">{adv.desc}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="al-adv-note">
+            以上优势基于八大体系综合评分提取，代表多维共识中的突出特质。
+          </p>
+        </div>
       </div>
     </section>
   );
