@@ -146,7 +146,7 @@ function drawCard(
   ctx.textAlign = 'center';
   ctx.fillStyle = PALETTE.soft;
   ctx.font = "400 20px 'PingFang SC',sans-serif";
-  ctx.fillText('内核严肃 · 外壳科普 · 八大体系交叉验证 · 结果可解释可复现可溯源', W / 2, H - 60);
+  ctx.fillText('八大体系交叉验证 · 结果可解释可复现可溯源', W / 2, H - 60);
 }
 
 export function ShareCard({

@@ -195,8 +195,8 @@ export default function DivinationForm({
                 <p className="f2-subtitle">精确的时间与地点，带来更可靠的推演结果</p>
               </div>
 
-              {/* 历法切换 */}
-              <div className="f2-calendar-toggle">
+              {/* 历法切换 —— 胶囊组 + 滑动指示器 */}
+              <div className={`f2-calendar-toggle${form.calendarType === 'lunar' ? ' l-slide-right' : ''}`}>
                 <button
                   type="button"
                   className={`f2-toggle-btn${form.calendarType === 'solar' ? ' active' : ''}`}
@@ -284,14 +284,15 @@ export default function DivinationForm({
                 )}
               </div>
 
-              {/* 性别 */}
+              {/* 性别 —— 胶囊组 + 滑动指示器 */}
               <div className="f2-field-group">
                 <label className="f2-label">性别</label>
-                <div className="f2-gender-toggle">
+                <div className={`f2-gender-toggle${form.gender === 'female' ? ' l-slide-right' : ''}`}>
                   <button type="button" className={`f2-gender-btn${form.gender === 'male' ? ' active' : ''}`} onClick={() => set({ gender: 'male' })}>男</button>
                   <button type="button" className={`f2-gender-btn${form.gender === 'female' ? ' active' : ''}`} onClick={() => set({ gender: 'female' })}>女</button>
                 </div>
               </div>
+
 
               {/* 出生地 */}
               <div className="f2-field-group">

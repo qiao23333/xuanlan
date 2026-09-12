@@ -44,6 +44,7 @@ body {
   margin: 0;
   font-family: var(--font-body);
   background:
+    var(--app-bg-dark, none) center 30% / cover no-repeat fixed,
     radial-gradient(1100px 620px at 50% -12%, #1f1838 0%, rgba(14, 11, 20, 0) 60%),
     radial-gradient(700px 500px at 12% 8%, rgba(122, 90, 200, 0.10) 0%, rgba(14, 11, 20, 0) 55%),
     radial-gradient(800px 600px at 92% 90%, rgba(233, 196, 106, 0.07) 0%, rgba(14, 11, 20, 0) 55%),
@@ -56,6 +57,9 @@ body {
 }
 
 .app { max-width: 1180px; margin: 0 auto; padding: 28px 18px 80px; }
+
+/* 非入口页：背景图铺满全屏（用户山水画），内容区不限制最大宽度以消除左右白边 */
+.app.has-mtb { max-width: none; padding: 24px 40px 60px; }
 
 .hero { text-align: center; padding: 18px 0 8px; }
 .hero h1 {
@@ -582,6 +586,7 @@ body {
 
 body {
   background:
+    var(--app-bg-light, none) center 30% / cover no-repeat fixed,
     radial-gradient(1100px 620px at 50% -12%, var(--atmo-glow) 0%, transparent 62%),
     radial-gradient(760px 460px at 88% 6%, color-mix(in srgb, var(--gold) 6%, transparent) 0%, transparent 60%),
     radial-gradient(900px 520px at 6% 20%, color-mix(in srgb, var(--jade) 4%, transparent) 0%, transparent 58%),
@@ -589,6 +594,7 @@ body {
 }
 [data-theme="light"] body {
   background:
+    var(--app-bg-light, none) center 30% / cover no-repeat fixed,
     radial-gradient(1100px 620px at 50% -12%, rgba(190, 160, 100, .10) 0%, transparent 62%),
     radial-gradient(760px 460px at 88% 6%, color-mix(in srgb, var(--gold) 8%, transparent) 0%, transparent 60%),
     radial-gradient(900px 520px at 6% 20%, color-mix(in srgb, var(--jade) 8%, transparent) 0%, transparent 58%),
@@ -1504,11 +1510,11 @@ select:focus:not(:focus-visible) { outline: none; }
 
 /* 8 个体系一次排完：桌面 4×2、平板 3 列、手机 2 列（每列 4 个）。
    不再用横向滚动 —— 用户明确嫌那个左右拖的条丑，而且会看不到后面的卡片。 */
-.so-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.so-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
 
 .so-card {
-  min-width: 0; padding: 16px 14px; display: flex; flex-direction: column;
-  align-items: center; gap: 8px; text-align: center;
+  min-width: 0; padding: 20px 16px; display: flex; flex-direction: column;
+  align-items: center; gap: 10px; text-align: center;
   background: var(--bg2); border: 1px solid var(--line); border-radius: 14px;
   cursor: pointer; color: var(--ink);
   transition: border-color .25s, background .25s, box-shadow .25s, transform .25s;
@@ -1521,12 +1527,13 @@ select:focus:not(:focus-visible) { outline: none; }
 }
 /* 参考稿：体系图标置于细圆环内，下方只跟体系名 */
 .so-icon {
-  flex: none; width: 60px; height: 60px; border-radius: 50%;
+  flex: none; width: 72px; height: 72px; border-radius: 50%;
   display: inline-flex; align-items: center; justify-content: center;
   background: color-mix(in srgb, var(--so-accent, var(--gold)) 9%, transparent);
   border: 1px solid color-mix(in srgb, var(--so-accent, var(--gold)) 30%, transparent);
   transition: border-color .25s ease, transform .25s ease;
 }
+.so-icon img { width: 44px; height: 44px; object-fit: contain; }
 .so-card:hover .so-icon,
 .so-card.so-active .so-icon {
   border-color: color-mix(in srgb, var(--so-accent, var(--gold)) 65%, transparent);
@@ -1535,7 +1542,7 @@ select:focus:not(:focus-visible) { outline: none; }
 .so-icon .sigil { color: var(--so-accent, var(--gold)); }
 .so-text { min-width: 0; display: flex; flex-direction: column; gap: 4px; align-items: center; }
 .so-line1 { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-.so-name { font-size: 14px; font-weight: 600; letter-spacing: .05em; }
+.so-name { font-size: 15px; font-weight: 600; letter-spacing: .06em; }
 .so-cat { font-size: 10px; padding: 2px 8px; border-radius: 8px; opacity: .7; }
 .so-brief { font-size: 11px; color: var(--muted); line-height: 1.5; max-width: 140px; }
 
@@ -1812,13 +1819,13 @@ select:focus:not(:focus-visible) { outline: none; }
 .l2-enter-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.95rem 3.2rem;
+  gap: 0.4rem;
+  padding: 0.7rem 2.6rem;
   background: linear-gradient(135deg, var(--primary), var(--primary-soft));
   border: 1px solid var(--primary-soft);
   border-radius: 3rem;
   color: var(--primary-text);
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   font-weight: 500;
   letter-spacing: 0.22em;
   cursor: pointer;
@@ -1849,15 +1856,15 @@ select:focus:not(:focus-visible) { outline: none; }
 
 /* 项目故事链接 */
 .l2-case-link {
-  margin-top: 1.2rem;
+  margin-top: 0.6rem;
   background: none; border: none;
   color: color-mix(in srgb, var(--ink) 25%, transparent);
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   letter-spacing: 0.12em;
   cursor: pointer;
   transition: color 0.3s;
   font-family: inherit;
-  padding: 0.3rem 0.8rem;
+  padding: 0.2rem 0.6rem;
 }
 .l2-case-link:hover { color: color-mix(in srgb, var(--gold) 60%, transparent); }
 
@@ -1867,9 +1874,9 @@ select:focus:not(:focus-visible) { outline: none; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 2.5rem 1.2rem;
+  padding: 0.5rem 2.5rem 0.7rem;
   border-top: 1px solid color-mix(in srgb, var(--ink) 4%, transparent);
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   letter-spacing: 0.15em;
 }
 .l2-footer-brand {
@@ -1957,7 +1964,7 @@ select:focus:not(:focus-visible) { outline: none; }
 .f2-header {
   position: relative; z-index: 10;
   display: flex; align-items: center; justify-content: space-between;
-  padding: 1rem 2.5rem 0;
+  padding: 0.6rem 2.5rem 0;
   font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase;
 }
 .f2-header-left { display: flex; align-items: baseline; gap: 0.6rem; }
@@ -1990,7 +1997,7 @@ select:focus:not(:focus-visible) { outline: none; }
   max-width: 520px;
   width: 100%;
   margin: 0 auto;
-  padding: 2rem 1.5rem 3rem;
+  padding: 1.2rem 1.5rem 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 1.2rem;
@@ -2007,24 +2014,43 @@ select:focus:not(:focus-visible) { outline: none; }
   margin: 0.3rem 0 0; font-weight: 300;
 }
 
-/* 历法切换 */
+/* 历法切换 —— 胶囊组（参考图 Screen 02） */
 .f2-calendar-toggle {
   display: flex; gap: 0; justify-content: center;
+  position: relative; background: color-mix(in srgb, var(--ink) 6%, transparent);
+  border-radius: 2rem; padding: 3px;
+  border: 1px solid color-mix(in srgb, var(--gold) 18%, transparent);
 }
 .f2-toggle-btn {
-  background: transparent; border: 1px solid color-mix(in srgb, var(--gold) 20%, transparent);
-  color: color-mix(in srgb, var(--ink) 45%, transparent); padding: 0.5rem 1.8rem;
-  font-size: 0.82rem; letter-spacing: 0.15em; cursor: pointer;
-  transition: all 0.3s; font-family: inherit;
+  position: relative; z-index: 1;
+  background: transparent; border: none;
+  color: color-mix(in srgb, var(--ink) 50%); padding: 0.45rem 1.6rem;
+  font-size: 0.8rem; letter-spacing: 0.12em; cursor: pointer;
+  transition: color 0.3s ease; font-family: inherit;
+  border-radius: 2rem;
 }
-.f2-toggle-btn:first-child { border-radius: 2rem 0 0 2rem; }
-.f2-toggle-btn:last-child { border-radius: 0 2rem 2rem 0; }
 .f2-toggle-btn.active {
-  background: color-mix(in srgb, var(--gold) 12%, transparent); border-color: var(--gold);
-  color: var(--gold);
+  color: #fff;
 }
-.f2-toggle-btn:hover:not(.active) { border-color: color-mix(in srgb, var(--gold) 40%, transparent); }
-.f2-toggle-hint { font-size: 0.68rem; opacity: 0.6; margin-left: 0.3rem; }
+.f2-toggle-hint { font-size: 0.65rem; opacity: 0.55; margin-left: 0.25rem; }
+
+/* 胶囊滑动指示器 */
+.f2-calendar-toggle::after,
+.f2-gender-toggle::after {
+  content: "";
+  position: absolute; z-index: 0;
+  top: 3px; left: 3px; height: calc(100% - 6px);
+  width: calc(50% - 3px);
+  background: linear-gradient(135deg, var(--gold), var(--primary));
+  border-radius: 2rem;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(180,140,60,0.25);
+}
+/* 指示器滑到右边（第二个选项激活时） */
+.f2-calendar-toggle.l-slide-right::after,
+.f2-gender-toggle.l-slide-right::after {
+  transform: translateX(100%);
+}
 
 /* 字段组 */
 .f2-field-group { display: flex; flex-direction: column; gap: 0.4rem; }
@@ -2076,18 +2102,21 @@ select:focus:not(:focus-visible) { outline: none; }
 .f2-select-lg { width: 100%; box-sizing: border-box; }
 .f2-select-sm { width: auto; min-width: 100px; }
 
-/* 性别切换 */
-.f2-gender-toggle { display: flex; gap: 0; }
+/* 性别切换 —— 胶囊组（与历法统一风格） */
+.f2-gender-toggle {
+  display: flex; gap: 0; justify-content: center;
+  position: relative; background: color-mix(in srgb, var(--ink) 6%, transparent);
+  border-radius: 2rem; padding: 3px;
+  border: 1px solid color-mix(in srgb, var(--gold) 18%, transparent);
+}
 .f2-gender-btn {
-  background: transparent; border: 1px solid color-mix(in srgb, var(--gold) 20%, transparent);
-  color: color-mix(in srgb, var(--ink) 45%, transparent); padding: 0.5rem 2rem;
-  font-size: 0.82rem; cursor: pointer; transition: all 0.3s; font-family: inherit;
+  position: relative; z-index: 1;
+  background: transparent; border: none;
+  color: color-mix(in srgb, var(--ink) 50%); padding: 0.45rem 2.4rem;
+  font-size: 0.8rem; cursor: pointer; transition: color 0.3s ease; font-family: inherit;
+  border-radius: 2rem;
 }
-.f2-gender-btn:first-child { border-radius: 2rem 0 0 2rem; }
-.f2-gender-btn:last-child { border-radius: 0 2rem 2rem 0; }
-.f2-gender-btn.active {
-  background: color-mix(in srgb, var(--gold) 12%, transparent); border-color: var(--gold); color: var(--gold);
-}
+.f2-gender-btn.active { color: #fff; }
 
 /* 复选框 */
 .f2-chk {
@@ -2285,8 +2314,8 @@ select:focus:not(:focus-visible) { outline: none; }
 
 /* ====== 操作提示 ====== */
 .l2-action-hint {
-  margin: 0.7rem 0 0;
-  font-size: 0.78rem;
+  margin: 0.4rem 0 0;
+  font-size: 0.72rem;
   letter-spacing: 0.35em;
   color: var(--ink-soft);
   font-weight: 300;
@@ -2298,7 +2327,7 @@ select:focus:not(:focus-visible) { outline: none; }
   grid-template-columns: 1fr auto 1fr;
   gap: 1.4rem;
   align-items: center;
-  padding: 1.2rem 2.5rem 1.4rem;
+  padding: 0.6rem 2.5rem 0.8rem;
   border-top: 1px solid color-mix(in srgb, var(--gold) 18%, transparent);
   font-size: 0.6rem;
   letter-spacing: 0.15em;
@@ -3872,9 +3901,9 @@ details.legacy-wall[open] .wall {
 .l2-stage {
   position: relative; z-index: 5; flex: 1;
   display: grid;
-  grid-template-columns: minmax(0, 200px) 1fr minmax(0, 120px);
-  gap: 12px;
-  padding: 8vh 3vw 2vh;
+  grid-template-columns: minmax(0, 180px) 1fr minmax(0, 100px);
+  gap: 8px;
+  padding: 4vh 3vw 1vh;
   align-items: center;
 }
 /* ── 入口页入场动效（参考稿：各元素错峰浮入；hover 元素用 fadeIn 避免覆盖 hover 位移） ── */
@@ -3909,7 +3938,7 @@ details.legacy-wall[open] .wall {
 /* ── 中央：太极轮 + 主标题 ── */
 .l2-hero {
   display: flex; flex-direction: column; align-items: center;
-  justify-content: center; text-align: center; gap: 0.35rem;
+  justify-content: center; text-align: center; gap: 0.22rem;
   padding: 0 1rem;
 }
 .l2-wheel-wrap { position: relative; display: inline-block; margin-bottom: 0.3rem; }
@@ -3918,11 +3947,11 @@ details.legacy-wall[open] .wall {
   font-size: clamp(11px, 1.1vw, 14px); color: var(--gold);
   letter-spacing: .3em; opacity: .7;
 }
-.l2-label-top { top: -4px; left: 50%; transform: translateX(-50%); }
-.l2-label-bottom { bottom: -4px; left: 50%; transform: translateX(-50%); }
-.l2-label-left { left: -18px; top: 50%; transform: translateY(-50%); }
+.l2-label-top { top: -28px; left: 50%; transform: translateX(-50%); }
+.l2-label-bottom { bottom: -28px; left: 50%; transform: translateX(-50%); }
+.l2-label-left { left: -28px; top: 50%; transform: translateY(-50%); }
 /* 参考稿三才方位：天在上、人在左、地在右 */
-.l2-label-right { right: -18px; top: 50%; transform: translateY(-50%); }
+.l2-label-right { right: -28px; top: 50%; transform: translateY(-50%); }
 .l2-title-en {
   font-size: clamp(10px, 1vw, 13px); color: var(--gold-soft);
   letter-spacing: .4em; margin-top: -4px;
@@ -3956,14 +3985,14 @@ details.legacy-wall[open] .wall {
 
 /* ═══════════════ 入口页卖点卡片（v0.19，参考设计稿） ═══════════════ */
 .l2-features {
-  list-style: none; margin: clamp(0.6rem, 2vh, 1.6rem) 3vw 0; padding: 0;
+  list-style: none; margin: clamp(0.3rem, 1.2vh, 0.8rem) auto 0; padding: 0;
   display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: clamp(8px, 1.2vw, 16px); width: 100%; max-width: 900px;
+  gap: clamp(6px, 1vw, 12px); width: 100%; max-width: 820px;
   position: relative; z-index: 5;
 }
 .l2-feat {
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
-  padding: clamp(14px, 2vh, 20px) clamp(10px, 1.2vw, 18px);
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: clamp(10px, 1.5vh, 16px) clamp(8px, 1vw, 14px);
   background: color-mix(in srgb, var(--bg) 55%, transparent);
   backdrop-filter: blur(8px);
   border: 1px solid color-mix(in srgb, var(--line) 50%, transparent);

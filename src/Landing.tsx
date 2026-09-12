@@ -212,7 +212,7 @@ export function Landing({
             <span className="l2-label l2-label-top">天</span>
             <span className="l2-label l2-label-left">人</span>
             <span className="l2-label l2-label-right">地</span>
-            <CelestialWheel size={380} />
+            <CelestialWheel size={340} />
           </div>
 
           <h1 className="l2-title">玄 览</h1>
@@ -226,7 +226,7 @@ export function Landing({
             开始探索 <span className="l2-arrow">→</span>
           </button>
 
-          <p className="l2-action-hint">一次输入，八大体系并排推演 · 内核严谨，外壳科普</p>
+          <p className="l2-action-hint">一次输入，八大体系并排推演</p>
 
           <button className="l2-case-link" type="button" onClick={onCase}>
             这个项目是怎么做出来的 →

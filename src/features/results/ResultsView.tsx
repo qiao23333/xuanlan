@@ -121,7 +121,7 @@ export default function ResultsView({
         </button>
         <div className="result-title-group">
           <h2>玄览 · 探索结果</h2>
-          <p className="result-subtitle">一次输入，八大体系并排推演 · 内核严谨，外壳科普</p>
+          <p className="result-subtitle">一次输入，八大体系并排推演</p>
         </div>
         <div className="result-head-actions">
           <span className="timebar">

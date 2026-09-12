@@ -175,7 +175,7 @@ export function CaseStudy({ onBack }: { onBack: () => void }) {
         <div className="decision">
           <div className="dec-n">01</div>
           <div>
-            <h4>内核严肃，外壳科普</h4>
+            <h4>确定性计算，开放溯源</h4>
             <p>
               算法层严格按古籍规则确定性计算，<b>AI 绝不参与计算</b>；AI 只可能出现在下游做口语化解读，且默认关闭。
               前端负责把术语翻译成白话，并明确标注「命理预测之有效性尚无科学共识」。

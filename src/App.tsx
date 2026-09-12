@@ -391,7 +391,7 @@ export default function App() {
         <>
           <header className="hero">
             <h1>玄览 · 术数聚合</h1>
-            <p className="tagline">一次输入，八大体系并排推演 · 内核严肃，外壳科普</p>
+            <p className="tagline">一次输入，八大体系并排推演</p>
           </header>
 
           <div className="disclaimer">
