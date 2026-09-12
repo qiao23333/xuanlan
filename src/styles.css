@@ -2855,7 +2855,7 @@ select:focus:not(:focus-visible) { outline: none; }
       color-mix(in srgb, var(--bg) 85%, transparent) 100%),
     var(--app-bg-dark, none) center 65% / cover no-repeat;
   box-shadow: var(--shadow);
-  display: flex; align-items: flex-end;
+  display: flex; flex-direction: column;
   padding: 1.6rem;
   min-height: 420px;
   overflow: hidden;
@@ -2868,28 +2868,57 @@ select:focus:not(:focus-visible) { outline: none; }
       color-mix(in srgb, var(--bg) 80%, transparent) 100%),
     var(--app-bg-light, none) center 65% / cover no-repeat;
 }
-.f2-side-quote { line-height: 1.9; }
-.f2-side-line1 {
-  margin: 0;
-  font-family: var(--serif);
-  font-size: 1.25rem;
-  color: var(--ink);
-  letter-spacing: 0.2em;
-  text-shadow: 0 1px 10px color-mix(in srgb, var(--bg) 80%, transparent);
+/* 右侧信息卡：时间与地点 */
+.f2-side-header { margin-bottom: 1rem; }
+.f2-side-title {
+  font-family: var(--serif); font-size: 1.15rem; font-weight: 600;
+  letter-spacing: 0.15em; color: var(--ink); margin: 0;
 }
-.f2-side-line2 {
-  margin: 0;
-  font-family: var(--serif);
-  font-size: 0.95rem;
-  color: var(--gold);
-  letter-spacing: 0.15em;
-  text-shadow: 0 1px 10px color-mix(in srgb, var(--bg) 80%, transparent);
+.f2-side-title-en {
+  display: block; font-size: 0.6rem; letter-spacing: 0.2em;
+  color: var(--gold); font-family: "SF Mono", monospace; margin-top: 2px;
+}
+.f2-side-body { flex: 1; display: flex; flex-direction: column; gap: 0.7rem; }
+.f2-side-para {
+  margin: 0; font-size: 0.82rem; line-height: 1.8;
+  color: var(--ink); opacity: 0.85;
+}
+.f2-side-deco {
+  height: 3px; width: 40px; border-radius: 2px;
+  background: linear-gradient(90deg, var(--gold), transparent);
+  margin-top: auto;
 }
 
 /* 出生地行 */
 .f2-loc-row { flex-wrap: nowrap; }
 .f2-select-country { width: 84px; flex: none; opacity: 0.7; }
 .f2-addr { margin-top: 0.45rem; }
+
+/* ====== 底部特性卡（参考图 Screen 02） ====== */
+.f2-features {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 0 1.5rem 1.5rem;
+  position: relative; z-index: 5;
+}
+.f2-feat-card {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 1rem 0.8rem;
+  background: color-mix(in srgb, var(--bg) 40%, transparent);
+  backdrop-filter: blur(8px);
+  border: 1px solid color-mix(in srgb, var(--line) 45%, transparent);
+  border-radius: 12px;
+  text-align: center;
+}
+.f2-feat-icon { font-size: 1.4rem; opacity: 0.75; }
+.f2-feat-label {
+  font-size: 0.82rem; font-weight: 600; letter-spacing: 0.08em; color: var(--ink);
+}
+.f2-feat-desc {
+  font-size: 0.7rem; color: var(--ink-soft); line-height: 1.5;
+}
 
 /* ====== iOS 开关 ====== */
 .f2-switch-row {

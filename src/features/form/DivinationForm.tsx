@@ -366,12 +366,17 @@ export default function DivinationForm({
               </button>
             </div>
 
-            {/* ---- 右：山水格言卡 ---- */}
+            {/* ---- 右：时间与地点信息卡（参考图 Screen 02） ---- */}
             <aside className="f2-side-card" aria-hidden="true">
-              <div className="f2-side-quote">
-                <p className="f2-side-line1">时间，</p>
-                <p className="f2-side-line2">是你与宇宙相遇的坐标</p>
+              <div className="f2-side-header">
+                <h3 className="f2-side-title">时间与地点</h3>
+                <span className="f2-side-title-en">TIME AND PLACE</span>
               </div>
+              <div className="f2-side-body">
+                <p className="f2-side-para">每一个生命，都诞生于天地之间。</p>
+                <p className="f2-side-para">精确的时间与地点，是连接你与宇宙的坐标，也是读懂命理的起点。</p>
+              </div>
+              <div className="f2-side-deco" />
             </aside>
           </>
         ) : (
@@ -429,6 +434,27 @@ export default function DivinationForm({
           </div>
         )}
       </main>
+
+      {/* ====== 底部特性卡（参考图 Screen 02 底部三栏） ====== */}
+      {step === 1 && (
+        <div className="f2-features" aria-hidden="true">
+          <div className="f2-feat-card">
+            <span className="f2-feat-icon" aria-hidden="true">&#8857;</span>
+            <span className="f2-feat-label">精准输入</span>
+            <span className="f2-feat-desc">越准确，越可靠</span>
+          </div>
+          <div className="f2-feat-card">
+            <span className="f2-feat-icon" aria-hidden="true">&#9728;</span>
+            <span className="f2-feat-label">真太阳时</span>
+            <span className="f2-feat-desc">更贴近真实星象</span>
+          </div>
+          <div className="f2-feat-card">
+            <span className="f2-feat-icon" aria-hidden="true">&#128274;</span>
+            <span className="f2-feat-label">隐私安全</span>
+            <span className="f2-feat-desc">信息仅用于推演</span>
+          </div>
+        </div>
+      )}
     </form>
   );
 }
