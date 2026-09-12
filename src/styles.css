@@ -59,7 +59,7 @@ body {
 .app { max-width: 1180px; margin: 0 auto; padding: 28px 18px 80px; }
 
 /* 非入口页：背景图铺满全屏（用户山水画），内容区不限制最大宽度以消除左右白边 */
-.app.has-mtb { max-width: none; padding: 24px 40px 60px; }
+.app.has-mtb { max-width: none; padding: 24px 40px 60px; width: 100%; }
 
 .hero { text-align: center; padding: 18px 0 8px; }
 .hero h1 {
@@ -735,6 +735,16 @@ body::before {
   border-bottom-color: color-mix(in srgb, var(--line) 30%, transparent);
   box-shadow: none;
 }
+/* 浅色模式导航栏 */
+[data-theme="light"] .nav {
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  border-bottom-color: color-mix(in srgb, var(--line) 40%, transparent);
+  box-shadow: 0 4px 20px rgba(120, 95, 50, .08);
+}
+[data-theme="light"] .nav-brand { color: var(--gold); }
+[data-theme="light"] .nav-item { color: var(--ink-soft); }
+[data-theme="light"] .nav-item:hover { color: var(--ink); }
+[data-theme="light"] .nav-item.active { color: var(--gold); background: rgba(180, 140, 50, .06); }
 /* 导航固定后，给非入口页内容留出顶部空间 */
 .app:not(.is-landing) { padding-top: 64px; }
 .nav-spacer { flex: 1; }
@@ -2032,11 +2042,12 @@ select:focus:not(:focus-visible) { outline: none; }
 }
 .f2-toggle-btn {
   position: relative; z-index: 1;
+  display: inline-flex; align-items: center; justify-content: center;
   background: transparent; border: none;
   color: color-mix(in srgb, var(--ink) 50%); padding: 0.45rem 1.6rem;
   font-size: 0.8rem; letter-spacing: 0.12em; cursor: pointer;
   transition: color 0.3s ease; font-family: inherit;
-  border-radius: 2rem;
+  border-radius: 2rem; line-height: 1; white-space: nowrap;
 }
 .f2-toggle-btn.active {
   color: #fff;
@@ -2086,14 +2097,16 @@ select:focus:not(:focus-visible) { outline: none; }
 }
 .f2-input::placeholder { color: color-mix(in srgb, var(--ink) 20%, transparent); }
 .f2-input:disabled { opacity: 0.4; cursor: not-allowed; }
-.f2-input-sm { width: 70px; text-align: center; padding: 0.5rem 0.4rem; }
-.f2-sep { color: color-mix(in srgb, var(--gold) 30%, transparent); font-size: 0.85rem; }
+.f2-input-sm { width: 70px; text-align: center; padding: 0.5rem 0.4rem; min-height: 38px; box-sizing: border-box; }
+.f2-sep { color: color-mix(in srgb, var(--gold) 30%, transparent); font-size: 0.85rem; line-height: 1; user-select: none; }
 
-/* 日期行 */
+/* 日期行：三输入等宽均排 */
 .f2-date-row { justify-content: center; gap: 0.4rem; }
+.f2-date-row .f2-input-sm { width: 72px; }
 
 /* 时间 */
 .f2-time-wrap { display: flex; align-items: center; gap: 0.3rem; }
+.f2-time-wrap .f2-input-sm { width: 56px; }
 
 /* 选择框 */
 .f2-select {
@@ -2120,10 +2133,11 @@ select:focus:not(:focus-visible) { outline: none; }
 }
 .f2-gender-btn {
   position: relative; z-index: 1;
+  display: inline-flex; align-items: center; justify-content: center;
   background: transparent; border: none;
   color: color-mix(in srgb, var(--ink) 50%); padding: 0.45rem 2.4rem;
   font-size: 0.8rem; cursor: pointer; transition: color 0.3s ease; font-family: inherit;
-  border-radius: 2rem;
+  border-radius: 2rem; line-height: 1;
 }
 .f2-gender-btn.active { color: #fff; }
 
@@ -2268,6 +2282,78 @@ select:focus:not(:focus-visible) { outline: none; }
   .f2-time-wrap .f2-input-sm { width: 52px; }
   .f2-actions-row { flex-direction: column-reverse; }
   .f2-submit { max-width: none; }
+  /* 移动端：两栏变单栏 */
+  .f2-two-col { grid-template-columns: 1fr; max-width: 560px; margin: 0 auto; }
+  .f2-side-card { min-height: auto; }
+}
+
+/* ====== 浅色模式：表单页全链路适配 ======
+   确保 [data-theme=light] 下表单区域与首页/全局风格统一，
+   不出现「头部浅+表单深」的撕裂感。 */
+[data-theme="light"] .form-v2 {
+  color: var(--ink);
+}
+/* 浅色下：表单背景用浅色场景图 + 暖白渐变遮罩（不使用深色变量） */
+[data-theme="light"] .form-v2 .f2-bg {
+  background:
+    linear-gradient(180deg,
+      rgba(253, 249, 235, 0.82) 0%,
+      rgba(253, 249, 235, 0.65) 45%,
+      var(--bg) 100%),
+    var(--app-bg-light, none) center 25% / cover no-repeat fixed;
+}
+/* 浅色下：卡片玻璃态更透明、更暖 */
+[data-theme="light"] .form-v2 .xl-card {
+  background: rgba(255, 255, 250, 0.88);
+  border-color: color-mix(in srgb, var(--gold) 25%, transparent);
+  box-shadow: 0 8px 28px rgba(120, 95, 50, .10);
+}
+/* 浅色下：输入框底色 */
+[data-theme="light"] .form-v2 .f2-input,
+[data-theme="light"] .form-v2 .f2-select {
+  background: rgba(255, 255, 252, 0.9);
+  border-color: color-mix(in srgb, var(--gold) 22%, transparent);
+  color: var(--ink);
+}
+[data-theme="light"] .form-v2 .f2-input:focus,
+[data-theme="light"] .form-v2 .f2-select:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 12%, transparent);
+}
+[data-theme="light"] .form-v2 .f2-input::placeholder {
+  color: var(--muted);
+}
+/* 浅色下：胶囊组底色 */
+[data-theme="light"] .form-v2 .f2-calendar-toggle,
+[data-theme="light"] .form-v2 .f2-gender-toggle {
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
+  border-color: color-mix(in srgb, var(--gold) 20%, transparent);
+}
+/* 浅色下：胶囊未选中文字 */
+[data-theme="light"] .form-v2 .f2-toggle-btn,
+[data-theme="light"] .form-v2 .f2-gender-btn {
+  color: var(--ink);
+}
+/* 浅色下：标签文字 */
+[data-theme="light"] .form-v2 .f2-label,
+[data-theme="light"] .form-v2 .f2-label-sm {
+  color: var(--muted);
+}
+/* 浅色下：右侧信息卡 */
+[data-theme="light"] .form-v2 .f2-side-card {
+  border-color: color-mix(in srgb, var(--gold) 22%, transparent);
+  background:
+    linear-gradient(180deg,
+      rgba(253, 249, 235, 0.7) 0%,
+      rgba(253, 249, 235, 0.5) 70%,
+      var(--bg) 100%),
+    var(--app-bg-light, none) center 60% / cover no-repeat;
+}
+/* 浅色下：提交按钮 */
+[data-theme="light"] .form-v2 .f2-submit {
+  background: linear-gradient(135deg, var(--gold), var(--primary));
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(180, 140, 50, .25);
 }
 
 /* ====== 主题切换开关（浅色 / 深色） ====== */
