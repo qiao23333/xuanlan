@@ -4357,6 +4357,44 @@ details.legacy-wall[open] .wall {
 [data-theme="light"] .sys .axis-tag { color: #5e4410; }
 [data-theme="light"] .sys .tag-gold { border-color: #b89144; }
 
+/* ── 浅色模式下「落在白卡上的彩色小字」对比度修复（v0.36，由 contrast-probe.mjs 量得）
+   审计实测（白卡 #fffdf8 底）：.rs-tag.rs-high 1.83 / .al-bolt 1.92 /
+   .pb-reroll 2.30 / .dg-more 2.30 / .luck-gz·.ly-gz 2.60 —— 均远低于 4.5:1，实测发虚。
+   注意：这些元素在 bazi 容器内会继承 --gold→--chart-gold（亮金）或直接写死亮色，
+   所以必须逐类覆盖成深色，不能只改 token（改 token 会让图表填充跟着变暗，回到"图表发闷"的老问题）。 */
+[data-theme="light"] .rs-tag.rs-high {
+  color: #0f766e;
+  border-color: color-mix(in srgb, #0f766e 45%, transparent);
+  background: color-mix(in srgb, #0f766e 10%, transparent);
+}
+[data-theme="light"] .rs-tag.rs-mid {
+  color: #8a5a12;
+  border-color: color-mix(in srgb, #8a5a12 45%, transparent);
+  background: color-mix(in srgb, #8a5a12 10%, transparent);
+}
+[data-theme="light"] .rs-tag.rs-low {
+  color: #a12a63;
+  border-color: color-mix(in srgb, #a12a63 45%, transparent);
+  background: color-mix(in srgb, #a12a63 10%, transparent);
+}
+[data-theme="light"] .al-bolt { color: #8a5a12; }
+[data-theme="light"] .pb-reroll,
+[data-theme="light"] .dg-more { color: #7a5c1e; }
+[data-theme="light"] .luck-gz,
+[data-theme="light"] .ly-gz { color: #5e4410; }
+/* 紫微星曜名 / 奇门天干：这类是 12px 小字，最容易发虚 */
+[data-theme="light"] .star.major,
+[data-theme="light"] .q-stem,
+[data-theme="light"] .mh-ganzhi span { color: #5e4410; }
+[data-theme="light"] .star.minor { color: #0f766e; }
+/* 分歧视图的品红徽章（对齐报告里标"离群"的体系） */
+[data-theme="light"] .al-dissent-pct,
+[data-theme="light"] .al-o-chip {
+  color: #a12a63;
+  border-color: color-mix(in srgb, #a12a63 40%, transparent);
+  background: color-mix(in srgb, #a12a63 8%, transparent);
+}
+
 /* ═══════════════ 浅色模式文字可读性（v0.31） ═══════════════
    --ink-soft 在浅色下是 #6f6650，写在 #fbf5e8 卡片上偏灰、字号又小，
    实测读起来发虚。这里给百科/卡片简介统一换成更实的 #5c5340。 */
