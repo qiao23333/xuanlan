@@ -168,13 +168,15 @@ const shoot = async (page, name, scroll) => {
   await shoot(page, `${dev}-03-form1-bottom`, 99999);
 
   // ③ 表单②
-  console.log('下一步 ->', await clickRe(page, '下一步|继续|下一页'));
+  // ⚠️ 桌面 / 平板宽度下表单页顶部有 .f2-nav-link「探索/推演/认识自己」，
+  // 用文本正则匹配「推演」会命中这个锚点而不是提交按钮 → 必须按类名精确点击。
+  console.log('下一步 ->', await page.evaluate(() => { const b = document.querySelector('.f2-submit'); if (b) { b.click(); return (b.textContent || '').replace(/\s+/g, ' ').trim(); } return null; }));
   await sleep(1600);
   await shoot(page, `${dev}-04-form2`, 0);
   report(`${dev} ③ 表单②（所问之事）`, await probe(page));
 
   // ④ 结果页
-  console.log('提交 ->', await clickRe(page, '开始推演|立即推演|起卦|推演'));
+  console.log('提交 ->', await page.evaluate(() => { const b = document.querySelector('.f2-submit-primary'); if (b) { b.click(); return (b.textContent || '').replace(/\s+/g, ' ').trim(); } return null; }));
   await sleep(9000);
   await shoot(page, `${dev}-05-result-top`, 0);
   report(`${dev} ④ 结果页（顶部）`, await probe(page));

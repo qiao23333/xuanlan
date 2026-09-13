@@ -86,7 +86,7 @@ html.js-reveal .history > .reveal {
     transition: color 0.22s ease, background 0.22s ease, transform 0.16s ease;
   }
   .mtb-ico { display: block; line-height: 0; transition: transform 0.3s cubic-bezier(0.22, 0.61, 0.36, 1); }
-  .mtb-txt { font-size: 10.5px; letter-spacing: 0.1em; line-height: 1; }
+  .mtb-txt { font-size: 11.5px; letter-spacing: 0.08em; line-height: 1; }
   .mtb-item.is-active { color: var(--gold); }
   .mtb-item.is-active .mtb-ico {
     transform: translateY(-1px) scale(1.08);
@@ -140,20 +140,21 @@ html.js-reveal .history > .reveal {
     border-bottom-color: color-mix(in srgb, var(--gold) 12%, transparent);
   }
   /* 顶栏是 fixed，非入口页必须留出等高的顶部内边距（含刘海安全区），否则首屏内容被压住 */
-  .app:not(.is-landing) { padding-top: calc(58px + env(safe-area-inset-top, 0px)); }
+  .app:not(.is-landing) { padding-top: calc(60px + env(safe-area-inset-top, 0px)); }
   .nav::-webkit-scrollbar { display: none; }
-  /* 触控命中区不低于 ~36px（顶栏总高控制在 50px，与 .app 的顶部预留对齐） */
-  .nav-brand { font-size: 17px; letter-spacing: 3px; padding: 4px 8px 4px 0; min-height: 34px; flex: none; }
-  .nav-item { flex: none; font-size: 12.5px; padding: 6px 11px; min-height: 36px; }
+  /* 触控命中区不低于 40px（顶栏总高控制在 60px，与 .app 的顶部预留对齐） */
+  .nav-brand { font-size: 17px; letter-spacing: 3px; padding: 4px 8px 4px 0; min-height: 40px; flex: none; }
+  .nav-item { flex: none; font-size: 12.5px; padding: 8px 12px; min-height: 40px; }
   /* 「更新日志 / 关于我们」目前都是「开发中…」占位空操作，手机上纯占位宽 ——
      全栏 7 个入口在 390 宽里放不下，只能靠横滑，用户看到的是"顶栏被切了"。
      这两个先收起来，保留 首页/项目故事/术语百科/使用指南 + 主题开关 + CTA。 */
   .nav-item-aux { display: none; }
+  .nav .nav-cta { min-height: 40px; flex: none; }
   .nav .theme-toggle {
     position: sticky;
     right: 0;
     z-index: 2;
-    min-height: 34px;
+    min-height: 40px;
     margin-left: auto;
     flex: none;
     padding: 5px 10px;
@@ -179,7 +180,7 @@ html.js-reveal .history > .reveal {
     margin: 0 0 12px;
   }
   /* 手机端可读性下限：承担信息量的小字统一抬到 12px（纯装饰的英文小字不管） */
-  .f2-label, .f2-label-sm { font-size: 12.5px; }
+  .f2-label { font-size: 12.5px; }
   .f2-field-hint { font-size: 12px; line-height: 1.7; }
   .dg-level, .dg-sub, .rs-tag, .pb-topic, .so-desc, .so-action { font-size: 12px; }
   .readonly-banner { flex-direction: column; align-items: flex-start; gap: 10px; font-size: 12px; padding: 12px 13px; }
@@ -205,6 +206,16 @@ html.js-reveal .history > .reveal {
   .profile-bar { flex-wrap: wrap; gap: 6px 10px; padding: 11px 13px; font-size: 12px; border-radius: 16px; }
   .pb-topic { flex-basis: 100%; order: 5; opacity: 0.9; }
   .pb-reroll { margin-left: auto; }
+
+  /* 结果页的"链接式按钮"（返回/查看详情/换一卦/分歧切换）实测高 18–30px，
+     手指根本点不准。统一抬到 ≥36px 的命中区，视觉尺寸基本不变。 */
+  .stage-tab { min-height: 40px; }
+  .breadcrumb, .btn-sm, .dg-more, .pb-reroll { min-height: 36px; display: inline-flex; align-items: center; }
+  .pb-reroll { padding: 6px 10px; }
+  .dg-more { padding: 6px 8px; }
+  .dissent-tabs { flex-wrap: wrap; gap: 8px; }
+  .dtab { min-height: 36px; padding: 7px 12px; }
+  .foot-link { min-height: 32px; display: inline-flex; align-items: center; padding: 6px 2px; }
 
   /* 结论卡：太极 + 正文 + 右侧竖排，手机必须竖排堆叠。
      否则 200px 的太极轮会把正文挤到 ~130px 宽，标题只能逐字换行。
@@ -265,7 +276,12 @@ html.js-reveal .history > .reveal {
   .f2-card { min-width: 0; padding: 16px 14px; border-radius: 18px; }
   .f2-title { font-size: 19px; letter-spacing: 3px; }
   .f2-calendar-toggle, .f2-gender-toggle { width: 100%; display: flex; }
-  .f2-toggle-btn, .f2-gender-btn { flex: 1; padding: 9px 0; text-align: center; }
+  /* 触控命中区 ≥40px：公历/农历、男/女 是主路径上最高频的四个按钮 */
+  .f2-toggle-btn, .f2-gender-btn { flex: 1; padding: 9px 0; text-align: center; min-height: 40px; display: flex; align-items: center; justify-content: center; gap: 4px; }
+  .f2-toggle-hint { font-size: 12px; }
+  .f2-switch { min-width: 46px; min-height: 28px; }
+  .f2-switch-row { min-height: 44px; }
+  .f2-switch-hint, .f2-step-num, .f2-advanced > summary { font-size: 12px; }
   .f2-submit, .f2-back { width: 100%; max-width: none; justify-content: center; }
   .f2-submit { padding: 13px 0; min-height: 46px; }
   .f2-actions-row { flex-direction: column-reverse; gap: 10px; }
@@ -315,6 +331,10 @@ html.js-reveal .history > .reveal {
   .gl-layout { gap: 1rem; }
   .gl-side { gap: .4rem; }
   .gl-syscards { grid-template-columns: repeat(2, 1fr); gap: .6rem; }
+  /* 手机端字号下限 12px：原 10.9/11.5px 在密集 UI 里已经读不清（审计实测值） */
+  .gl-count, .gl-cat-n, .gl-sub, .gl-sysintro { font-size: 12px !important; }
+  .gl-cat { min-height: 40px; }
+  .gl-back { min-height: 40px; padding: 8px 12px; }
 }
 
 /* ============================================================
@@ -332,6 +352,13 @@ html.js-reveal .history > .reveal {
    display:flex 在手机上也照旧生效，左右竖排文字被切在屏幕边缘。
    本文件在 styles.css 之后加载，同特异性即可覆盖，所以修在这里。
    ============================================================ */
+/* 768–900px（平板竖屏）：styles.css 的 max-width:900px 媒体查询写在基础样式之前，
+   被后者整体覆盖 → 该区间左右竖排侧栏仍显示并向右溢出。这里按同特异性补回。 */
+@media (max-width: 900px) {
+  .l2-stage { grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 0; }
+  .l2-left, .l2-right { display: none; }
+}
+
 @media (max-width: 767.98px) {
   .landing-v2 { padding: 0; }
 
