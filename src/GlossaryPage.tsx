@@ -131,10 +131,10 @@ export function GlossaryPage({ onBack }: { onBack: () => void }) {
                 onClick={() => setCat(s.id)}
               >
                 {/* 参考稿：体系卡上方为体系图标 */}
-                <SystemIcon id={s.id as never} size={34} className="gl-sysicon" />
+                <SystemIcon id={s.id as never} size={56} className="gl-sysicon" />
                 <div className="gl-sysname">{s.name}</div>
                 <div className="gl-sysintro">{s.intro}</div>
-                <div className="gl-syscount">{termsOfSys(s.id).length} 条术语</div>
+                <div className="gl-syscount">查看 →</div>
               </button>
             ))}
           </div>

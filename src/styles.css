@@ -1294,7 +1294,8 @@ body::before {
 .gl-empty { text-align: center; color: var(--muted); padding: 24px 0; }
 
 /* 使用前须知 / 隐私 */
-.consent-modal { width: min(540px, 100%); }
+.consent-modal { width: min(540px, 100%); background: rgba(255, 253, 248, 0.86); backdrop-filter: blur(8px); }
+[data-theme="dark"] .consent-modal { background: rgba(28, 23, 38, 0.88); }
 .consent-body { font-size: 14px; line-height: 1.85; color: var(--ink-soft); }
 .consent-body ul { padding-left: 20px; margin: 10px 0; }
 .consent-body li { margin-bottom: 8px; }
@@ -4282,10 +4283,10 @@ details.legacy-wall[open] .wall {
   border-radius: 14px; cursor: pointer; transition: border-color .2s, transform .2s, box-shadow .2s;
 }
 .gl-syscard:hover { border-color: color-mix(in srgb, var(--gold) 50%, transparent); transform: translateY(-2px); box-shadow: var(--glow); }
-.gl-sysicon { align-self: flex-start; margin-bottom: .25rem; }
-.gl-sysname { font-family: var(--serif); font-size: 1.05rem; color: var(--ink); letter-spacing: .1em; }
-.gl-sysintro { font-size: .72rem; color: var(--ink-soft); line-height: 1.5; }
-.gl-syscount { font-size: .68rem; color: var(--muted); margin-top: .2rem; }
+.gl-sysicon { align-self: flex-start; margin-bottom: .35rem; }
+.gl-sysname { font-family: var(--serif); font-size: 1.22rem; color: var(--ink); letter-spacing: .08em; font-weight: 600; }
+.gl-sysintro { font-size: .8rem; color: var(--ink-soft); line-height: 1.6; }
+.gl-syscount { font-size: .7rem; color: var(--gold); margin-top: .25rem; }
 
 .gl-section-title {
   display: flex; align-items: center; gap: .6rem;

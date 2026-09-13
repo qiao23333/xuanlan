@@ -504,7 +504,7 @@ export default function App() {
       {loading && (
         <div className="loading-veil">
           <div className="lv-inner">
-            <TaoWheel size={104} spinning />
+            <TaoWheel size={160} spinning />
             <div className="lv-text">起卦中…</div>
           </div>
         </div>

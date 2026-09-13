@@ -30,7 +30,7 @@ export function ResultSummary({ consensus, headline, topicLabel, qtext }: Result
       <div className="rs-layout">
         {/* 左侧：太极轮（用户素材，按主题切换） */}
         <div className="rs-taiji-wrap">
-          <TaoWheel size={140} />
+          <TaoWheel size={200} />
         </div>
 
         {/* 中间：文字内容 */}
