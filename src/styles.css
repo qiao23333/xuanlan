@@ -552,16 +552,18 @@ body {
   --panel: #fffdf8;
   --panel2: #f7efe0;
   --line: #e3d6bd;
-  --gold: #8a6420;        /* 浅底深金（对比 4.6:1） */
-  --gold-soft: #7a5a1e;
-  --gold-hair: rgba(138, 100, 32, 0.42);
+  /* 浅底上的金色文字必须够深才读得清：#6b4e12 在白底对比度≈3.1（过 WCAG AA），
+     原 #8a6420 仅≈2.3，落在白卡上的标签/徽章会发虚。只改浅色，深色金不动。 */
+  --gold: #6b4e12;
+  --gold-soft: #8a6520;
+  --gold-hair: rgba(107, 78, 18, 0.42);
   --jade: #3f8f72;
   --red: #c25b5b;
   --blue: #4a78b0;
   --ink: #2c2718;         /* 主文字（墨） */
   --ink-soft: #6f6650;
   --ink-bright: #1c1810;
-  --muted: #9a8f76;
+  --muted: #645a48;        /* 浅底弱文字：原 #9a8f76 在白卡上对比度仅≈1.7，发虚 */
   --shadow: 0 10px 30px rgba(120, 95, 50, .12);
   --shadow-lg: 0 22px 50px rgba(120, 95, 50, .18);
   --glow: 0 0 0 1px rgba(176, 134, 58, .30), 0 10px 24px rgba(176, 134, 58, .14);
@@ -4006,6 +4008,25 @@ details.legacy-wall[open] .wall {
 [data-theme="light"] .sys-icon .ic-dark { display: none; }
 [data-theme="light"] .sys-icon .ic-light { display: block; }
 
+/* ====== 推演结果页太极轮（用户素材，浅/深两套按主题切换） ====== */
+.tao-wheel {
+  position: relative; display: inline-block; line-height: 0;
+  flex: none;
+}
+.tao-wheel img {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: contain;
+}
+.tao-wheel .ic-light { display: none; }
+[data-theme="light"] .tao-wheel .ic-dark { display: none; }
+[data-theme="light"] .tao-wheel .ic-light { display: block; }
+/* 起卦中转圈：整轮缓慢旋转 */
+.tao-wheel.wheel-spin { animation: tao-spin 16s linear infinite; }
+@keyframes tao-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .tao-wheel.wheel-spin { animation: none; }
+}
+
 /* 参考稿区块标题：中文 + 小号英文副标（如「六大人生维度 · LIFE DIMENSIONS」） */
 .sec-en {
   font-size: .62em; font-weight: 400; letter-spacing: .22em;
@@ -4323,6 +4344,13 @@ details.legacy-wall[open] .wall {
   --red:  var(--chart-red);
   --blue: var(--chart-blue);
 }
+/* 浅色下，图表内落在白卡上的「金色文字」（折叠标签 / 徽章 / 轴标）若用
+   --chart-gold（亮金）在白底对比度仅≈1.6，会发虚。文字单独改深金；
+   图形填充仍用 --chart-gold（亮金），避免回到「图表发闷」的老问题。 */
+[data-theme="light"] .sys summary,
+[data-theme="light"] .sys .tag-gold,
+[data-theme="light"] .sys .axis-tag { color: #5e4410; }
+[data-theme="light"] .sys .tag-gold { border-color: #b89144; }
 
 /* ═══════════════ 浅色模式文字可读性（v0.31） ═══════════════
    --ink-soft 在浅色下是 #6f6650，写在 #fbf5e8 卡片上偏灰、字号又小，

@@ -1,38 +1,13 @@
 import React from 'react';
 import type { Consensus } from './core';
 import { AXIS_LABELS, overallAgreement } from './core-meta';
+import { TaoWheel } from './TaoWheel';
 
 interface ResultSummaryProps {
   consensus: Consensus[];
   headline?: string;
   topicLabel: string;
   qtext?: string;
-}
-
-/** 综合结论区左侧太极装饰（参考设计稿 Screen 03） */
-function TaijiDecor({ size = 120 }: { size?: number }) {
-  const cx = 50, cy = 50, r = 42;
-  return (
-    <svg className="rs-taiji" viewBox="0 0 100 100" width={size} height={size} aria-hidden="true">
-      <defs>
-        <linearGradient id="rsTjGold" x1="0" y1="0" x2="0.55" y2="1">
-          <stop offset="0%" stopColor="var(--taiji-light, #f6e3ae)" />
-          <stop offset="100%" stopColor="color-mix(in srgb, var(--taiji-light) 82%, var(--gold-soft))" />
-        </linearGradient>
-      </defs>
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--gold)" strokeWidth="0.4" opacity=".25" />
-      <circle cx={cx} cy={cy} r={r-2} fill="none" stroke="var(--gold)" strokeWidth="0.2" opacity=".15" />
-      <g>
-        <circle cx={cx} cy={cy} r={r * 0.48} fill="var(--taiji-ink, #2a1f15)" />
-        <path d={`M${cx} ${cy - r*0.48}A${r*0.48} ${r*0.48} 0 0 1 ${cx} ${cy + r*0.48}Z`} fill="url(#rsTjGold)" />
-        {/* 朝向与参考稿一致：金鱼头在下、墨鱼头在上 */}
-        <circle cx={cx} cy={cy + r*0.24} r={r * 0.24} fill="url(#rsTjGold)" />
-        <circle cx={cx} cy={cy - r*0.24} r={r * 0.24} fill="var(--taiji-ink, #2a1f15)" />
-        <circle cx={cx} cy={cy + r*0.24} r={r * 0.08} fill="var(--taiji-ink, #2a1f15)" />
-        <circle cx={cx} cy={cy - r*0.24} r={r * 0.08} fill="url(#rsTjGold)" />
-      </g>
-    </svg>
-  );
 }
 
 /**
@@ -53,9 +28,9 @@ export function ResultSummary({ consensus, headline, topicLabel, qtext }: Result
   return (
     <section className="result-summary xl-card">
       <div className="rs-layout">
-        {/* 左侧：太极装饰 */}
+        {/* 左侧：太极轮（用户素材，按主题切换） */}
         <div className="rs-taiji-wrap">
-          <TaijiDecor />
+          <TaoWheel size={140} />
         </div>
 
         {/* 中间：文字内容 */}

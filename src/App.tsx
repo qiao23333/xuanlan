@@ -7,7 +7,8 @@ import type {
   Consensus,
 } from './core';
 import { loadCore, type Core } from './loadCore';
-import { Landing, TaijiRing } from './Landing';
+import { Landing } from './Landing';
+import { TaoWheel } from './TaoWheel';
 import { CaseStudy } from './CaseStudy';
 import { HistoryPanel } from './HistoryPanel';
 import DivinationForm, { type AppForm, defaultForm, buildSchoolConfig } from './features/form/DivinationForm';
@@ -503,7 +504,7 @@ export default function App() {
       {loading && (
         <div className="loading-veil">
           <div className="lv-inner">
-            <TaijiRing size={104} spinning />
+            <TaoWheel size={104} spinning />
             <div className="lv-text">起卦中…</div>
           </div>
         </div>
