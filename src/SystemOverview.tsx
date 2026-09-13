@@ -64,13 +64,16 @@ export function SystemOverview({ result, consensus, topic, form, showRaw, setSho
               aria-pressed={isActive}
             >
               <span className="so-icon">
-                <SystemIcon id={c.systemId as SystemId} size={40} />
+                <SystemIcon id={c.systemId as SystemId} size={62} />
               </span>
-              <span className="so-name">{meta?.name ?? c.systemId}</span>
-              {meta?.summary && (
-                <span className="so-desc">{meta.summary.slice(0, 18)}…</span>
-              )}
-              <span className="so-action">查看 &rarr;</span>
+              {/* 右列文字区：上体系名，下小字简介；图标实际尺寸由 CSS .so-icon 控制 */}
+              <span className="so-text">
+                <span className="so-name">{meta?.name ?? c.systemId}</span>
+                {meta?.summary && (
+                  <span className="so-desc">{meta.summary.slice(0, 18)}…</span>
+                )}
+                <span className="so-action">查看 &rarr;</span>
+              </span>
             </button>
           );
         })}

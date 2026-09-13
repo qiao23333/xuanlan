@@ -212,12 +212,18 @@ export function Landing({
             <span className="l2-label l2-label-top">天</span>
             <span className="l2-label l2-label-left">人</span>
             <span className="l2-label l2-label-right">地</span>
-            <CelestialWheel size={340} />
+            {/* size 300 + wrap 的 30px padding = 360，与原 340 体量相当，
+                否则 padding 会把整页顶出「一屏不滚动」的边界 */}
+            <CelestialWheel size={300} />
           </div>
 
-          <h1 className="l2-title">玄 览</h1>
+          {/* 印章必须贴着标题同行：父级 .l2-hero 是 flex column，
+              直接放 span 会掉到独立一行，孤零零悬在标题下方 */}
+          <div className="l2-title-row">
+            <h1 className="l2-title">玄 览</h1>
+            <span className="l2-seal" aria-hidden="true">印</span>
+          </div>
           <p className="l2-title-en">XUANLAN</p>
-          <span className="l2-seal" aria-hidden="true">印</span>
 
           <p className="l2-tagline">汇聚东方与西方的智慧</p>
           <p className="l2-subtitle">让更多维度，看见更真实的你</p>

@@ -1259,6 +1259,10 @@ body::before {
   background: rgba(8, 6, 13, .72); backdrop-filter: blur(5px);
   padding: 18px; animation: fadeIn .2s ease both;
 }
+/* 遮罩原本写死成墨黑（0.72），切到浅色模式后整屏被压暗 —— 这是
+   「浅色模式看起来还是深色」的主因之一。浅色下改暖褐半透明。 */
+[data-theme="light"] .modal-veil { background: rgba(58, 46, 26, .38); }
+[data-theme="light"] .modal-veil { --panel: #fffdf8; }
 .modal {
   width: min(620px, 100%); max-height: 84vh; overflow: auto;
   background: var(--panel); border: 1px solid var(--line);
@@ -1522,9 +1526,10 @@ select:focus:not(:focus-visible) { outline: none; }
    不再用横向滚动 —— 用户明确嫌那个左右拖的条丑，而且会看不到后面的卡片。 */
 .so-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
 
+/* 参考稿排版：左侧图标 + 右侧文字区（上：体系名，下：小字简介） */
 .so-card {
-  min-width: 0; padding: 20px 16px; display: flex; flex-direction: column;
-  align-items: center; gap: 10px; text-align: center;
+  min-width: 0; padding: 14px 14px; display: flex; flex-direction: row;
+  align-items: center; gap: 12px; text-align: left;
   background: var(--bg2); border: 1px solid var(--line); border-radius: 14px;
   cursor: pointer; color: var(--ink);
   transition: border-color .25s, background .25s, box-shadow .25s, transform .25s;
@@ -1535,33 +1540,45 @@ select:focus:not(:focus-visible) { outline: none; }
   transform: translateY(-3px);
   box-shadow: 0 6px 20px rgba(0,0,0,.15);
 }
-/* 参考稿：体系图标置于细圆环内，下方只跟体系名 */
+.so-card.so-active {
+  border-color: color-mix(in srgb, var(--so-accent, var(--gold)) 70%, transparent);
+  background: color-mix(in srgb, var(--so-accent, var(--gold)) 8%, var(--bg2));
+}
 .so-icon {
-  flex: none; width: 72px; height: 72px; border-radius: 50%;
+  flex: none; width: 96px; height: 96px; border-radius: 50%;
+  padding: 10px; box-sizing: border-box;
   display: inline-flex; align-items: center; justify-content: center;
   background: color-mix(in srgb, var(--so-accent, var(--gold)) 9%, transparent);
   border: 1px solid color-mix(in srgb, var(--so-accent, var(--gold)) 30%, transparent);
   transition: border-color .25s ease, transform .25s ease;
 }
-.so-icon img { width: 44px; height: 44px; object-fit: contain; }
+/* SystemIcon 的宽高是写在 style 属性里的内联样式，选择器盖不住；
+   若不用 !important，小屏把圆圈缩到 44px 时，内部 58px 的图标会把卡片撑破。
+   这里强制图标跟随外层圆圈缩放，响应式才成立。 */
+.so-icon .sys-icon { width: 100% !important; height: 100% !important; }
+.so-icon img { width: 100%; height: 100%; object-fit: contain; }
 .so-card:hover .so-icon,
 .so-card.so-active .so-icon {
   border-color: color-mix(in srgb, var(--so-accent, var(--gold)) 65%, transparent);
   transform: translateY(-2px);
 }
 .so-icon .sigil { color: var(--so-accent, var(--gold)); }
-.so-text { min-width: 0; display: flex; flex-direction: column; gap: 4px; align-items: center; }
-.so-line1 { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-.so-name { font-size: 15px; font-weight: 600; letter-spacing: .06em; }
-.so-desc { font-size: 11px; color: var(--ink-soft); line-height: 1.4; text-align: center; opacity: 0.75; margin-top: -2px; }
+/* 文字区：名字在上、小字介绍在下 */
+.so-text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 3px; align-items: flex-start; }
+.so-line1 { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+.so-name { font-size: 15px; font-weight: 600; letter-spacing: .06em; line-height: 1.25; }
+.so-desc {
+  font-size: 11px; color: var(--ink-soft); line-height: 1.45;
+  text-align: left; opacity: 0.82;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
 .so-action {
   display: inline-flex; align-items: center; gap: 2px;
-  font-size: 0.7rem; color: var(--gold); letter-spacing: 0.08em;
-  border: 1px solid color-mix(in srgb, var(--gold) 25%, transparent);
-  padding: 2px 10px; border-radius: 999px;
-  transition: background 0.25s, color 0.25s; margin-top: auto;
+  font-size: 0.68rem; color: color-mix(in srgb, var(--gold) 80%, transparent);
+  letter-spacing: 0.08em; margin-top: 2px; opacity: .75;
+  transition: color 0.25s, opacity .25s;
 }
-.so-card:hover .so-action { background: color-mix(in srgb, var(--gold) 12%, transparent); }
+.so-card:hover .so-action { color: var(--gold); opacity: 1; }
 .so-cat { font-size: 10px; padding: 2px 8px; border-radius: 8px; opacity: .7; }
 .so-brief { font-size: 11px; color: var(--muted); line-height: 1.5; max-width: 140px; }
 
@@ -2035,6 +2052,9 @@ select:focus:not(:focus-visible) { outline: none; }
 
 /* 历法切换 —— 胶囊组（参考图 Screen 02） */
 .f2-calendar-toggle {
+  /* width 必须是 fit-content：默认 flex 会撑满整行（实测 457px），
+     指示器 ::after 按 50% 计算宽度就会比按钮宽一倍，看着像没对齐。 */
+  width: fit-content;
   display: flex; gap: 0; justify-content: center;
   position: relative; background: color-mix(in srgb, var(--ink) 6%, transparent);
   border-radius: 2rem; padding: 3px;
@@ -2126,6 +2146,7 @@ select:focus:not(:focus-visible) { outline: none; }
 
 /* 性别切换 —— 胶囊组（与历法统一风格） */
 .f2-gender-toggle {
+  width: fit-content;
   display: flex; gap: 0; justify-content: center;
   position: relative; background: color-mix(in srgb, var(--ink) 6%, transparent);
   border-radius: 2rem; padding: 3px;
@@ -2349,11 +2370,24 @@ select:focus:not(:focus-visible) { outline: none; }
       var(--bg) 100%),
     var(--app-bg-light, none) center 60% / cover no-repeat;
 }
-/* 浅色下：提交按钮 */
+/* 浅色下：选中的胶囊指示器不能用「正文深金(--gold #8a6420)→深棕」渐变 ——
+   那是为暗底设计的，落在米色卡片上会糊成一坨深色块。
+   改亮金渐变 + 深墨字：既轻盈，对比度也有 5.7:1（过 WCAG AA）。 */
+[data-theme="light"] .form-v2 .f2-calendar-toggle::after,
+[data-theme="light"] .form-v2 .f2-gender-toggle::after {
+  background: linear-gradient(135deg, #e3c583, #cfa14f);
+  box-shadow: 0 2px 8px rgba(150, 115, 45, .18);
+}
+[data-theme="light"] .form-v2 .f2-toggle-btn.active,
+[data-theme="light"] .form-v2 .f2-gender-btn.active {
+  color: #2c2718;
+  font-weight: 600;
+}
+/* 浅色下：提交按钮同理，改用亮金 + 深墨字（白字在亮金上对比度不足） */
 [data-theme="light"] .form-v2 .f2-submit {
-  background: linear-gradient(135deg, var(--gold), var(--primary));
-  color: #fff;
-  box-shadow: 0 4px 16px rgba(180, 140, 50, .25);
+  background: linear-gradient(135deg, #e0bd76, #c99a4e);
+  color: #2c2718;
+  box-shadow: 0 4px 16px rgba(180, 140, 50, .22);
 }
 
 /* ====== 主题切换开关（浅色 / 深色） ====== */
@@ -2446,8 +2480,8 @@ select:focus:not(:focus-visible) { outline: none; }
   letter-spacing: 0.12em;
 }
 /* ── 新版页脚子元素（参考设计稿） ── */
-.l2-fl-left { display: flex; flex-direction: column; gap: 2px; }
-.l2-fl-brand { font-family: var(--font-serif); font-size: 0.72rem; color: var(--gold); letter-spacing: .15em; }
+.l2-fl-left { display: flex; flex-direction: row; align-items: center; gap: 8px; }
+.l2-fl-brand { font-family: var(--font-serif); font-size: 0.68rem; color: var(--gold); letter-spacing: .15em; }
 .l2-fl-slogan { font-size: 0.6rem; color: var(--ink-soft); letter-spacing: .08em; }
 .l2-fl-links { display: flex; align-items: center; gap: 6px; font-size: 0.65rem; color: var(--ink-soft); letter-spacing: .1em; }
 .l2-fl-sep { color: color-mix(in srgb, var(--gold) 25%, transparent); }
@@ -2460,7 +2494,7 @@ select:focus:not(:focus-visible) { outline: none; }
   .l2-features { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 480px; margin-left: auto; margin-right: auto; }
 }
 @media (max-width: 560px) {
-  .l2-stage { padding: 4h 3vw 1.5vh; }
+  .l2-stage { padding: 4vh 3vw 1.5vh; }
   .l2-footer { grid-template-columns: 1fr !important; gap: 0.6rem; text-align: center; justify-items: center; }
   .l2-fl-left, .l2-fl-right { align-items: center; }
 }
@@ -2804,11 +2838,22 @@ select:focus:not(:focus-visible) { outline: none; }
   line-height: 1.6;
 }
 
-/* ====== Landing 底部（两角落文字版） ====== */
+/* ====== Landing 底部（三栏：品牌 | 导航 | 版本信息） ======
+   Landing.tsx 实际渲染 3 个子元素（.l2-fl-left / .l2-fl-links / .l2-fl-right）。
+   列数必须与子元素数一致 —— 之前这里是 1fr 1fr（2 列）却又塞 3 个子元素，
+   第 3 个被挤到第二行，底栏凭空高一倍。这里显式写 1fr auto 1fr 并压薄内边距。 */
 .l2-footer {
-  grid-template-columns: 1fr 1fr !important;
+  grid-template-columns: 1fr auto 1fr !important;
+  padding: 0.2rem 2rem 0.25rem !important;
+  gap: 1rem !important;
+  align-items: center !important;   /* 三栏共用一条基线，杜绝左右错位 */
+  font-size: 0.58rem;
+  line-height: 1.35;
 }
-.l2-footer-brand-right { align-items: flex-end; }
+/* 左栏原本是「品牌 + 口号」上下两行，比中间/右栏高一倍，
+   把整条底栏撑到 56px。改成单行横排后底栏回落到 ~34px。 */
+.l2-fl-left { align-items: center; justify-content: flex-start; }
+.l2-fl-right { justify-content: flex-end; align-items: center; }
 
 /* ====== 响应式 ====== */
 @media (max-width: 900px) {
@@ -3836,9 +3881,13 @@ details.legacy-wall[open] .wall {
 }
 @media (max-width: 767px) {
   .so-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-  .so-card { padding: 10px; gap: 7px; }
-  .so-icon { width: 26px; height: 26px; }
+  .so-card { padding: 10px; gap: 9px; }
+  /* 旧值 26px 是「图标在上、文字在下」时代的尺寸；现在是左图右文，
+     缩略圆必须和右侧文字区配比，否则图标小到看不见。 */
+  .so-icon { width: 54px; height: 54px; padding: 6px; }
   .so-name { font-size: 12.5px; }
+  .so-desc { font-size: 10.5px; }
+  .so-action { display: none; } /* 小屏横向紧张，隐藏「查看 →」 */
   .so-brief { font-size: 10.5px; }
 }
 @media (max-width: 380px) {
@@ -4025,9 +4074,12 @@ details.legacy-wall[open] .wall {
 .l2-stage {
   position: relative; z-index: 5; flex: 1;
   display: grid;
-  grid-template-columns: minmax(0, 180px) 1fr minmax(0, 100px);
+  /* 左右两栏必须等宽，中间的 hero 才正好落在页面中线上。
+     原来是 180px / 1fr / 100px —— 左右不等宽会把主视觉整体推偏，
+     看着就是「都不是居中的」。 */
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   gap: 8px;
-  padding: 4vh 3vw 1vh;
+  padding: 3.2vh 3vw 1vh;
   align-items: center;
 }
 /* ── 入口页入场动效（参考稿：各元素错峰浮入；hover 元素用 fadeIn 避免覆盖 hover 位移） ── */
@@ -4065,21 +4117,33 @@ details.legacy-wall[open] .wall {
   justify-content: center; text-align: center; gap: 0.22rem;
   padding: 0 1rem;
 }
-.l2-wheel-wrap { position: relative; display: inline-block; margin-bottom: 0.3rem; }
+/* 天地人标签：用 padding 预留位置，而不是负偏移。
+   负偏移（top:-28px）会让标签跑到 wrap 盒外，一旦祖先有裁剪或被
+   相邻元素压住就整块消失 —— 「天」就是这样没的。改成 padding 后，
+   标签始终落在 wrap 自身盒内，永不被裁。 */
+.l2-wheel-wrap { position: relative; display: inline-block; padding: 30px; margin-bottom: 0.1rem; }
 .l2-label {
-  position: absolute; font-family: var(--font-serif);
-  font-size: clamp(11px, 1.1vw, 14px); color: var(--gold);
-  letter-spacing: .3em; opacity: .7;
+  position: absolute; z-index: 3; font-family: var(--font-serif);
+  font-size: clamp(12px, 1.2vw, 15px); color: var(--gold);
+  letter-spacing: .3em; opacity: .85; line-height: 1; pointer-events: none;
 }
-.l2-label-top { top: -28px; left: 50%; transform: translateX(-50%); }
-.l2-label-bottom { bottom: -28px; left: 50%; transform: translateX(-50%); }
-.l2-label-left { left: -28px; top: 50%; transform: translateY(-50%); }
+/* letter-spacing 会在末字后多留一格空白，让 translateX(-50%) 视觉偏左；
+   margin-right 负值把那格空白抵扣掉，字才是真居中。 */
+.l2-label-top { top: 4px; left: 50%; transform: translateX(-50%); margin-right: -.3em; }
+.l2-label-bottom { bottom: 4px; left: 50%; transform: translateX(-50%); margin-right: -.3em; }
 /* 参考稿三才方位：天在上、人在左、地在右 */
-.l2-label-right { right: -28px; top: 50%; transform: translateY(-50%); }
+.l2-label-left { left: 4px; top: 50%; transform: translateY(-50%); }
+.l2-label-right { right: 4px; top: 50%; transform: translateY(-50%); }
 .l2-title-en {
   font-size: clamp(10px, 1vw, 13px); color: var(--gold-soft);
   letter-spacing: .4em; margin-top: -4px;
 }
+/* 标题 + 印章同行且整体居中 */
+.l2-title-row {
+  display: flex; align-items: center; justify-content: center;
+  gap: .5rem; width: 100%;
+}
+.l2-title-row .l2-title { margin: 0; }
 .l2-seal {
   display: inline-block; width: 22px; height: 22px; line-height: 22px;
   text-align: center; background: #c73b3b; color: #fff;
@@ -4092,6 +4156,8 @@ details.legacy-wall[open] .wall {
    所以外层必须 row（若用 column，三个竖排块会上下堆叠而不是并排三列）。 */
 .l2-right {
   display: flex; flex-direction: row; align-items: flex-start;
+  /* 右栏等宽后要靠右对齐，否则它会贴着中栏、左右视觉不平衡 */
+  justify-content: flex-end;
   justify-content: flex-end; gap: .55rem;
 }
 .l2-right-en1 { margin-left: .35rem; }
@@ -4226,4 +4292,50 @@ details.legacy-wall[open] .wall {
   .gl-hero-text { text-align: center; }
   .gl-desc { margin: 0 auto; }
   .gl-syscards { grid-template-columns: 1fr; }
+}
+
+/* ═══════════════ 图表专用色（v0.31） ═══════════════
+   病因：浅色主题为了让正文读得清，把整套语义色调暗了（--gold 变成
+   #8a6420 深棕）。但这套变量同时被图形当填充/描边色用，于是八字四柱、
+   塔罗牌阵等图表在浅色模式下集体发闷发暗 —— 而深色模式用的是鲜亮的那套。
+   处理：另开一套只给图形用的 --chart-*，浅色下也保持饱和；再注入 .sys
+   子树。自定义属性是就近继承的，子树上的值天然盖掉 html 上的旧值，
+   不需要跟 .pillar-gan 这类选择器拼优先级。 */
+:root {
+  --chart-gold: #e9c46a;
+  --chart-jade: #74c0a3;
+  --chart-red:  #e07a7a;
+  --chart-blue: #7aa7e0;
+}
+/* 浅色下也不能一味压暗：底色是米白 #fbf5e8，色相只要饱和够、
+   明度落在 55%~62% 就能既读得清又不发闷。此前用 #b8862f 明度只有 44%，
+   四柱/牌阵整体像蒙了层灰 —— 这就是「浅色下图表变暗」的原因。 */
+[data-theme="light"] {
+  --chart-gold: #c98f1e;
+  --chart-jade: #1f9e78;
+  --chart-red:  #c9483f;
+  --chart-blue: #3f7fc4;
+}
+.sys.bazi, .sys.ziwei, .sys.qimen, .sys.liuren,
+.sys.xiaoliuren, .sys.meihua, .sys.astrolabe, .sys.tarot {
+  --gold: var(--chart-gold);
+  --jade: var(--chart-jade);
+  --red:  var(--chart-red);
+  --blue: var(--chart-blue);
+}
+
+/* ═══════════════ 浅色模式文字可读性（v0.31） ═══════════════
+   --ink-soft 在浅色下是 #6f6650，写在 #fbf5e8 卡片上偏灰、字号又小，
+   实测读起来发虚。这里给百科/卡片简介统一换成更实的 #5c5340。 */
+[data-theme="light"] .gl-term-text,
+[data-theme="light"] .gl-sysintro,
+[data-theme="light"] .gl-desc,
+[data-theme="light"] .gl-cat,
+[data-theme="light"] .so-desc {
+  color: #5c5340;
+}
+[data-theme="light"] .so-desc { opacity: 1; }
+[data-theme="light"] .gl-term-card {
+  background: #fffdf6;
+  border-left-color: var(--gold);
 }
