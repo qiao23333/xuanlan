@@ -586,9 +586,13 @@ body {
   --primary-text: #2c2718;
 }
 
+/* ⚠️ 这里是与文首 body 同特异性的第二次声明，后写的胜出（本块生效）。
+   必须用 --app-bg-dark 作默认值，浅色再由下面的 [data-theme="light"] body 覆盖。
+   2026-09-13 修的回归：此处曾被误写成 --app-bg-light，导致**深色模式永远显示浅色山水图**，
+   用户反复反馈「深色模式背景图还是没改」。改这里前先想清楚覆盖顺序。 */
 body {
   background:
-    var(--app-bg-light, none) center 30% / cover no-repeat fixed,
+    var(--app-bg-dark, none) center 30% / cover no-repeat fixed,
     radial-gradient(1100px 620px at 50% -12%, var(--atmo-glow) 0%, transparent 62%),
     radial-gradient(760px 460px at 88% 6%, color-mix(in srgb, var(--gold) 6%, transparent) 0%, transparent 60%),
     radial-gradient(900px 520px at 6% 20%, color-mix(in srgb, var(--jade) 4%, transparent) 0%, transparent 58%),

@@ -115,13 +115,20 @@ html.js-reveal .history > .reveal {
   .sys-overview,
   .so-detail { scroll-margin-top: 56px; }
 
-  /* 刘海屏安全区：顶部别被状态栏压住 */
-  .nav { padding-top: calc(8px + env(safe-area-inset-top, 0px)); }
+  /* 刘海屏安全区：顶部别被状态栏压住（实际宽度在下面 .nav 块里统一给） */
 
-  /* ---------- 3.2 顶栏：单行横滑，主题开关常驻右侧 ---------- */
+  /* ---------- 3.2 顶栏：单行横滑，主题开关常驻右侧 ----------
+     ⚠️ 2026-09-13 修的回归：原来这里写的是 `margin: -18px -14px 14px`。
+     .nav 在 styles.css 里是 position: fixed; top: 0; left: 0; right: 0，
+     给 fixed 元素加负 margin 的后果是：
+       ① 上边距 -18px 把整条顶栏**推出视口上方 18px** → 品牌/导航文字被裁掉上半截；
+       ② 左右 -14px 让它宽出 28px → 文档横向溢出，移动浏览器判定"页面比屏幕宽"，
+          触发 shrink-to-fit 把**整页缩到 ~74%**（用户看到的就是"字变小、适配没做"）。
+     fixed 元素已经是 left/right:0，不需要任何负 margin 来撑满宽度。 */
   .nav {
-    margin: -18px -14px 14px;
-    padding: 8px 14px;
+    margin: 0;
+    top: 0;
+    padding: calc(8px + env(safe-area-inset-top, 0px)) 12px 8px;
     gap: 2px;
     flex-wrap: nowrap !important;
     overflow-x: auto;
@@ -132,12 +139,21 @@ html.js-reveal .history > .reveal {
     background: color-mix(in srgb, var(--bg) 94%, transparent);
     border-bottom-color: color-mix(in srgb, var(--gold) 12%, transparent);
   }
+  /* 顶栏是 fixed，非入口页必须留出等高的顶部内边距（含刘海安全区），否则首屏内容被压住 */
+  .app:not(.is-landing) { padding-top: calc(58px + env(safe-area-inset-top, 0px)); }
   .nav::-webkit-scrollbar { display: none; }
-  .nav-brand { font-size: 17px; letter-spacing: 3px; padding-right: 8px; flex: none; }
-  .nav-item { flex: none; font-size: 12.5px; padding: 6px 11px; }
+  /* 触控命中区不低于 ~36px（顶栏总高控制在 50px，与 .app 的顶部预留对齐） */
+  .nav-brand { font-size: 17px; letter-spacing: 3px; padding: 4px 8px 4px 0; min-height: 34px; flex: none; }
+  .nav-item { flex: none; font-size: 12.5px; padding: 6px 11px; min-height: 36px; }
+  /* 「更新日志 / 关于我们」目前都是「开发中…」占位空操作，手机上纯占位宽 ——
+     全栏 7 个入口在 390 宽里放不下，只能靠横滑，用户看到的是"顶栏被切了"。
+     这两个先收起来，保留 首页/项目故事/术语百科/使用指南 + 主题开关 + CTA。 */
+  .nav-item-aux { display: none; }
   .nav .theme-toggle {
     position: sticky;
     right: 0;
+    z-index: 2;
+    min-height: 34px;
     margin-left: auto;
     flex: none;
     padding: 5px 10px;
@@ -146,17 +162,26 @@ html.js-reveal .history > .reveal {
     -webkit-backdrop-filter: blur(10px);
   }
 
+
   /* ---------- 3.3 容器与排印 ---------- */
   .app { padding: 18px 14px 34px; max-width: 100%; }
+  /* ⚠️ styles.css 里的 .app.has-mtb 是桌面值 padding: 24px 40px 60px，特异性 (0,2,0)
+     高于上面的 .app，手机端会照旧吃 40px 侧边距 —— 391 宽只剩 310 可用，
+     卡片还比顶部区块窄，就是"双重内缩"。这里只收回左右，底部保留 3.1 的 tab 预留。 */
+  .app.has-mtb { padding-left: 14px; padding-right: 14px; }
   /* 移动端已有顶部品牌 + 底部导航，隐藏重复的页面大标题以省出首屏空间 */
   .hero { display: none; }
   .disclaimer {
-    font-size: 11px;
-    line-height: 1.65;
+    font-size: 12px;
+    line-height: 1.7;
     padding: 10px 12px;
     border-radius: 14px;
     margin: 0 0 12px;
   }
+  /* 手机端可读性下限：承担信息量的小字统一抬到 12px（纯装饰的英文小字不管） */
+  .f2-label, .f2-label-sm { font-size: 12.5px; }
+  .f2-field-hint { font-size: 12px; line-height: 1.7; }
+  .dg-level, .dg-sub, .rs-tag, .pb-topic, .so-desc, .so-action { font-size: 12px; }
   .readonly-banner { flex-direction: column; align-items: flex-start; gap: 10px; font-size: 12px; padding: 12px 13px; }
   .readonly-banner .btn-gold { width: 100%; justify-content: center; }
 
@@ -181,9 +206,14 @@ html.js-reveal .history > .reveal {
   .pb-topic { flex-basis: 100%; order: 5; opacity: 0.9; }
   .pb-reroll { margin-left: auto; }
 
-  /* 结论卡 */
+  /* 结论卡：太极 + 正文 + 右侧竖排，手机必须竖排堆叠。
+     否则 200px 的太极轮会把正文挤到 ~130px 宽，标题只能逐字换行。
+     （原写的 .rs-headline 也不存在，真实类名是 .rs-title） */
   .result-summary { padding: 16px 15px; border-radius: 18px; }
-  .rs-headline { font-size: 17px; line-height: 1.55; }
+  .rs-layout { flex-direction: column; align-items: center; gap: 12px; }
+  .rs-body { width: 100%; }
+  .rs-sidebar { display: none; }
+  .rs-title { font-size: 17px; line-height: 1.5; letter-spacing: 2px; }
 
   /* 六大维度：3 列 */
   .dg-grid { grid-template-columns: repeat(3, 1fr); gap: 10px 2px; }
@@ -198,18 +228,26 @@ html.js-reveal .history > .reveal {
   .al-donut-wrap { align-self: center; }
   .al-legend { width: 100%; }
 
-  /* 体系卡横滑：一屏约 1.8 张，露出下一张提示可滑 */
-  .so-scroll { gap: 10px; padding: 2px 2px 12px; }
-  .so-card { flex: 0 0 156px; padding: 13px 12px; }
+  /* 体系卡：桌面是 4 列网格，手机改 2 列（含图标 34px + 文案，2 列刚够且不挤） */
+  .so-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .so-card { padding: 11px 10px; gap: 9px; }
+  .so-icon svg { width: 28px; height: 28px; }
+  .so-name { font-size: 13px; }
+  .so-desc, .so-action { font-size: 11px; }
+  .so-head { flex-wrap: wrap; gap: 6px 8px; }
+  /* ⚠️ 注意：这里原先写的是 .so-scroll / .so-detail-body / .so-detail-head —— 这三个类名
+     在源码里都不存在（卡片区实际是 .so-grid 网格、不是横滑条），规则一直在空转。
+     改移动端样式前先用 grep 确认类名真的在 tsx 里。 */
   .so-detail { padding: 15px 13px; border-radius: 18px; }
-  .so-detail-body { flex-direction: column; gap: 14px; }
-  .so-detail-head { flex-wrap: wrap; gap: 6px 8px; }
+  .so-detail-foot { flex-wrap: wrap; gap: 6px 8px; }
 
   .card, .xl-card, .panel, .history, .consensus, .synthesis { border-radius: 18px; }
   .wall { grid-template-columns: 1fr; }
 
-  /* 综合报告 / 长文本可读性 */
-  .syn-body, .report-body { font-size: 13.5px; line-height: 1.85; }
+  /* 综合报告 / 长文本可读性（原 .syn-body/.report-body 均不存在，已换成真实类名） */
+  .syn-headline, .syn-question, .syn-axis, .syn-sys, .syn-caveat,
+  .rs-desc, .rs-quote { font-size: 13.5px; line-height: 1.85; }
+  .syn-sensitivity { font-size: 12.5px; line-height: 1.8; }
 
   /* ---------- 3.5 输入页 ---------- */
   /* 表单自带的顶栏与全局导航 / 底部 Tab 重复：移动端只留「页码 + 品牌」 */
@@ -219,7 +257,12 @@ html.js-reveal .history > .reveal {
   .f2-header .f2-logo { font-size: 14px; letter-spacing: 0.24em; }
 
   .f2-main { padding: 12px 0 22px; gap: 14px; max-width: 100%; }
-  .f2-card { padding: 16px 14px; border-radius: 18px; }
+  /* ⚠️ grid 的 1fr = minmax(auto, 1fr)，auto 的下限是**项目的 min-content**。
+     .f2-card 的 min-content 实测 364.8px（日期行/地点行撑出来的），
+     于是单列被撑到 364.8px，比 .f2-main 的 310px 宽 → 卡片右边缘跑出屏幕 15px。
+     用 minmax(0,1fr) 明确允许收缩，再给卡片 min-width:0 兜底。 */
+  .f2-main, .f2-two-col { grid-template-columns: minmax(0, 1fr); }
+  .f2-card { min-width: 0; padding: 16px 14px; border-radius: 18px; }
   .f2-title { font-size: 19px; letter-spacing: 3px; }
   .f2-calendar-toggle, .f2-gender-toggle { width: 100%; display: flex; }
   .f2-toggle-btn, .f2-gender-btn { flex: 1; padding: 9px 0; text-align: center; }
@@ -240,54 +283,112 @@ html.js-reveal .history > .reveal {
   .f2-input, .f2-select, .f2-textarea { min-height: 46px; font-size: 15px; }
   .f2-topic-chip { padding: 9px 15px; font-size: 13.5px; }
 
-  /* 两步向导步骤条 */
-  .f2-steps, .form-steps { gap: 8px; }
+  /* 两步向导步骤条（真实类名 .f2-stepper，原写的 .f2-steps/.form-steps 不存在） */
+  .f2-stepper { gap: 0.5rem; font-size: 0.74rem; }
 
-  /* ---------- 3.6 历史 ---------- */
+  /* ---------- 3.6 历史（真实类名：.history-top / .hist-title / .hist-meta） ---------- */
   .history { padding: 15px 13px; }
-  .history-head, .hi-top { flex-wrap: wrap; gap: 8px; }
-  .history-item-head { flex-wrap: wrap; gap: 6px; }
+  .history-top { flex-wrap: wrap; gap: 8px; }
+  .hist-title { font-size: 13.5px; }
+  .hist-meta { font-size: 11.5px; }
+  .hist-item { flex-wrap: wrap; gap: 8px; }
 
   /* ---------- 3.7 底部信息 ---------- */
-  .app-foot { flex-wrap: wrap; gap: 4px 8px; font-size: 11px; padding: 14px 2px 6px; line-height: 1.7; }
+  .app-foot { flex-wrap: wrap; gap: 4px 8px; font-size: 11.5px; padding: 14px 2px 6px; line-height: 1.7; }
+
+  /* ---------- 3.8 术语百科 ---------- */
+  /* .gl-cat 基础样式是 background: transparent（桌面端它落在左侧留白上，没问题）。
+     手机端 .gl-side 变成横向换行的胶囊排，正好压在背景山水画最亮的那片雾光上，
+     透明底 + 浅色字 → 小字直接消失，只剩选中的那一个看得见。给实底。 */
+  .gl-cat {
+    background: var(--panel);
+    border-color: var(--line);
+    color: var(--ink);
+    font-size: .82rem;
+    padding: .5rem .7rem;
+    min-height: 38px;
+  }
+  .gl-cat.on {
+    background: color-mix(in srgb, var(--gold) 16%, var(--panel));
+    color: var(--gold);
+  }
+  .gl-layout { gap: 1rem; }
+  .gl-side { gap: .4rem; }
+  .gl-syscards { grid-template-columns: repeat(2, 1fr); gap: .6rem; }
 }
 
 /* ============================================================
    4. Landing 手机端专项（沉浸式，无底部导航）
+
+   ⚠️ 2026-09-13 重写。原来这一整段用 .l2-header / .l2-logo / .l2-nav /
+   .l2-nav-link / .l2-actions / .l2-taiji-wrap / .l2-system-list /
+   .l2-systems-badge / .l2-footer-brand —— 这 9 个类名在当前 Landing.tsx /
+   App.tsx 里**一个都不存在**（顶栏其实是全局 .nav；太极轮容器是 .l2-wheel-wrap；
+   页脚是 .l2-fl-*）。整段规则一直在空转，所以手机端看起来"根本没做适配"。
+
+   另一个更隐蔽的坑：styles.css 里 landing 的基础样式（约 4098 行起，v0.19 追加）
+   写在它自己的响应式媒体查询（约 2498 行，max-width:900px）**之后**，
+   同特异性下后者被覆盖 —— 于是 .l2-stage 的三栏栅格、.l2-left/.l2-right 的
+   display:flex 在手机上也照旧生效，左右竖排文字被切在屏幕边缘。
+   本文件在 styles.css 之后加载，同特异性即可覆盖，所以修在这里。
    ============================================================ */
 @media (max-width: 767.98px) {
   .landing-v2 { padding: 0; }
-  .l2-header {
-    padding: calc(14px + env(safe-area-inset-top, 0px)) 16px 0;
-    flex-wrap: wrap;
-    row-gap: 8px;
+
+  /* ---- 4.1 三栏 → 单栏；左右竖排侧栏隐藏（它们在 390 宽下会被切掉一半） ---- */
+  .l2-stage {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 1.2vh 16px 1vh;
+    justify-items: center;
+    gap: 0;
   }
-  .l2-header-right { display: none; }
-  .l2-nav { order: 3; flex-basis: 100%; justify-content: center; gap: 4px; }
-  .l2-nav-link { font-size: 11.5px; }
-  .l2-logo { font-size: 15px; letter-spacing: 0.24em; }
+  .l2-left, .l2-right { display: none; }
 
-  .l2-hero { padding: 18px 16px 26px; gap: 6px; }
-  .l2-taiji-wrap { margin-bottom: 6px; }
-  .l2-taiji-wrap svg { width: min(66vw, 268px) !important; height: auto !important; }
-  .l2-title { font-size: 34px; letter-spacing: 0.34em; }
-  .l2-tagline { font-size: 13.5px; letter-spacing: 0.16em; }
-  .l2-subtitle { font-size: 12.5px; letter-spacing: 0.14em; }
-  .l2-systems-badge { font-size: 11.5px; padding: 6px 14px; margin-top: 12px; }
-  .l2-system-list { font-size: 11px; line-height: 1.9; letter-spacing: 0.1em; padding: 0 6px; }
-  /* CTA 撑满一栏：父容器是 shrink-to-fit，必须先撑开 */
-  .l2-actions { width: 100%; display: flex; justify-content: center; }
-  .l2-enter-btn { width: 100%; max-width: 300px; justify-content: center; padding: 14px 0; font-size: 15px; min-height: 48px; }
-  .l2-action-hint { font-size: 11.5px; letter-spacing: 0.22em; }
-  .l2-case-link { font-size: 12px; }
+  /* ---- 4.2 主视觉 ---- */
+  /* 旋转中的 300px 方块，其包围盒最大会到 300×√2≈424px，会把文档撑宽。
+     overflow: clip 不产生滚动容器，只裁掉旋转溢出的四个角（画面本身是圆，视觉无损）。 */
+  .l2-hero { padding: 14px 14px 22px; gap: 5px; overflow-x: clip; }
+  .l2-wheel-wrap { padding: 22px; margin-bottom: 4px; overflow: clip; }
+  .l2-wheel-wrap svg { width: min(62vw, 236px) !important; height: auto !important; }
+  .l2-label { font-size: 12px; letter-spacing: .2em; }
+  .l2-title { font-size: 34px; letter-spacing: 0.3em; }
+  .l2-title-en { font-size: 11px; }
+  .l2-seal { font-size: 12px; }
+  .l2-tagline { font-size: 13.5px; letter-spacing: 0.14em; }
+  .l2-subtitle { font-size: 12.5px; letter-spacing: 0.12em; }
 
+  /* CTA：父级 .l2-hero 是 align-items:center 的 flex 列，子元素默认 shrink-to-fit，
+     必须显式给宽度，否则按钮只有文字那么宽 */
+  .l2-enter-btn {
+    width: 100%; max-width: 320px; justify-content: center;
+    padding: 14px 0; font-size: 15px; min-height: 48px;
+  }
+  .l2-action-hint { font-size: 12px; letter-spacing: 0.18em; }
+  .l2-case-link { font-size: 12.5px; padding: 8px 0; min-height: 40px; }
+
+  /* ---- 4.3 卖点卡片：2 列（4 列在手机上每张只剩 80px） ---- */
+  .l2-features {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    max-width: 480px;
+    margin: 8px auto 0;
+    padding: 0 4px;
+  }
+  .l2-feat { padding: 12px 10px; }
+  .l2-feat-title { font-size: 13px; }
+  .l2-feat-desc { font-size: 12px; }
+
+  /* ---- 4.4 页脚：真实类名是 .l2-fl-* ---- */
   .l2-footer {
     grid-template-columns: 1fr;
-    gap: 6px;
+    gap: 8px;
     text-align: center;
-    padding: 14px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+    justify-items: center;
+    padding: 14px 16px calc(18px + env(safe-area-inset-bottom, 0px));
   }
-  .l2-footer-brand, .l2-footer-brand-right { align-items: center; }
+  .l2-fl-left, .l2-fl-right { justify-content: center; flex-wrap: wrap; row-gap: 2px; }
+  .l2-fl-brand { font-size: 12px; }
+  .l2-fl-slogan, .l2-fl-links, .l2-fl-right { font-size: 11px; }
 }
 
 /* ============================================================

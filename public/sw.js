@@ -3,8 +3,10 @@
 //   - 导航请求（HTML）：network-first，离线时回退到已缓存的 app shell
 //   - 静态资源（JS/CSS/图片）：cache-first（含懒加载的算法内核，首次拉取后离线可用）
 // 版本号变更即清旧缓存，避免脏缓存。
+// v2(2026-09-13)：背景山水图已改走 src/assets 内容哈希（换图必换 URL），这里再 bump 一次版本，
+// 清掉老浏览器里那份被 cache-first 钉死的旧 bg-scene-dark.jpg 条目。
 
-const VERSION = 'xuanlan-v1';
+const VERSION = 'xuanlan-v2';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 const RUNTIME = `${VERSION}-runtime`;
 

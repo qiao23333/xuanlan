@@ -22,6 +22,10 @@ import { Onboarding, hasOnboarded } from './Onboarding';
 import { ThemeToggle } from './ThemeToggle';
 import { MobileTabBar, type MobileTab } from './MobileTabBar';
 import { useRevealOnScroll } from './useReveal';
+// 山水画背景：放进 src/assets 由 Vite 处理，URL 自带内容哈希 —— 换图必然换 URL，
+// 不会被 Service Worker 的 cache-first 策略永久钉在旧图上（public/ 稳定文件名会）。
+import bgDark from './assets/bg-scene-dark.jpg';
+import bgLight from './assets/bg-scene-light.jpg';
 import {
   loadHistory,
   saveReading,
@@ -232,12 +236,12 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // 背景山水画路径用 BASE_URL 拼接后注入 :root，保证 GitHub Pages 子路径(/xuanlan/)部署下也能取到，
-  // 避免 CSS 里硬编码 /bg-scene-*.jpg 在子路径 404 的回归。
+  // 背景山水画由 Vite import 出带哈希的 URL（已含 BASE_URL 前缀，子路径 /xuanlan/ 下不会 404），
+  // 注入 :root 供 CSS 变量消费。深色用 dark 图、浅色用 light 图，切换由 [data-theme] 完成。
   React.useEffect(() => {
     const root = document.documentElement.style;
-    root.setProperty('--app-bg-dark', `url(${import.meta.env.BASE_URL}bg-scene-dark.jpg)`);
-    root.setProperty('--app-bg-light', `url(${import.meta.env.BASE_URL}bg-scene-light.jpg)`);
+    root.setProperty('--app-bg-dark', `url(${bgDark})`);
+    root.setProperty('--app-bg-light', `url(${bgLight})`);
   }, []);
 
   // 打开带 #/r= 的只读分享链接时：填充生辰与所问、按相同种子重算、进入只读模式。
@@ -367,10 +371,10 @@ export default function App() {
         <button className="nav-item" type="button" onClick={() => setOnboardOpen(true)}>
           使用指南
         </button>
-        <button className="nav-item" type="button" onClick={() => flash('更新日志开发中…')}>
+        <button className="nav-item nav-item-aux" type="button" onClick={() => flash('更新日志开发中…')}>
           更新日志
         </button>
-        <button className="nav-item" type="button" onClick={() => flash('关于我们开发中…')}>
+        <button className="nav-item nav-item-aux" type="button" onClick={() => flash('关于我们开发中…')}>
           关于我们
         </button>
         <div className="nav-spacer" />

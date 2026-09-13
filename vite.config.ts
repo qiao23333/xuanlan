@@ -15,6 +15,12 @@ export default defineConfig({
   server: {
     host: true,
     port: 5173,
+    // 视觉审计脚本会在项目根写 .tmp-*.png / .tmp-*.json；chokidar 在 Windows 上
+    // 对「刚写入就被删」的临时文件做 lstat 会抛 UNKNOWN，能把 dev server 直接打崩。
+    // 这些文件不需要热更新，排除在监听之外。
+    watch: {
+      ignored: ['**/.tmp-*', '**/dist_old*/**'],
+    },
   },
   // 线上托管（workbuddy sites）通过反向代理访问，且只暴露一个 $PORT：
   // preview 必须监听 $PORT 并放行代理域名，否则会被 Vite 的 host 检查拦掉。
