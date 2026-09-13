@@ -4368,3 +4368,17 @@ details.legacy-wall[open] .wall {
   background: #fffdf6;
   border-left-color: var(--gold);
 }
+/* 浅色模式百科页背景实心化：--glass 的 0.78 透明度在山水纹理底图上会发闷，
+   改为不透明白色，与参考稿（截图2）的纯色卡片一致。 */
+[data-theme="light"] .gl-syscard {
+  background: #fffdf8;
+  border-color: #e8dcc8;
+}
+[data-theme="light"] .gl-syscard:hover {
+  border-color: #d4b896;
+  box-shadow: 0 4px 16px rgba(107, 78, 18, 0.08);
+}
+[data-theme="light"] .gl-hero-main {
+  background: #fffdf8;
+  border-color: #e8dcc8;
+}
