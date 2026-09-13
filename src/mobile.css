@@ -143,13 +143,18 @@ html.js-reveal .history > .reveal {
   .app:not(.is-landing) { padding-top: calc(60px + env(safe-area-inset-top, 0px)); }
   .nav::-webkit-scrollbar { display: none; }
   /* 触控命中区不低于 40px（顶栏总高控制在 60px，与 .app 的顶部预留对齐） */
-  .nav-brand { font-size: 17px; letter-spacing: 3px; padding: 4px 8px 4px 0; min-height: 40px; flex: none; }
-  .nav-item { flex: none; font-size: 12.5px; padding: 8px 12px; min-height: 40px; }
+  .nav-brand { font-size: 16px; letter-spacing: 2px; padding: 4px 6px 4px 0; min-height: 40px; flex: none; }
+  /* 12px/8px 内边距是按 390 宽实测算的：玄览 + 首页/项目故事/术语百科/使用指南 + 主题开关
+     = 345px，顶栏可用 366px，留 21px 余量，整条栏不横滑、右侧开关也不会压住「使用指南」。 */
+  .nav-item { flex: none; font-size: 12px; padding: 8px; min-height: 40px; }
   /* 「更新日志 / 关于我们」目前都是「开发中…」占位空操作，手机上纯占位宽 ——
      全栏 7 个入口在 390 宽里放不下，只能靠横滑，用户看到的是"顶栏被切了"。
      这两个先收起来，保留 首页/项目故事/术语百科/使用指南 + 主题开关 + CTA。 */
   .nav-item-aux { display: none; }
-  .nav .nav-cta { min-height: 40px; flex: none; }
+  /* 顶栏里的「开始探索」在 landing 视图下是空操作（由 Landing 内 CTA 接管），
+     在其他视图里要干的活，底部标签栏的「探索/推演」已经覆盖。
+     它在 390 宽里占 115px，是顶栏必须横滑的主因 → 手机端直接收起，换来整条栏不滚动。 */
+  .nav .nav-cta { display: none; }
   .nav .theme-toggle {
     position: sticky;
     right: 0;
