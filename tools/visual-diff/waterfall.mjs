@@ -185,6 +185,33 @@ const metrics = await page.evaluate(() => {
   };
 });
 
+/**
+ * ⚠️ 体积**不能**只看上面的 performance 条目。
+ * 跨域资源如果没有 `Timing-Allow-Origin`，`transferSize` 一律是 **0** ——
+ * 于是 fonts.gstatic.com 上的字体文件（CJK 站点里往往是**首屏最大的那几笔**）
+ * 在表里显示成 0KB、连"总字节"都不计入，报告会得出"首屏共 463KB，很轻"的结论，
+ * 而真相是漏掉了最大的一块。**又一个"工具自己在骗人"**。
+ * 所以改用 CDP 的 `encodedDataLength`（它如实报告编码后字节，不受 TAO 影响），
+ * 并以 CDP 的记录为准重建时间线；性能条目只用来取 FCP/LCP/渲染阻塞标记。
+ */
+const cdpRows = [...reqs.values()].filter((r) => r.start != null);
+const docReq = cdpRows.find((r) => r.doc) || cdpRows[0];
+const t0 = docReq ? docReq.start : 0;
+const timeline = cdpRows.map((r) => ({
+  url: r.url,
+  type: r.type,
+  status: r.status,
+  start: (r.start - t0) * 1000,
+  dur: r.end != null ? (r.end - r.start) * 1000 : null,
+  size: r.bytes || 0,
+  cross: !r.url.startsWith(BASE),
+  // 渲染阻塞标记只在 performance 条目里有，按 URL 关联回来
+  blocking: metrics.res.find((m) => m.name === r.url)?.blocking || '',
+}));
+const transferred = timeline.reduce((a, r) => a + r.size, 0);
+const crossBytes = timeline.filter((r) => r.cross).reduce((a, r) => a + r.size, 0);
+const hiddenFromPerf = metrics.res.reduce((a, r) => a + r.size, 0);
+
 const ms = (t) => (t == null ? '—' : `${Math.round(t)}ms`);
 
 console.log(`\n目标 ${BASE}`);
@@ -199,10 +226,10 @@ console.log(`LCP 最大内容绘制   ${ms(l && l.t)}${l ? `   ← ${l.tag}${l.s
 console.log(`DOMContentLoaded  ${ms(metrics.domContentLoaded)}`);
 console.log(`Load              ${ms(metrics.load)}`);
 
-const blocking = metrics.res.filter((r) => r.blocking === 'blocking');
+const blocking = timeline.filter((r) => r.blocking === 'blocking');
 console.log(`\n渲染阻塞资源 ${blocking.length} 个：`);
 for (const b of blocking.sort((a, z) => z.dur - a.dur)) {
-  console.log(`  ${String(Math.round(b.start)).padStart(5)}ms  +${String(Math.round(b.dur)).padStart(5)}ms  ${(b.size / 1024).toFixed(1).padStart(7)}KB  ${b.name.replace(BASE, '')}`);
+  console.log(`  ${String(Math.round(b.start)).padStart(5)}ms  +${String(Math.round(b.dur)).padStart(5)}ms  ${(b.size / 1024).toFixed(1).padStart(7)}KB  ${b.url.replace(BASE, '')}`);
 }
 
 /* 归因：阻塞资源全部下载完的时刻，就是首屏能开始绘制的时刻。
@@ -210,27 +237,35 @@ for (const b of blocking.sort((a, z) => z.dur - a.dur)) {
    否则 FCP 只是一个孤零零的数字，没法指导优化。 */
 if (blocking.length && metrics.fcp != null) {
   const lastEnd = Math.max(...blocking.map((b) => b.start + b.dur));
-  const top = blocking.slice().sort((a, z) => z.dur - a.dur)[0];
+  const worst = blocking.slice().sort((a, z) => z.dur - a.dur)[0];
   console.log(`\nFCP 归因：阻塞资源最晚 ${Math.round(lastEnd)}ms 才下完，FCP ${Math.round(metrics.fcp)}ms`
     + `（占 ${Math.round((lastEnd / metrics.fcp) * 100)}%）`);
-  console.log(`  其中最慢的一个占 ${Math.round((top.dur / lastEnd) * 100)}%：${top.name.replace(BASE, '')}`);
+  console.log(`  其中最慢的一个占 ${Math.round((worst.dur / lastEnd) * 100)}%：${worst.url.replace(BASE, '')}`);
 }
 
-const top = metrics.res
-  .filter((r) => r.size > 0 || r.dur > 30)
+const shown = timeline
+  .filter((r) => r.size > 0 || (r.dur || 0) > 30)
   .sort((a, z) => z.start - a.start)
   .slice(0, 16);
-console.log(`\n关键请求时间线（按开始时间，共 ${metrics.res.length} 条）：`);
-console.log('   开始      耗时     体积      类型        资源');
-for (const r of top.reverse()) {
+console.log(`\n关键请求时间线（按开始时间，共 ${timeline.length} 条；体积来自 CDP，跨域也算得准）：`);
+console.log('   开始      耗时     体积      来源        类型       资源');
+for (const r of shown.reverse()) {
+  const dur = r.dur == null ? '  (未完成)' : `${String(Math.round(r.dur)).padStart(6)}ms`;
   console.log(
-    `  ${String(Math.round(r.start)).padStart(6)}ms  ${String(Math.round(r.dur)).padStart(6)}ms  `
-    + `${(r.size / 1024).toFixed(0).padStart(6)}KB  ${(r.blocking || r.initiator).padEnd(10)}  ${r.name.replace(BASE, '')}`,
+    `  ${String(Math.round(r.start)).padStart(6)}ms  ${dur.padStart(9)}  `
+    + `${(r.size / 1024).toFixed(0).padStart(6)}KB  ${(r.cross ? '第三方' : '本站  ')}  `
+    + `${(r.blocking || r.type).toString().toLowerCase().padEnd(9)}  ${r.url.replace(BASE, '')}`,
   );
 }
 
-const total = metrics.res.reduce((a, r) => a + r.size, 0);
-console.log(`\n首屏共 ${(total / 1024).toFixed(0)}KB（${metrics.res.length} 个请求）`);
+console.log(`\n首屏共 ${(transferred / 1024).toFixed(0)}KB（${timeline.length} 个请求）`
+  + `，其中第三方 ${(crossBytes / 1024).toFixed(0)}KB（占 ${Math.round((crossBytes / transferred) * 100)}%）`);
+if (hiddenFromPerf < transferred) {
+  console.log(`  ⓘ performance API 只看得见 ${(hiddenFromPerf / 1024).toFixed(0)}KB ——`
+    + ` 差额 ${((transferred - hiddenFromPerf) / 1024).toFixed(0)}KB 是跨域资源（无 Timing-Allow-Origin`
+    + ` 时 transferSize=0）。**只看它会把首屏体积低估这么多**，别用那个数下结论。`);
+}
+
 if (failed.length) {
   console.log(`\n❌ 失败请求 ${failed.length} 个：`);
   for (const f of failed.slice(0, 6)) console.log(`  ${f.err}  ${f.url.replace(BASE, '')}`);
