@@ -14,15 +14,22 @@ const BASE = process.env.BASE || 'http://localhost:4173/';
 const OUT = '.tmp-mobile';
 const CHROME = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
 const DEVICES = {
-  phone: { width: 390, height: 844, deviceScaleFactor: 2 },
-  small: { width: 360, height: 780, deviceScaleFactor: 2 },
-  tablet: { width: 834, height: 1112, deviceScaleFactor: 2 },
-  desktop: { width: 1440, height: 900, deviceScaleFactor: 1 },
+  phone: { width: 390, height: 844, deviceScaleFactor: 2, touch: true },
+  small: { width: 360, height: 780, deviceScaleFactor: 2, touch: true },
+  tablet: { width: 834, height: 1112, deviceScaleFactor: 2, touch: true },
+  // 桌面是鼠标输入，40px 是「手指命中区」标准，对鼠标不适用 ——
+  // 故 desktop 关掉触控项检查，否则导航条这类 27px 的鼠标目标会被一直误报。
+  desktop: { width: 1440, height: 900, deviceScaleFactor: 1, touch: false },
 };
 fs.mkdirSync(OUT, { recursive: true });
 
-const probe = (page) =>
-  page.evaluate(() => {
+/** 当前设备是否按触屏评估（在 main 里按 DEVICES[dev].touch 赋值） */
+let CHECK_TOUCH = true;
+/** 每类问题最多列几条。默认 8 条够看；要看全量用 LIMIT=999 ——
+    注意「列出的条数」不等于「总数」，报告里会分别打印，别再把截断当成规模。 */
+const LIMIT = Number(process.env.LIMIT || 8);
+const probe = (page, checkTouch = CHECK_TOUCH) =>
+  page.evaluate(({ checkTouch, limit }) => {
     const vw = window.innerWidth;
     const de = document.documentElement;
     const vis = (el) => {
@@ -52,7 +59,7 @@ const probe = (page) =>
       }
       return false;
     };
-    const over = [], smallText = [], smallTap = [];
+    const over = [], smallTextRead = [], smallTextMicro = [], smallTap = [];
     const seen = new Set();
     for (const el of document.querySelectorAll('body *')) {
       if (!vis(el)) continue;
@@ -67,8 +74,27 @@ const probe = (page) =>
         }
       }
       const txt = (el.textContent || '').trim();
-      if (el.children.length === 0 && txt && parseFloat(cs.fontSize) < 12) smallText.push({ sel: path(el), fs: +parseFloat(cs.fontSize).toFixed(1), text: txt.slice(0, 20) });
-      if (el.matches('button, a, [role="button"], input, select') && r.height < 40) smallTap.push({ sel: path(el), h: Math.round(r.height), w: Math.round(r.width), text: (txt || el.getAttribute('aria-label') || '').slice(0, 16) });
+      // 「<12px」是给「中文密集 UI 里要读的字」定的下限。但结果页里有大量 10px 的图表
+      // 单字标记（「底」「当」「吉」「凶」「↔」）和 10px 的英文 eyebrow（· EIGHT SYSTEMS）
+      // —— 它们是密度取舍，和 11.5px 的中文句子不是一回事，混在一个数里数出 300+ 条，
+      // 真问题会被埋掉。所以分桶：含中文且（≥4 汉字 或 总长 ≥8）才算阅读文本。
+      // 纯拉丁串一律归微标（西文在 10px 下的 x-height 仍可辨识，中文方块字不行）。
+      if (el.children.length === 0 && txt && parseFloat(cs.fontSize) < 12) {
+        const cjk = (txt.match(/[\u4e00-\u9fff]/g) || []).length;
+        const row = { sel: path(el), fs: +parseFloat(cs.fontSize).toFixed(1), text: txt.slice(0, 20) };
+        (cjk >= 4 || (cjk >= 1 && txt.length >= 8) ? smallTextRead : smallTextMicro).push(row);
+      }
+      // 命中区按「真实可点区域」算：<label> 会把点击转发给内部可标注控件
+      // （button/input 都是 labelable）。iOS 开关就是这种——button 本体仅 46×28，
+      // 但整行 label 57px 高都可点。不折算 label 的话，所有「标签+控件」都会误报。
+      // 仅在触屏设备上评估（桌面鼠标不需要 40px 手指命中区）。
+      if (checkTouch && el.matches('button, a, [role="button"], input, select')) {
+        const lab = el.closest('label');
+        const hEff = lab ? lab.getBoundingClientRect().height : r.height;
+        // 保留一位小数：早先四舍五入后再显示，39.6px 会被印成「h=40」，
+        // 看着像审计自己报错了（明明 40 却挂在「<40px」下面）。判定用原值，显示也照原值。
+        if (hEff < 40) smallTap.push({ sel: path(el), h: +hEff.toFixed(1), w: Math.round(r.width), text: (txt || el.getAttribute('aria-label') || '').slice(0, 16) });
+      }
     }
     const fixed = [...document.querySelectorAll('body *')]
       .filter((el) => vis(el) && ['fixed', 'sticky'].includes(getComputedStyle(el).position))
@@ -78,24 +104,28 @@ const probe = (page) =>
       });
     return {
       vw,
+      checkTouch,
       hScroll: de.scrollWidth > vw + 1,
       docScrollW: de.scrollWidth,
-      dirty: over.filter((o) => !o.clip).sort((a, b) => b.over - a.over).slice(0, 8),
-      clipped: over.filter((o) => o.clip).sort((a, b) => b.over - a.over).slice(0, 5),
-      smallText: smallText.slice(0, 8),
-      smallTap: smallTap.slice(0, 8),
-      fixed: fixed.slice(0, 6),
+      // 每类都同时给「总数」和「截断后的列表」——只给列表会让「共 8 处」被读成「一共就 8 处」。
+      total: { dirty: over.filter((o) => !o.clip).length, clipped: over.filter((o) => o.clip).length, text: smallTextRead.length, micro: smallTextMicro.length, tap: smallTap.length },
+      dirty: over.filter((o) => !o.clip).sort((a, b) => b.over - a.over).slice(0, limit),
+      clipped: over.filter((o) => o.clip).sort((a, b) => b.over - a.over).slice(0, limit),
+      smallText: smallTextRead.slice(0, limit),
+      smallMicro: smallTextMicro.slice(0, limit),
+      smallTap: smallTap.slice(0, limit),
+      fixed: fixed.slice(0, limit),
     };
-  });
+  }, { checkTouch, limit: LIMIT });
 
 function report(label, p) {
   console.log(`\n===== ${label} ===== vw=${p.vw} scrollWidth=${p.docScrollW} ${p.hScroll ? '❌ 横向溢出' : '✅ 无横向溢出'}`);
   if (p.dirty.length) {
-    console.log(`  ❌ 真溢出（无祖先裁剪）${p.dirty.length} 处：`);
+    console.log(`  ❌ 真溢出（无祖先裁剪）共 ${p.total.dirty} 处，下面列 ${p.dirty.length} 条：`);
     p.dirty.forEach((o) => console.log(`     +${o.over}px [${o.l}→${o.r}] w=${o.w}  ${o.sel}`));
   }
   if (p.clipped.length) {
-    console.log(`  ⚠️ 被裁剪的溢出 ${p.clipped.length} 处（贴着边被切，视觉断裂）：`);
+    console.log(`  ⚠️ 被裁剪的溢出 共 ${p.total.clipped} 处（贴着边被切，视觉断裂），下面列 ${p.clipped.length} 条：`);
     p.clipped.forEach((o) => console.log(`     +${o.over}px [${o.l}→${o.r}] w=${o.w}  ${o.sel}`));
   }
   if (p.fixed.length) {
@@ -103,12 +133,17 @@ function report(label, p) {
     p.fixed.forEach((f) => console.log(`     ${f.pos} top=${f.top} h=${f.h} w=${f.w}  ${f.sel}`));
   }
   if (p.smallText.length) {
-    console.log('  ⚠️ <12px 文字：');
+    console.log(`  ⚠️ <12px 且成阅读单位（≥8 字符或 ≥4 汉字）共 ${p.total.text} 处，下面列 ${p.smallText.length} 条：`);
     p.smallText.forEach((s) => console.log(`     ${s.fs}px "${s.text}"  ${s.sel}`));
+  } else if (p.checkTouch) {
+    console.log('  ✅ 无 <12px 的阅读文本（单字标记/英文 eyebrow 另计）');
   }
+  if (p.total.micro) console.log(`  ℹ️ 另有 ${p.total.micro} 处 <12px 图表单字标记（「底/吉/↔」之类，属密度取舍，不计入告警）`);
   if (p.smallTap.length) {
-    console.log('  ⚠️ 触控区高<40px：');
+    console.log(`  ⚠️ 触控区高<40px 共 ${p.total.tap} 处，下面列 ${p.smallTap.length} 条：`);
     p.smallTap.forEach((s) => console.log(`     h=${s.h} w=${s.w} "${s.text}"  ${s.sel}`));
+  } else if (!p.checkTouch) {
+    console.log('  （鼠标输入，跳过触控命中区检查）');
   }
 }
 
@@ -132,6 +167,7 @@ const shoot = async (page, name, scroll) => {
 
 (async () => {
   const dev = process.env.DEVICE || 'phone';
+  CHECK_TOUCH = DEVICES[dev].touch;
   const browser = await puppeteer.launch({ executablePath: CHROME, headless: 'new', args: ['--no-sandbox', '--disable-dev-shm-usage'] });
   const page = await browser.newPage();
   await page.setRequestInterception(true);

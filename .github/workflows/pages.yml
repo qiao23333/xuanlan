@@ -36,9 +36,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # 门禁：类型 + 内核 49 + 前端 51。构建不过就不部署。
+      # 门禁：类型 + 文档数字 + 内核 49 + 前端 51。构建不过就不部署。
       - name: Type check
         run: npm run typecheck
+      - name: Docs number gate
+        run: npm run check:docs
       - name: Core tests
         run: npm test
       - name: UI tests

@@ -17,6 +17,7 @@ import { ShareCard } from './ShareCard';
 import { parseShareFromHash, type ShareDoc } from './share';
 import { ErrorBoundary } from './ErrorBoundary';
 import { GlossaryPage } from './GlossaryPage';
+import { ChangelogModal } from './ChangelogModal';
 import { ConsentGate, PrivacyModal, hasConsented } from './Legal';
 import { Onboarding, hasOnboarded } from './Onboarding';
 import { ThemeToggle } from './ThemeToggle';
@@ -83,7 +84,7 @@ const nowParts = () => {
   return { year: d.getFullYear(), month: d.getMonth() + 1, day: d.getDate(), hour: d.getHours(), minute: d.getMinutes(), second: d.getSeconds() };
 };
 
-const APP_VERSION = '0.4.0';
+const APP_VERSION = '0.4.1';
 
 export default function App() {
   const [form, setForm] = useState<AppForm>(defaultForm);
@@ -112,6 +113,7 @@ export default function App() {
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [consentDone, setConsentDone] = useState<boolean>(() => hasConsented());
   const [onboardOpen, setOnboardOpen] = useState<boolean>(() => !hasOnboarded());
+  const [changelogOpen, setChangelogOpen] = useState(false);
 
   const flash = (msg: string) => {
     setToast(msg);
@@ -371,11 +373,13 @@ export default function App() {
         <button className="nav-item" type="button" onClick={() => setOnboardOpen(true)}>
           使用指南
         </button>
-        <button className="nav-item nav-item-aux" type="button" onClick={() => flash('更新日志开发中…')}>
+        <button
+          className="nav-item nav-item-aux"
+          type="button"
+          aria-haspopup="dialog"
+          onClick={() => setChangelogOpen(true)}
+        >
           更新日志
-        </button>
-        <button className="nav-item nav-item-aux" type="button" onClick={() => flash('关于我们开发中…')}>
-          关于我们
         </button>
         <div className="nav-spacer" />
         <ThemeToggle />
@@ -389,7 +393,11 @@ export default function App() {
       </nav>
 
       {view === 'landing' && (
-        <Landing onEnter={() => setView('divination')} onCase={() => setView('case')} />
+        <Landing
+          onEnter={() => setView('divination')}
+          onCase={() => setView('case')}
+          onPrivacy={() => setPrivacyOpen(true)}
+        />
       )}
 
       {view === 'divination' && (
@@ -536,6 +544,10 @@ export default function App() {
         <footer className="app-foot">
           玄览 v{APP_VERSION} · 内核 iztro / mingyu-core · 文化体验，非预测
           <span className="foot-sep">·</span>
+          <button className="link foot-link" type="button" onClick={() => setChangelogOpen(true)}>
+            更新日志
+          </button>
+          <span className="foot-sep">·</span>
           <button className="link foot-link" type="button" onClick={() => setPrivacyOpen(true)}>
             隐私与数据说明
           </button>
@@ -545,6 +557,7 @@ export default function App() {
       {!consentDone && <ConsentGate onClose={() => setConsentDone(true)} />}
       {consentDone && onboardOpen && <Onboarding onClose={() => setOnboardOpen(false)} />}
       {privacyOpen && <PrivacyModal onClose={() => setPrivacyOpen(false)} />}
+      {changelogOpen && <ChangelogModal onClose={() => setChangelogOpen(false)} />}
     </div>
   );
 }

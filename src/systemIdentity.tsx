@@ -47,14 +47,16 @@ export function SystemSigil({ id, size = 22 }: { id: SystemId; size?: number }) 
 }
 
 /**
- * 八体系专用图标 —— 用户指定的标准素材（资料/新参考/图标/*.png，透明底 1254px）。
+ * 八体系专用图标 —— 用户指定的标准素材（资料/新参考/图标/*.png）。
  *
  * 为什么这里用位图而不是 <SystemSigil>：
  *   用户给的是带细节的渲染稿（四柱牌位 / 紫微十二宫 / 九宫格 / 六壬日月盘 /
  *   小六壬六宫 / 梅花五瓣 / 黄道十二宫 / 塔罗双牌），矢量简笔画不出这个信息量；
- *   而这套素材本身就是透明底 PNG，直接引用即 100% 保真，也不会再出现
+ *   而这套素材本身就是透明底渲染稿，直接引用即 100% 保真，也不会再出现
  *   「按缩略图猜图导致 astrolabe 配成咖啡杯」这类回归。
  *
+ * 素材是 192×192 的 WebP（不是原始 320² PNG）：最大显示 62px，192 已覆盖 3× DPR，
+ * 单图 ~80KB → ~16KB，16 张省下约 1MB —— 见 tools/img-optimize.py。
  * 深浅两套都在 DOM 里，靠 .ic-dark / .ic-light + [data-theme] 切换，换主题不重渲染。
  * 路径用 import.meta.env.BASE_URL 拼接，保证 GitHub Pages 子路径(/xuanlan/)下也能取到。
  * 小尺寸（<24px）请用 <SystemSigil>，位图在这个尺寸会糊。
@@ -74,7 +76,7 @@ export function SystemIcon({
     <span className={`sys-icon ${className}`.trim()} style={{ width: size, height: size }}>
       <img
         className="ic-dark"
-        src={`${base}icons/system/dark/${id}.png`}
+        src={`${base}icons/system/dark/${id}.webp`}
         alt=""
         width={size}
         height={size}
@@ -83,7 +85,7 @@ export function SystemIcon({
       />
       <img
         className="ic-light"
-        src={`${base}icons/system/light/${id}.png`}
+        src={`${base}icons/system/light/${id}.webp`}
         alt=""
         width={size}
         height={size}

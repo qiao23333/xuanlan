@@ -5,8 +5,10 @@
 // 版本号变更即清旧缓存，避免脏缓存。
 // v2(2026-09-13)：背景山水图已改走 src/assets 内容哈希（换图必换 URL），这里再 bump 一次版本，
 // 清掉老浏览器里那份被 cache-first 钉死的旧 bg-scene-dark.jpg 条目。
+// v3(2026-09-17)：太极图与 8 体系图标由 PNG 换成 WebP（同名换后缀，URL 虽变但旧条目仍占空间），
+// bump 清掉旧的 .png 缓存条目。
 
-const VERSION = 'xuanlan-v2';
+const VERSION = 'xuanlan-v3';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 const RUNTIME = `${VERSION}-runtime`;
 

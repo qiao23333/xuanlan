@@ -184,9 +184,11 @@ function CelestialWheel({ size = 360 }: { size?: number }) {
 export function Landing({
   onEnter,
   onCase,
+  onPrivacy,
 }: {
   onEnter: () => void;
   onCase: () => void;
+  onPrivacy: () => void;
 }) {
   return (
     <section className="landing-v2">
@@ -274,11 +276,13 @@ export function Landing({
           <span>致远</span>
         </nav>
         <div className="l2-fl-right">
-          <span>V0.4.0</span>
+          <span>V0.4.1</span>
           <span className="l2-fl-sep">|</span>
           <span>文化体验，非预测</span>
           <span className="l2-fl-sep">|</span>
-          <span>隐私与数据说明</span>
+          <button className="l2-fl-link" type="button" onClick={onPrivacy}>
+            隐私与数据说明
+          </button>
         </div>
       </footer>
     </section>

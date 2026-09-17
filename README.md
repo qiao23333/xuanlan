@@ -65,7 +65,7 @@
 - **新手引导层**：首访分步引导（产品是什么 / 怎么用 / 共识≠预测 / 数据只在本地），可随时从导航「引导」重看
 - **合规与隐私**：首次进入必须点「我已了解」才可使用（使用须知弹层）；隐私与数据说明弹层讲清「纯前端、数据只在你浏览器、不上传」；页脚常驻入口
 - **综合解读报告**：把八家结论翻译成人话长文，零 AI、零随机，模板化叙事可审计
-- **术语词典（38 条）**：卡片内硬核词点击看白话解释；导航「术语」打开可搜索总览（用神/大运/牌阵/分宫制…）
+- **术语词典（39 条）**：卡片内硬核词点击看白话解释；导航「术语」打开可搜索总览（用神/大运/牌阵/分宫制…）
 - **历史记录 + 导出/导入**：排盘自动入库，支持搜索、主题筛选、收藏星标、回放、导出 Markdown/JSON、一键导出全部备份、导入备份（去重合并）、单条/清空删除
 - **多端适配 + 无障碍**：手机 / 平板 / 桌面三档断点全覆盖，导航吸顶；弹层支持 Esc 关闭、Tab 焦点陷阱、可见焦点环，符合 WCAG 2.1 AA 基本盘
 - **错误边界兜底**：任一体系渲染异常只局部降级「该体系暂不可用」，不整页白屏
@@ -80,13 +80,14 @@
 npm install
 npm run dev        # 本地开发，默认 http://localhost:5173
 npm run build      # 生产构建
-npm test           # 内核测试（42 项：黄金样本 / 对拍 / 边界 / 决策轴 / 确定性回放）
+npm test           # 内核测试（49 项：黄金样本 / 对拍 / 边界 / 决策轴 / 确定性回放）
 npm run test:ui    # 前端组件测试（Vitest + Testing Library）
 npm run typecheck  # 类型检查（tsc --noEmit）
 ```
 
 > 测试依赖 Node 22+（内核用原生 type stripping 直跑 .ts，无 tsx/ts-node）。
-> 当前测试覆盖：**内核 42 项 + 前端 24 项 = 66 项**。CI（` .github/workflows/ci.yml`）在每次 push / PR 跑 typecheck + build + 两套测试。
+> 当前测试覆盖：**内核 49 项 + 前端 51 项 = 100 项**。CI（` .github/workflows/ci.yml`）在每次 push / PR 跑 typecheck + build + 两套测试。
+> 文档里的这些数字由 `node tools/check-docs.mjs` 守着——写歪了会让 CI 红，不靠人眼扫。
 
 ---
 
@@ -98,7 +99,7 @@ packages/core/            纯函数算法内核（禁 IO / 禁 Date.now / 禁 Ma
   ├─ interpretation.ts    确定性解释层（五行旺衰 / 体用生克 / 吉凶 / 应期…，六轴全覆盖）
   ├─ consensus.ts         决策轴聚合（加权平均 + 一致率 + 分歧）
   ├─ report.ts            综合解读报告（模板化叙事，零随机、零 AI）
-  └─ test/                内核回归测试（42 项，含 golden 对拍 / 端到端确定性回放）
+  └─ test/                内核回归测试（49 项，含 golden 对拍 / 端到端确定性回放）
 src/
   ├─ features/
   │   ├─ form/            两步引导表单（生辰 → 所问之事）
@@ -143,7 +144,7 @@ src/
 
 ## 技术栈
 
-Vite · React · TypeScript · mingyu-core@0.2.0 · iztro · 纯函数内核 · Vitest（内核 42 + 前端 24 = 66 项测试） · PWA（manifest + Service Worker） · localStorage 历史
+Vite · React · TypeScript · mingyu-core@0.2.0 · iztro · 纯函数内核 · Vitest（内核 49 + 前端 51 = 100 项测试） · PWA（manifest + Service Worker） · localStorage 历史
 
 ---
 
@@ -170,7 +171,7 @@ vercel --prod
 
 - ~~P0：PWA 离线分发（manifest + Service Worker，已实现：可安装、可离线、隐私零上传）~~
 - ~~P0：合规弹层（使用前须知 + 隐私与数据说明）~~
-- ~~P1：术语词典扩至 38 条 + 可搜索总览~~
+- ~~P1：术语词典扩至 39 条 + 可搜索总览~~
 - ~~P1：新手引导层（首访分步 + 可重看）~~
 - ~~P1：共识可视化重设计（圆环 + 一致率色条）~~
 - ~~P1：主题化阅读路径~~

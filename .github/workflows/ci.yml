@@ -22,6 +22,8 @@ jobs:
         run: npm ci
       - name: Type check
         run: npm run typecheck
+      - name: Docs number gate
+        run: npm run check:docs
       - name: Build
         run: npm run build
       - name: Core tests (deterministic kernel)

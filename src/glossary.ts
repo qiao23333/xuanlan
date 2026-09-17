@@ -3,7 +3,7 @@
  *
  * 解释层 highlights 里的 term 字段命中此处即提供点开解释；GlossaryPage
  * 则把全部词条做成可搜索全页总览。文案定位：白话、短、诚实——只说"这是什么"，
- * 不夸大"准不准"。共 38 条，覆盖八大体系的关键概念（评审 P1）。
+ * 不夸大"准不准"。共 39 条，覆盖八大体系的关键概念（评审 P1）。
  */
 export interface GlossaryEntry {
   title: string;

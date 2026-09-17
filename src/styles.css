@@ -1315,6 +1315,22 @@ body::before {
   font-size: 12.5px; line-height: 1.7; color: var(--ink-soft); white-space: pre-wrap;
 }
 
+/* 更新日志弹层 */
+.changelog-modal { width: min(600px, 100%); }
+.changelog-body { display: grid; gap: 16px; }
+.cl-item { border-left: 2px solid var(--line); padding: 2px 0 2px 14px; }
+.cl-item.is-latest { border-left-color: var(--gold); }
+.cl-head { display: flex; align-items: center; gap: 8px; }
+.cl-ver { font-family: var(--serif); font-size: 15px; color: var(--gold); letter-spacing: 1px; }
+.cl-badge {
+  font-size: 10.5px; padding: 1px 7px; border-radius: 20px; color: var(--jade);
+  border: 1px solid color-mix(in srgb, var(--jade) 45%, transparent);
+}
+.cl-date { margin-left: auto; font-size: 12px; color: var(--muted); }
+.cl-title { font-size: 14px; color: var(--ink); margin: 6px 0 8px; font-weight: 600; }
+.cl-list { margin: 0; padding-left: 18px; }
+.cl-list li { font-size: 13px; line-height: 1.75; color: var(--ink-soft); margin-bottom: 4px; }
+
 /* 历史面板增强 */
 .history-toolbar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
 .hist-search, .hist-topic {
@@ -2493,6 +2509,15 @@ select:focus:not(:focus-visible) { outline: none; }
 .l2-fl-links { display: flex; align-items: center; gap: 6px; font-size: 0.65rem; color: var(--ink-soft); letter-spacing: .1em; }
 .l2-fl-sep { color: color-mix(in srgb, var(--gold) 25%, transparent); }
 .l2-fl-right { display: flex; align-items: center; gap: 6px; font-size: 0.6rem; color: color-mix(in srgb, var(--ink) 35%, transparent); }
+/* 入口页页脚里的隐私入口：原来是不可点的 <span>，改成按钮后视觉沿用同一行，
+   只加一条细下划线提示可点（浅色/深色都随 --gold 走，不写死颜色）。 */
+.l2-fl-link {
+  background: none; border: none; padding: 0; cursor: pointer;
+  font: inherit; color: inherit; letter-spacing: inherit;
+  text-decoration: underline; text-underline-offset: 2px;
+  text-decoration-color: color-mix(in srgb, var(--gold) 40%, transparent);
+}
+.l2-fl-link:hover { color: var(--gold); }
 
 /* ── 入口页响应式：小屏隐藏左右侧栏 ── */
 @media (max-width: 900px) {
@@ -2767,7 +2792,7 @@ select:focus:not(:focus-visible) { outline: none; }
 .al-body { display: flex; align-items: center; gap: 1.4rem; }
 .al-donut-wrap { flex: none; }
 .al-num { fill: var(--ink); font-size: 19px; font-weight: 700; }
-.al-pct { fill: var(--ink-soft); font-size: 8.5px; letter-spacing: 0.05em; }
+.al-pct { fill: var(--ink-soft); font-size: 12px; letter-spacing: 0.05em; }
 .al-legend { display: flex; flex-direction: column; gap: 0.55rem; }
 .al-bd-item {
   display: flex; align-items: center; gap: 0.5rem;
@@ -4387,6 +4412,48 @@ details.legacy-wall[open] .wall {
 [data-theme="light"] .q-stem,
 [data-theme="light"] .mh-ganzhi span { color: #5e4410; }
 [data-theme="light"] .star.minor { color: #0f766e; }
+/* ── v0.4.1：浅色下体系卡里的「青玉色文字」同理。
+   .sys.* 把 --jade 覆盖成 --chart-jade(#1f9e78)，落在米白底 #f7efe0 上实测
+   2.95:1 —— 就差一点点没过 3.0，肉眼是"发飘"而不是"看不见"，最容易漏。
+   改回浅色主题自己的 --jade(#3f8f72，同底实测 3.41)，卡内卡外同一色号也统一了。
+   ⚠️ --chart-jade 目前没有别的消费者（图形底色都是写死的 rgba），所以这里
+   只覆盖文字与描边，不动 token 本身。 */
+[data-theme="light"] .sys .tag-jade,
+[data-theme="light"] .sys .pillar-zhi,
+[data-theme="light"] .sys .star.minor,
+[data-theme="light"] .sys .q-tian,
+[data-theme="light"] .sys .lr-up,
+[data-theme="light"] .sys .xlr-judge.xlr-good,
+[data-theme="light"] .sys .xlr-verdict-tag.xlr-good,
+[data-theme="light"] .sys .cons-overall,
+[data-theme="light"] .sys .cat-chart,
+[data-theme="light"] .sys .detail-section .sub,
+[data-theme="light"] .sys .syn-head h3 { color: #3f8f72; }
+[data-theme="light"] .sys .tag-jade,
+[data-theme="light"] .sys .xlr-judge.xlr-good,
+[data-theme="light"] .sys .xlr-verdict-tag.xlr-good { border-color: #3f8f72; }
+/* ── v0.4.1：把同一类问题一次补齐（上一轮只覆盖了「被审计采到样」的几个类）
+   六壬地支/三传（.lr-low/.lr-stage）、梅花动爻（.mh-label）、占星坐标表
+   （.astro-table td:nth-child(2)）这些同族元素同样吃 .sys 的亮金 ——chart-gold
+   #c98f1e，在浅色白卡 #fffdf8 上实测仅 2.78:1（低于 3.0）。这里按「体系卡内
+   所有金色文字」列全，免得每轮审计再抓一遍。
+   ⚠️ 只改文字：图形填充/描边仍走 --chart-gold，否则会回到「浅色下图表发闷」。 */
+[data-theme="light"] .pillar-gan,
+[data-theme="light"] .zp-name,
+[data-theme="light"] .qg-name,
+[data-theme="light"] .lr-title,
+[data-theme="light"] .lr-low,
+[data-theme="light"] .lr-stage,
+[data-theme="light"] .xlr-name,
+[data-theme="light"] .mh-symbol,
+[data-theme="light"] .mh-title,
+[data-theme="light"] .mh-step b,
+[data-theme="light"] .mh-yao.changing,
+[data-theme="light"] .mh-label,
+[data-theme="light"] .astro-table td:nth-child(2),
+[data-theme="light"] .tarot-spread,
+[data-theme="light"] .tc-name,
+[data-theme="light"] .lcd-title { color: #5e4410; }
 /* 分歧视图的品红徽章（对齐报告里标"离群"的体系） */
 [data-theme="light"] .al-dissent-pct,
 [data-theme="light"] .al-o-chip {
@@ -4424,3 +4491,31 @@ details.legacy-wall[open] .wall {
   background: #fffdf8;
   border-color: #e8dcc8;
 }
+
+/* ═══════════════ v0.4.1 可读性下限：中文阅读文本 ≥12px ═══════════════
+   结果页、术语页里有大量 10–11.5px 的中文读值（六爻爻位、卦辞、大运表头、
+   维度分差、牌义关键词、对齐分差说明…）。它们不是装饰，是用户真要去读的内容；
+   方块字笔画密，11px 下就糊成一团了，而同尺寸的西文反而还认得出。
+   实测（tools/visual-diff/mobile-audit.mjs，按「含中文且成阅读单位」分桶统计）：
+   结果页 84 处、入口页页脚免责语仅 9.6px。
+
+   ⚠️ 刻意不在这张名单里的两类，别顺手加进来：
+     1) 纯装饰英文 kicker（.sec-en / .rs-kicker-en）—— 西文 + 大字距，是版式元素；
+     2) 图表内的单字标记（「底」「当」「吉」「凶」「↔」）—— 是符号不是文字，
+        它们撑在 17px 的方框/固定列宽里，放大只会把密集图表挤变形。
+   判据写在审计脚本里，两边口径要对齐（同一事实别存两处）。 */
+.hash, .yao-meta, .ba-detail, .ba-label,
+.mh-desc, .mh-sub, .mh-upperlower, .mh-yingqi li, .mh-fold li,
+.xlr-verse, .xlr-gz, .tc-kw, .tp-kicker, .lcd-handover, .luck-head,
+.lv-sub, .lv-bar, .lv-bar-meta, .lv-lg, .lv-gap-num, .lv-gap-note, .lv-empty,
+.dr-note, .dr-level,
+.al-adv-desc, .al-adv-note, .al-o-label, .al-o-chip, .al-dissent-pct,
+.al-dissent-note b, .lv-gap-note b,
+.so-desc, .rs-tag, .dg-sub, .dg-level, .dg-label, .pb-topic,
+.al-g-label, .al-sys-chip,
+.rn-title, .gl-sub, .gl-count, .gl-sysintro, .gl-cat-n,
+.l2-fl-slogan, .l2-fl-links, .l2-fl-right, .l2-fl-brand, .l2-action-hint, .l2-case-link,
+.f2-label, .f2-nav-link, .f2-tagline-cn, .f2-switch-hint, .f2-toggle-hint,
+.f2-step-num, .f2-field-hint, .f2-school-label, .f2-feat-desc,
+.l2-feat-desc { font-size: 12px; }
+.f2-advanced > summary { font-size: 12px; }

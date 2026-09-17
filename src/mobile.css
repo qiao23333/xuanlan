@@ -213,14 +213,20 @@ html.js-reveal .history > .reveal {
   .pb-reroll { margin-left: auto; }
 
   /* 结果页的"链接式按钮"（返回/查看详情/换一卦/分歧切换）实测高 18–30px，
-     手指根本点不准。统一抬到 ≥36px 的命中区，视觉尺寸基本不变。 */
+     手指根本点不准。上一轮给到 36px，审计仍判偏小 —— 统一抬到 40px 命中区，
+     视觉尺寸基本不变（只加竖向 padding）。 */
   .stage-tab { min-height: 40px; }
-  .breadcrumb, .btn-sm, .dg-more, .pb-reroll { min-height: 36px; display: inline-flex; align-items: center; }
+  .breadcrumb, .btn-sm, .dg-more, .pb-reroll { min-height: 40px; display: inline-flex; align-items: center; }
   .pb-reroll { padding: 6px 10px; }
   .dg-more { padding: 6px 8px; }
   .dissent-tabs { flex-wrap: wrap; gap: 8px; }
-  .dtab { min-height: 36px; padding: 7px 12px; }
-  .foot-link { min-height: 32px; display: inline-flex; align-items: center; padding: 6px 2px; }
+  .dtab { min-height: 40px; padding: 7px 12px; }
+  .foot-link { min-height: 40px; display: inline-flex; align-items: center; padding: 8px 2px; }
+  /* 主题路径芯片（四柱八字 ↘）实测 30px；综合报告「复制全文」只有 19px —— 都是可点按钮 */
+  .tp-chip { min-height: 40px; }
+  .syn-head .link { min-height: 40px; display: inline-flex; align-items: center; padding: 8px 2px; }
+  /* 360 窄屏下「重新演算」右缘被切 1px（按钮 91px 宽），收一点横向内边距即可放下 */
+  .btn-sm { padding-left: 11px; padding-right: 11px; }
 
   /* 结论卡：太极 + 正文 + 右侧竖排，手机必须竖排堆叠。
      否则 200px 的太极轮会把正文挤到 ~130px 宽，标题只能逐字换行。
@@ -249,7 +255,12 @@ html.js-reveal .history > .reveal {
   .so-card { padding: 11px 10px; gap: 9px; }
   .so-icon svg { width: 28px; height: 28px; }
   .so-name { font-size: 13px; }
-  .so-desc, .so-action { font-size: 11px; }
+  /* ⚠️ 这里原先写的是 `.so-desc, .so-action { font-size: 11px }`。
+     结果把上面第 190 行刚抬到 12px 的 .so-desc 又压回了 11px ——
+     同一媒体查询里「后写的赢」，于是那条 12px 下限一直在空转
+     （审计实测 .so-desc 仍为 11px，8 张体系卡全中）。
+     改字号前先确认同一断点内没有更靠后的同名规则。 */
+  .so-action { font-size: 11px; }
   .so-head { flex-wrap: wrap; gap: 6px 8px; }
   /* ⚠️ 注意：这里原先写的是 .so-scroll / .so-detail-body / .so-detail-head —— 这三个类名
      在源码里都不存在（卡片区实际是 .so-grid 网格、不是横滑条），规则一直在空转。
@@ -302,7 +313,8 @@ html.js-reveal .history > .reveal {
 
   /* 触控命中：输入控件不低于 44px */
   .f2-input, .f2-select, .f2-textarea { min-height: 46px; font-size: 15px; }
-  .f2-topic-chip { padding: 9px 15px; font-size: 13.5px; }
+  /* 主题芯片实测框高 40px（贴阈值），显式给到 44px 留余量 */
+  .f2-topic-chip { padding: 9px 15px; font-size: 13.5px; min-height: 44px; }
 
   /* 两步向导步骤条（真实类名 .f2-stepper，原写的 .f2-steps/.form-steps 不存在） */
   .f2-stepper { gap: 0.5rem; font-size: 0.74rem; }
@@ -420,7 +432,21 @@ html.js-reveal .history > .reveal {
   }
   .l2-fl-left, .l2-fl-right { justify-content: center; flex-wrap: wrap; row-gap: 2px; }
   .l2-fl-brand { font-size: 12px; }
-  .l2-fl-slogan, .l2-fl-links, .l2-fl-right { font-size: 11px; }
+  /* 页脚字号不在这里定：.l2-fl-slogan / .l2-fl-links / .l2-fl-right 的 12px
+     下限统一放在 styles.css 末尾的「可读性下限」里（原来这里单独压到 11px，
+     结果桌面端还是 9.6px —— 同一件事写两处必然漂）。 */
+  /* 页脚里的「隐私与数据说明」是按钮（可点），实测命中区仅 30px。
+     用负 margin 抵消 padding：命中区加到 40px，但页脚高度纹丝不动
+     —— 入口页是「一屏不滚动」，不能因为加点击区把页脚顶高。 */
+  .l2-fl-link { min-height: 40px; display: inline-flex; align-items: center; padding: 10px 6px; margin: -10px -6px; }
+
+  /* 手机端字号下限 12px：底部导航、结果页对齐标签、表单学派标签实测 10.9–11.5px，
+     密集 UI 里读不清。只抬「功能文字」；装饰性英文 kicker（.rs-kicker-en / .sec-en）
+     与 SVG 内部标注（.al-pct）保持原样 —— 它们撑在固定尺寸容器里，放大反而会溢出。 */
+  .mtb-txt { font-size: 12px; }
+  .al-g-label, .al-sys-chip { font-size: 12px; }
+  .f2-school-label, .f2-feat-desc { font-size: 12px; }
+  /* 其余「中文阅读文本 ≥12px」的下限统一在 styles.css 末尾，不再在此重复。 */
 }
 
 /* ============================================================
@@ -432,6 +458,31 @@ html.js-reveal .history > .reveal {
   .al-body { gap: 18px; }
   .wall { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
   .f2-main { max-width: 620px; }
+  /* 平板是触屏，但此时走的是「桌面式横向导航」（底部 tab 栏只在 <768 出现），
+     鼠标尺度的 27px 命中区对手指偏小 —— 抬到 40px。导航总高 54→60px，
+     仍小于非入口页预留的 padding-top: 64px，不会盖住内容。 */
+  .nav-item, .nav-brand, .theme-toggle, .nav-cta { min-height: 40px; display: inline-flex; align-items: center; }
+
+  /* 平板也是触屏，但手机断点里的命中区下限到这里就断了 —— 实测 834px 下
+     「公历/农历」「男/女」只有 27px、日期/时间输入框 38px、页脚链接 19px、
+     表单顶栏导航 25px、术语页「← 返回」32px。手指点不中，和手机是同一类问题，
+     下限必须一起跟过来（否则「做了移动端适配」只在 <768 成立，iPad 上等于没做）。 */
+  .f2-nav-link, .f2-toggle-btn, .f2-gender-btn, .foot-link,
+  .gl-back, .gl-cat, .l2-case-link { min-height: 40px; display: inline-flex; align-items: center; }
+  .f2-toggle-btn, .f2-gender-btn { flex: 1; justify-content: center; }
+  .f2-input-sm { min-height: 40px; }
+  /* 用负 margin 抵消 padding：命中区到 40px，但入口页页脚高度不变
+     （和大屏「一屏不滚动」的约束保持一致）。 */
+  .l2-fl-link { min-height: 40px; display: inline-flex; align-items: center; padding: 10px 6px; margin: -10px -6px; }
+
+  /* 结果页/表单里的高频小控件在平板是 18–36px（「重新演算」29、「换一卦」24、
+     「查看详情」18、「复制全文」19、主题/标签 chips 30–31、阶段页签 36）——
+     和手机是同一批类，把手机断点里那一组下限原样跟过来，别只修一半。 */
+  .stage-tab, .breadcrumb, .btn-sm, .dg-more, .pb-reroll, .dtab, .tp-chip,
+  .syn-head .link { min-height: 40px; display: inline-flex; align-items: center; }
+  .f2-topic-chip { min-height: 44px; }
+  .pb-reroll, .dg-more { padding: 6px 10px; }
+  .syn-head .link { padding: 8px 2px; }
 }
 
 /* ============================================================
