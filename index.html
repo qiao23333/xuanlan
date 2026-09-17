@@ -23,13 +23,35 @@
       })();
     </script>
 
-    <!-- 中文衬线/无衬线（展示级字体；离线时由 CSS 系统字体兜底） -->
+    <!-- 中文衬线/无衬线（展示级字体；离线时由 CSS 系统字体兜底）
+         ⚠️ 必须**非阻塞**加载。实测（Fast 3G，iPhone 尺寸）这份 Google Fonts 样式表
+         有 **181.5KB** —— CJK 按 unicode-range 被切成上百个 @font-face，光清单就这个体积，
+         比本站自己的 CSS（30KB）大 6 倍，而且是渲染阻塞资源：
+         FCP 2064ms 里 93% 花在等阻塞资源下完，其中 90% 就是它（单它 1744ms）。
+         更要紧的是 fonts.googleapis.com 在境内常被墙 —— 阻塞写法等于让首屏一直空着
+         等连接失败，而用户其实早就可以看到内容了。
+         改法：media="print" + onload 换回 all（<noscript> 兜底），配 URL 里已有的
+         display=swap —— 先用系统字体立刻渲染，字体到了再换。preconnect/preload 保留，
+         让请求尽早发出但**不占渲染路径**。 -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      rel="stylesheet"
+      rel="preload"
+      as="style"
       href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap"
     />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap"
+      />
+    </noscript>
 
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" type="image/svg+xml" href="./icon.svg" />

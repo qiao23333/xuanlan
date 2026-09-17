@@ -21,6 +21,17 @@
   --glass2: rgba(36, 29, 49, 0.78);
   --font-serif: "Noto Serif SC", "Songti SC", "STSong", "Source Han Serif SC", "SimSun", serif;
   --font-sans: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  /* 背景山水图：**在这里声明，不要用 JS 注入**。
+     之前是 App.tsx 里跑 useEffect 往 :root 塞 url()。那样浏览器得等
+     入口 JS 下载完 → 执行 → React mount → effect 跑完，才第一次看见这张图；
+     实测（Fast 3G，手机视口）请求要到 **2230ms** 才发出去，而它偏偏是首屏最大的一张（149KB）。
+     写在 CSS 里，浏览器解析样式表时就能发现并开始下载 —— 同口径实测约 750ms 发出，
+     提前约 1.5s，用户更早看到山水而不是一片渐变。
+     路径走 src/assets，由 Vite 负责加内容哈希与 base 前缀（子路径 /xuanlan/ 不 404，
+     换图必然换 URL，不会被 SW 的 cache-first 钉死）。
+     两个变量都声明，但**只有被实际用到的那个会被下载**（暗色主题不吃浅色图），不会翻倍。 */
+  --app-bg-dark: url('./assets/bg-scene-dark.webp');
+  --app-bg-light: url('./assets/bg-scene-light.webp');
   /* 正文跟随字体方案：典雅=宋体正文，现代=黑体正文 */
   --font-body: var(--font-serif);
   --accent: var(--gold);

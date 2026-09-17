@@ -193,7 +193,9 @@ export function Landing({
   return (
     <section className="landing-v2">
       {/* ====== 背景层（AI 山水画） ====== */}
-      {/* 背景图路径由 App 注入的全局 --app-bg-dark / --app-bg-light 提供（BASE_URL 感知，子路径部署不 404） */}
+      {/* 背景图路径来自 styles.css :root 里的 --app-bg-dark / --app-bg-light
+          （Vite 处理 url() 时自带哈希与 base 前缀，子路径部署不 404；
+           放 CSS 而不是 JS 注入，是为了让浏览器解析样式表时就能开始下载） */}
       <div className="l2-bg" aria-hidden="true" />
 
       {/* ====== 三栏布局：左侧标语 | 中央主角 | 右侧竖文 ====== */}

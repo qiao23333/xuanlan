@@ -52,8 +52,22 @@ const setTheme = async (page, t) => {
  * 只 sleep 固定毫秒会在冷启动那次截到「图还没到、只剩渐变」的半成品，
  * 于是"改前/改后"差出整片背景 —— 看着像我把背景改坏了，其实是网速。
  * 所以显式等两张图 decode 完成。
+ *
+ * ⚠️ **还要等字体**。这轮把 Google Fonts 改成非阻塞加载之后，页面会先在系统字体下
+ * 渲染、字体到了再 swap。不等 `document.fonts.ready` 就截图，拍到的可能是**换字前的样子**，
+ * 于是"改前 vs 改后"差出一整套字形 —— 那不是渲染回归，是**加载时序**差异。
+ * 凡是"资源到达时刻变了"的改动，验收前都必须把资源等齐，否则比的是时间不是结果。
  */
 async function waitBg(page) {
+  // 先确认字体样式表**已经被应用**（非阻塞加载靠 onload 把 media 从 print 换成 all），
+  // 再等 fonts.ready —— 顺序反了的话 fonts.ready 会在样式表生效前就提前 resolve。
+  await page
+    .waitForFunction(() => {
+      const l = document.querySelector('link[href*="fonts.googleapis.com"][rel="stylesheet"]');
+      return !l || l.media === 'all';
+    }, { timeout: 20000 })
+    .catch(() => {});
+  await page.evaluate(() => document.fonts.ready).catch(() => {});
   await page.evaluate(() => Promise.all(
     [...document.getElementsByTagName('img')].map((i) => i.decode?.().catch(() => {}) ?? Promise.resolve()),
   ));

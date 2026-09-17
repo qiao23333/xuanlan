@@ -23,13 +23,9 @@ import { Onboarding, hasOnboarded } from './Onboarding';
 import { ThemeToggle } from './ThemeToggle';
 import { MobileTabBar, type MobileTab } from './MobileTabBar';
 import { useRevealOnScroll } from './useReveal';
-// 山水画背景：放进 src/assets 由 Vite 处理，URL 自带内容哈希 —— 换图必然换 URL，
-// 不会被 Service Worker 的 cache-first 策略永久钉在旧图上（public/ 稳定文件名会）。
-// 2026-09-17 起改用 WebP（q82）：这是首屏最大的单个资源，且按主题只下载一张。
-// 255.5K + 218.6K -> 148.2K + 129.6K（省 41%），PIL 实测 MAE≈2/255，肉眼不可分辨。
-// 生成方式：python tools/img-optimize.py（BG_JOBS 段），勿手改二进制。
-import bgDark from './assets/bg-scene-dark.webp';
-import bgLight from './assets/bg-scene-light.webp';
+// 山水画背景不再在这里 import —— 见 styles.css :root 里的 --app-bg-dark / --app-bg-light。
+// （Vite 会处理 CSS 里的 url()：加内容哈希 + base 前缀，换图必然换 URL，
+//   不会被 Service Worker 的 cache-first 策略永久钉在旧图上。）
 import {
   loadHistory,
   saveReading,
@@ -241,13 +237,11 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // 背景山水画由 Vite import 出带哈希的 URL（已含 BASE_URL 前缀，子路径 /xuanlan/ 下不会 404），
-  // 注入 :root 供 CSS 变量消费。深色用 dark 图、浅色用 light 图，切换由 [data-theme] 完成。
-  React.useEffect(() => {
-    const root = document.documentElement.style;
-    root.setProperty('--app-bg-dark', `url(${bgDark})`);
-    root.setProperty('--app-bg-light', `url(${bgLight})`);
-  }, []);
+  // 背景山水画的 URL 现在声明在 styles.css 的 :root 里（--app-bg-dark / --app-bg-light），
+  // 不再由这里注入 —— 理由是**首屏发现时机**：JS 注入要等入口 JS 下载 + 执行 + React mount
+  // 之后浏览器才第一次看见那张图（实测 2230ms），而写进 CSS 会在解析样式表时就开始下载
+  // （约 750ms），提前约 1.5s。Vite 同样会给 CSS 里的 url() 加哈希和 base 前缀，
+  // 子路径部署与「换图必换 URL」这两个性质都不受影响。
 
   // 打开带 #/r= 的只读分享链接时：填充生辰与所问、按相同种子重算、进入只读模式。
   React.useEffect(() => {
