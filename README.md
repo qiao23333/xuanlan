@@ -90,6 +90,12 @@ npm run typecheck  # 类型检查（tsc --noEmit）
 > 文档里的这些数字由 `node tools/check-docs.mjs` 守着——写歪了会让 CI 红，不靠人眼扫。
 > 图片体积与 CSS 死代码另有两道会失败的门禁（`tools/img-weight.mjs`、`tools/css-dead-class.mjs`）：
 > 前者防"手写体积数字漂移"，后者防"又一整代旧界面把样式留在包里"——两个都会拦住上线。
+> 首屏性能与字体另有两只体检工具（本地跑，不进 CI——都要开浏览器）：
+> `tools/visual-diff/waterfall.mjs` 量 TTFB/FCP/LCP 与阻塞资源，并把 **LCP 的全部候选**摊开
+> （只报"最后一次"会把"被 Web 字体重画过一次"误读成"标题渲染慢"）；
+> `tools/font-usage.mjs` 量**实际渲染到的 (字族,字重) 组合**，用来核对 index.html 里手写的
+> Google Fonts 请求清单——它自带两个防坑：宽度列表从 CSS 的 @media 推导（否则漏掉只在窄屏存在的字重）、
+> 量取范围含 SVG `<text>`（否则漏掉数字类文本）。`BASE=... node tools/font-usage.mjs` 即可跑。
 
 ---
 

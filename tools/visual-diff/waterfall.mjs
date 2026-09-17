@@ -99,6 +99,11 @@ cdp.on('Network.requestWillBeSent', (e) => {
     type: e.type,
     start: e.timestamp,
     doc: e.request.url === page.url() || e.type === 'Document',
+    /* Chrome 给这条请求定的初始优先级（VeryLow/Low/Medium/High/VeryHigh）。
+       用途：判断"某个资源在抢带宽"这件事该靠**优先级**解决还是靠**减字节/换时机**解决。
+       如果它本来就是 Low 却仍占住管道（实测：149KB 的 CSS 背景图占用约 745ms，
+       期间把字体样式表从 1.73s 拖到 2.47s），那优先级已经没什么可降的了，只能动字节或时机。 */
+    prio: e.request.initialPriority || '',
   });
 });
 cdp.on('Network.responseReceived', (e) => {
@@ -138,6 +143,11 @@ if (process.env.THEME) {
       优化方向完全相反。） */
 await page.evaluateOnNewDocument(() => {
   window.__lcp = null;
+  /* 只留"最后一条"是不够的：LCP 是一串**候选**，最终值取其中最大/最晚的那次绘制。
+     首屏常见形态是「系统字体先画一次 → Web 字体到了再把同一段标题重画一次」，
+     此时 LCP 会被后推到**字体到达时刻** —— 但只看最终数字，会误判成"标题渲染太慢"。
+     所以把每条候选都留下（时间 + 元素），才分得清「一次绘制」和「二次重画」。 */
+  window.__lcpHistory = [];
   const pick = (entry) => {
     const el = entry.element;
     if (!el) return { t: Math.round(entry.startTime), tag: '(无元素)', sel: '' };
@@ -156,6 +166,7 @@ await page.evaluateOnNewDocument(() => {
     new PerformanceObserver((list) => {
       const es = list.getEntries();
       window.__lcp = pick(es[es.length - 1]);
+      for (const e of es) window.__lcpHistory.push(pick(e));
     }).observe({ type: 'largest-contentful-paint', buffered: true });
   } catch (e) {}
 });
@@ -182,6 +193,7 @@ const metrics = await page.evaluate(() => {
     fcp: fcp ? fcp.startTime : null,
     res,
     lcp: window.__lcp,
+    lcpHistory: window.__lcpHistory || [],
   };
 });
 
@@ -205,6 +217,7 @@ const timeline = cdpRows.map((r) => ({
   dur: r.end != null ? (r.end - r.start) * 1000 : null,
   size: r.bytes || 0,
   cross: !r.url.startsWith(BASE),
+  prio: r.prio || '',
   // 渲染阻塞标记只在 performance 条目里有，按 URL 关联回来
   blocking: metrics.res.find((m) => m.name === r.url)?.blocking || '',
 }));
@@ -223,6 +236,24 @@ console.log(`TTFB              ${ms(metrics.ttfb)}`);
 console.log(`FCP 首次内容绘制   ${ms(metrics.fcp)}`);
 const l = metrics.lcp;
 console.log(`LCP 最大内容绘制   ${ms(l && l.t)}${l ? `   ← ${l.tag}${l.sel} ${l.size || ''} ${l.kind} ${l.url || ''}` : ''}`);
+
+/* LCP 是一串候选，末次才算数。把它摊开，"晚"就有了解释：
+   同元素出现两次且间隔明显 = 首屏被**重画**过一次（典型是 Web 字体迟到后回填）。 */
+const hist = metrics.lcpHistory || [];
+if (hist.length > 1) {
+  console.log(`  └ 候选 ${hist.length} 次绘制：`);
+  hist.forEach((h, i) => {
+    const gap = i === 0 ? '' : `  +${Math.round(h.t - hist[i - 1].t)}ms`;
+    console.log(`      ${String(i + 1).padStart(2)}. ${String(h.t).padStart(6)}ms${gap.padEnd(10)} ${h.tag}${h.sel} ${h.size || ''}`);
+  });
+  const a = hist[0], z = hist[hist.length - 1];
+  if (z.t - a.t > 150) {
+    console.log(`  ⚠️ 首屏被重画过：LCP 由 ${a.t}ms 推到 ${z.t}ms（+${Math.round(z.t - a.t)}ms），元素都是 ${z.tag}${z.sel}`);
+  }
+}
+if (metrics.fcp != null && l && l.t - metrics.fcp > 300) {
+  console.log(`  ℹ FCP→LCP 空档 ${Math.round(l.t - metrics.fcp)}ms：首屏"有东西了"到"画完最大的那块"之间的等待`);
+}
 console.log(`DOMContentLoaded  ${ms(metrics.domContentLoaded)}`);
 console.log(`Load              ${ms(metrics.load)}`);
 
@@ -248,12 +279,13 @@ const shown = timeline
   .sort((a, z) => z.start - a.start)
   .slice(0, 16);
 console.log(`\n关键请求时间线（按开始时间，共 ${timeline.length} 条；体积来自 CDP，跨域也算得准）：`);
-console.log('   开始      耗时     体积      来源        类型       资源');
+console.log('   开始      耗时     体积     优先级      来源       类型       资源');
 for (const r of shown.reverse()) {
   const dur = r.dur == null ? '  (未完成)' : `${String(Math.round(r.dur)).padStart(6)}ms`;
+  const prio = String(r.prio || '—').replace('Very', 'V').replace('High', 'H').replace('Medium', 'M').replace('Low', 'L');
   console.log(
     `  ${String(Math.round(r.start)).padStart(6)}ms  ${dur.padStart(9)}  `
-    + `${(r.size / 1024).toFixed(0).padStart(6)}KB  ${(r.cross ? '第三方' : '本站  ')}  `
+    + `${(r.size / 1024).toFixed(0).padStart(6)}KB  ${prio.padStart(6)}  ${(r.cross ? '第三方' : '本站  ')}  `
     + `${(r.blocking || r.type).toString().toLowerCase().padEnd(9)}  ${r.url.replace(BASE, '')}`,
   );
 }
