@@ -127,25 +127,35 @@ if (strays.length) {
 
 // 2) 更新日志里那句体积话，数字必须是算出来的
 const changelog = read('src/changelog.ts');
-/* 只认**最新一条**更新日志（数组约定最新在前）。
-   历史条目里的数字是"当时是这样"，拿今天的产物去校验它，等于逼着人把历史改成现在
-   —— 那不是校验，是篡改。实测踩点：0.4.1 写着 931KB，本轮把背景图再压一档后
-   总量变 859KB，若全文件一起校验，就会要求回头去改 0.4.1 那句实话。 */
-const firstBlock = (() => {
-  const start = changelog.indexOf('{', changelog.indexOf('RELEASES'));
-  if (start < 0) return '';
-  let depth = 0;
-  for (let j = start; j < changelog.length; j++) {
-    if (changelog[j] === '{') depth++;
-    else if (changelog[j] === '}' && --depth === 0) return changelog.slice(start, j + 1);
+/* 台账那一行认的是**最新一条「含台账」的更新日志**（数组约定最新在前），而不是"最新一条"。
+   两个坑都要绕开：
+     · 全文一起校验（最初的写法）→ 会逼着人回头改 0.4.1 那句历史实话（当时确实是 931KB），
+       那不是校验，是篡改；
+     · 只认最新一条 → 每发一个与图片无关的版本，都得把台账原话再抄一遍，否则就红。
+   现在这样两种漂移都还抓得住：图片被改而台账没跟着改 → 最新那条含台账的数字对不上当下产物 → 红；
+   新版本不动图片 → 它不含台账，自动落到上一条去校验 → 绿。 */
+const blocks = (() => {
+  const out = [];
+  let i = changelog.indexOf('{', changelog.indexOf('RELEASES'));
+  while (i !== -1) {
+    let depth = 0;
+    let j = i;
+    for (; j < changelog.length; j++) {
+      if (changelog[j] === '{') depth++;
+      else if (changelog[j] === '}' && --depth === 0) break;
+    }
+    out.push(changelog.slice(i, j + 1));
+    if (/^\s*\]/.test(changelog.slice(j + 1))) break; // 数组结束，别再往里找
+    i = changelog.indexOf('{', j + 1);
   }
-  return '';
+  return out;
 })();
-const claim = /全站图片\s*([\d.]+)\s*MB\s*→\s*(\d+)\s*KB（省\s*([\d.]+)%）/g;
-const hits = [...firstBlock.matchAll(claim)];
+const CLAIM = /全站图片\s*([\d.]+)\s*MB\s*→\s*(\d+)\s*KB（省\s*([\d.]+)%）/g;
+const hitBlock = blocks.find((b) => /全站图片/.test(b));
+const hits = hitBlock ? [...hitBlock.matchAll(CLAIM)] : [];
 if (!hits.length) {
-  failures.push('最新一条更新日志里找不到「全站图片 X MB → Y KB（省 Z%）」的表述 —— 是被删了还是改了措辞？'
-    + '（台账这一行约定放在**最新**那条里；历史条目保留当时的数字，不参与校验）');
+  failures.push('更新日志里找不到「全站图片 X MB → Y KB（省 Z%）」的表述 —— 是被删了还是改了措辞？'
+    + '（台账这一行放在**改过图片**的那条日志里；历史条目保留当时的数字，不参与校验）');
 }
 for (const m of hits) {
   const want = [Number((O / 1024 / 1024).toFixed(2)), Math.round(C / 1024), Number(saved.toFixed(1))];

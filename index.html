@@ -66,7 +66,11 @@
     <meta name="twitter:title" content="玄览 · 八顾问合议" />
     <meta name="twitter:description" content="八字·紫微·奇门·六壬·梅花·占星·塔罗同台交叉验证，结果可复现可溯源。" />
   </head>
-  <body>
+  <!-- data-pagefind-ignore：本站的产物还会被镜像到个人博客的 /xuanlan/（Cloudflare Pages 通道，
+       那边用 pagefind 做站内搜索，构建期扫描 dist/ 里所有 HTML）。不加这个属性，搜索结果里
+       会出现一整页工具界面、每条记录都是同一页的不同片段。对 GitHub Pages 那条通道无影响
+       —— 那边没有 pagefind。 -->
+  <body data-pagefind-ignore>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

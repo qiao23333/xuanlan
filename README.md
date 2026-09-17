@@ -97,6 +97,24 @@ npm run typecheck  # 类型检查（tsc --noEmit）
 > 自己决定窗口多长，于是 A/B 两个变体在不同长度的窗口里统计，同一个站点能报出 477KB 与 1876KB
 > 两个"首屏体积"，看着像省了 4 倍；默认视图只列"最晚开始的 16 条"，要盯的资源会被字体挤掉，
 > 用 `WATCH=bg-scene,css2` 点名。
+
+### 两条发布通道（同一份产物）
+
+| 通道 | 地址 | 2026-09-17 抽样 15 次 |
+|---|---|---|
+| GitHub Pages | https://qiao23333.github.io/xuanlan/ | **9/15 连得上**（平均 TTFB 1.18s） |
+| Cloudflare Pages（个人站镜像） | https://qiaozt.pages.dev/xuanlan/ | **15/15**（平均 TTFB 1.26s） |
+
+两条通道的**应用前缀都是 `/xuanlan/`**，所以 `npm run build:pages` 的产物两边都能直接用，
+不需要分别构建。但"源 → 博客副本"仍是同一事实的两处存储，必须靠**会失败的门禁**守住：
+
+```bash
+python tools/sync-to-blog.py --self-test   # 证明门禁真的会红（弄坏三次，不碰博客）
+npm run sync:blog                          # 同步到个人站 public/xuanlan/
+npm run check:blog                         # 只校验（博客不在本机时跳过，不算失败）
+```
+
+`public/xuanlan/.xuanlan-source.json` 记录副本来自哪个提交。**博客里那份禁止手改** —— 手改会在下次同步时被覆盖，而线上表现却"看着正常"。
 > `tools/font-usage.mjs` 量**实际渲染到的 (字族,字重) 组合**，用来核对 index.html 里手写的
 > Google Fonts 请求清单——它自带两个防坑：宽度列表从 CSS 的 @media 推导（否则漏掉只在窄屏存在的字重）、
 > 量取范围含 SVG `<text>`（否则漏掉数字类文本）。`BASE=... node tools/font-usage.mjs` 即可跑。
