@@ -5,7 +5,7 @@
  * 为什么需要它：本项目已经栽过三次「手写数字悄悄漂」（前端用例数、术语条数、
  * 覆盖率），每次都是文案里的数字看着挺合理、但产物早就不是那个数了。
  * 这一次轮到图片体积：更新日志里写着「5.2MB → 0.65MB（省 87%）」，
- * 而实际把两幅山水背景也转 WebP 之后是 5.55MB → 931KB（省 83.6%）。
+ * 而实际把两幅山水背景也转 WebP 之后（2026-09-17 那次）是 5.55MB → 931KB（省 83.6%）。
  * 数字不重新算，就永远是错的；而人眼扫不出来。
  *
  * 为什么原始体积要**固化常量**而不是从 git 现取：
@@ -127,10 +127,25 @@ if (strays.length) {
 
 // 2) 更新日志里那句体积话，数字必须是算出来的
 const changelog = read('src/changelog.ts');
+/* 只认**最新一条**更新日志（数组约定最新在前）。
+   历史条目里的数字是"当时是这样"，拿今天的产物去校验它，等于逼着人把历史改成现在
+   —— 那不是校验，是篡改。实测踩点：0.4.1 写着 931KB，本轮把背景图再压一档后
+   总量变 859KB，若全文件一起校验，就会要求回头去改 0.4.1 那句实话。 */
+const firstBlock = (() => {
+  const start = changelog.indexOf('{', changelog.indexOf('RELEASES'));
+  if (start < 0) return '';
+  let depth = 0;
+  for (let j = start; j < changelog.length; j++) {
+    if (changelog[j] === '{') depth++;
+    else if (changelog[j] === '}' && --depth === 0) return changelog.slice(start, j + 1);
+  }
+  return '';
+})();
 const claim = /全站图片\s*([\d.]+)\s*MB\s*→\s*(\d+)\s*KB（省\s*([\d.]+)%）/g;
-const hits = [...changelog.matchAll(claim)];
+const hits = [...firstBlock.matchAll(claim)];
 if (!hits.length) {
-  failures.push('src/changelog.ts 里找不到「全站图片 X MB → Y KB（省 Z%）」的表述 —— 是被删了还是改了措辞？');
+  failures.push('最新一条更新日志里找不到「全站图片 X MB → Y KB（省 Z%）」的表述 —— 是被删了还是改了措辞？'
+    + '（台账这一行约定放在**最新**那条里；历史条目保留当时的数字，不参与校验）');
 }
 for (const m of hits) {
   const want = [Number((O / 1024 / 1024).toFixed(2)), Math.round(C / 1024), Number(saved.toFixed(1))];

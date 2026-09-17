@@ -22,6 +22,8 @@
  *   FAST=1 ...   # 不限速
  *   BLOCK=fonts.googleapis.com,fonts.gstatic.com ...   # 模拟某域名被墙（看首屏是否被拖死）
  *   DELAY=fonts.googleapis.com:6000   # 模拟"连得上但很慢/被丢包"（更接近真实墙的行为）
+ *   SETTLE=12000                      # 快照窗口（DCL 后固定等待毫秒）；A/B 必须同值
+ *   WATCH=bg-scene,css2               # 点名盯某条资源（默认视图只留最晚开始的 16 条）
  */
 import puppeteer from 'puppeteer-core';
 
@@ -38,6 +40,15 @@ const BLOCKED = (process.env.BLOCK || '').split(',').map((s) => s.trim()).filter
  *   所以两种都要能模拟：DELAY=<host>:<ms> 把该 host 的请求按住房几秒再放行/放弃，
  *   这才看得出"阻塞 vs 非阻塞"的真正差别。
  */
+/* 快照窗口：DOMContentLoaded 之后固定等这么久再取数。
+   ⚠️ 千万别改回 waitUntil:'networkidle2' —— "网络静默"本身就是**被测量的结果**，
+   于是两个变体会在**不同长度**的窗口里统计（实测 V2 的字体排到 2.0s 才开始、
+   窗口被拉到 ~10s → 报"首屏 1876KB"；基线只有 477KB —— 不是基线更轻，
+   是它的窗口在字体下完之前就截断了，未完成的请求 size=0 被静默丢掉）。
+   固定窗口后，"首屏多少 KB"才是变体之间可以横向比的东西。 */
+const SETTLE = Number(process.env.SETTLE || 12000);
+/* 点名要盯的资源 URL 子串（逗号分隔）。见下方 shown 的注释：默认视图会把它们藏起来。 */
+const WATCH = (process.env.WATCH || '').split(',').map((s) => s.trim()).filter(Boolean);
 const REQUESTS = (process.env.REQ || '').split(',').map((s) => s.trim()).filter(Boolean);
 const DELAYS = (process.env.DELAY || '')
   .split(',')
@@ -171,9 +182,9 @@ await page.evaluateOnNewDocument(() => {
   } catch (e) {}
 });
 
-await page.goto(BASE, { waitUntil: 'networkidle2', timeout: 90000 });
-// LCP 需要在 load 之后仍在观测，等一会让 LCP 定稿
-await sleep(2500);
+await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 90000 });
+// LCP 需要在 load 之后仍在观测，等一会让 LCP 定稿；顺带让限速下的字体下载跑完
+await sleep(SETTLE);
 
 const metrics = await page.evaluate(() => {
   const nav = performance.getEntriesByType('navigation')[0] || {};
@@ -274,24 +285,45 @@ if (blocking.length && metrics.fcp != null) {
   console.log(`  其中最慢的一个占 ${Math.round((worst.dur / lastEnd) * 100)}%：${worst.url.replace(BASE, '')}`);
 }
 
-const shown = timeline
-  .filter((r) => r.size > 0 || (r.dur || 0) > 30)
-  .sort((a, z) => z.start - a.start)
-  .slice(0, 16);
-console.log(`\n关键请求时间线（按开始时间，共 ${timeline.length} 条；体积来自 CDP，跨域也算得准）：`);
+const shown = [...new Map(
+  [
+    /* WATCH=bg-scene,css2 —— 点名要盯的资源，不管它排第几都列出来。
+       为什么需要：把窗口固定成 DCL+12s 之后，最晚开始的 16 条全被那 24 个字体文件占满，
+       而"真正在争带宽、真正值得看"的两条（148KB 背景图、182KB 字体样式表）反而从默认视图里消失了
+       —— 工具把要看的东西藏起来，比不显示更坏。 */
+    ...timeline.filter((r) => WATCH.some((w) => r.url.includes(w))).map((r) => ({ ...r, watched: true })),
+    ...timeline
+      .filter((r) => r.size > 0 || (r.dur || 0) > 30 || r.dur == null) // 未完成的也要列，别静默藏掉
+      .sort((a, z) => z.start - a.start)
+      .slice(0, 16),
+  ].map((r) => [r.url, r]),
+).values()].sort((a, z) => a.start - z.start);
+if (WATCH.length) {
+  const missing = WATCH.filter((w) => !timeline.some((r) => r.url.includes(w)));
+  if (missing.length) console.log(`\n⚠️ WATCH 指定的 ${missing.join('、')} 在本次请求里**一条都没出现**（是不是没被加载？）`);
+}
+console.log(`\n关键请求时间线（按开始时间，共 ${timeline.length} 条${WATCH.length ? `；★ = WATCH 点名` : ''}；体积来自 CDP，跨域也算得准）：`);
 console.log('   开始      耗时     体积     优先级      来源       类型       资源');
-for (const r of shown.reverse()) {
+for (const r of shown) {
   const dur = r.dur == null ? '  (未完成)' : `${String(Math.round(r.dur)).padStart(6)}ms`;
   const prio = String(r.prio || '—').replace('Very', 'V').replace('High', 'H').replace('Medium', 'M').replace('Low', 'L');
   console.log(
     `  ${String(Math.round(r.start)).padStart(6)}ms  ${dur.padStart(9)}  `
     + `${(r.size / 1024).toFixed(0).padStart(6)}KB  ${prio.padStart(6)}  ${(r.cross ? '第三方' : '本站  ')}  `
-    + `${(r.blocking || r.type).toString().toLowerCase().padEnd(9)}  ${r.url.replace(BASE, '')}`,
+    + `${(r.blocking || r.type).toString().toLowerCase().padEnd(9)}  ${r.watched ? '★ ' : ''}${r.url.replace(BASE, '')}`,
   );
 }
 
-console.log(`\n首屏共 ${(transferred / 1024).toFixed(0)}KB（${timeline.length} 个请求）`
+console.log(`\n首屏共 ${(transferred / 1024).toFixed(0)}KB（${timeline.length} 个请求，窗口 = DCL + ${SETTLE}ms）`
   + `，其中第三方 ${(crossBytes / 1024).toFixed(0)}KB（占 ${Math.round((crossBytes / transferred) * 100)}%）`);
+/* 未完成的请求 size=0：不把这件事说出来，"首屏多少 KB"就会被读成"已经全部下完" */
+const pending = timeline.filter((r) => r.dur == null);
+if (pending.length) {
+  const names = pending.slice(0, 4).map((r) => r.url.replace(BASE, '').split('/').pop());
+  console.log(`  ⚠️ 快照时还有 ${pending.length} 个请求**没下完**（体积按 0 计）：${names.join('、')}`
+    + (pending.length > 4 ? ' 等' : ''));
+  console.log(`     窗口内没下完 ≠ 不存在。要缩短窗口就调 SETTLE=，但**变体之间必须用同一个值**。`);
+}
 if (hiddenFromPerf < transferred) {
   console.log(`  ⓘ performance API 只看得见 ${(hiddenFromPerf / 1024).toFixed(0)}KB ——`
     + ` 差额 ${((transferred - hiddenFromPerf) / 1024).toFixed(0)}KB 是跨域资源（无 Timing-Allow-Origin`

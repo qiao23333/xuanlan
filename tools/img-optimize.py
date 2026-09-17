@@ -16,8 +16,8 @@
 等比缩放到刚好覆盖 3× DPR 的尺寸，转 WebP（现代浏览器全支持，透明通道保留）：
 - taiji : 1254 → 640（200px 显示 × 3 = 600，取 640 留余量）
 - icons : 320  → 192（62px 显示 × 3 = 186，取 192 留余量）
-- 背景图 : 尺寸不动，只换格式（q82）。这是照片类，缩小会破坏「铺满视口」的观感；
-  实测 q82 平均绝对误差 2/255（0.8%），肉眼与 JPEG 无异，体积省 41%。
+- 背景图 : 尺寸不动，只换格式（q75）。这是照片类，缩小会破坏「铺满视口」的观感；
+  实测相对原图 PSNR 40.5dB、相对上一版产物平均绝对差 2.1/255（0.8%），肉眼不可辨。
   注意：它**不缩尺寸**，所以走 BG_JOBS 而不是 JOBS（后者会强转 RGBA 正方裁剪）。
 
 用法
@@ -29,8 +29,19 @@
 （TaoWheel.tsx / systemIdentity.tsx / App.tsx 的背景 import）。
 
 ⚠️ `--clean` 是**单向**的：原图删掉后本脚本再跑只会打印「跳过（不存在）」，
-无法凭 .webp 反向还原（有损编码）。所以要重跑/调质量就**先别 clean**；
-已 clean 的可以从 git 取回源文件（`git checkout -- src/assets/ public/icons/`）。
+无法凭 .webp 反向还原（有损编码）。所以要重跑/调质量就**先别 clean**。
+
+原图**不在 HEAD 里**，`git checkout -- src/assets/ public/icons/` 是取不回来的
+（这句错话在本文档里挂了很久，踩过）。要取回得从"删掉它的那个提交的父提交"拿：
+
+    f=src/assets/bg-scene-dark.jpg
+    c=$(git log --diff-filter=D --format=%H -- "$f" | tail -1)   # 删掉它的那个提交
+    git show "$c^:$f" > "$f"
+
+实测两批：`src/assets/taiji-*.png` 与 `public/icons/**` 在 **36745d7** 删的，
+`src/assets/bg-scene-*.jpg` 在 **0352c64** 删的。取回后跑本脚本即可重转；
+转完记得删掉（或 `--clean`），否则 `node tools/img-weight.mjs --check`
+会因「src/assets 里又混进了位图原图」报红 —— 那是**故意**的：仓库里不该留原图。
 """
 
 from __future__ import annotations
@@ -54,9 +65,18 @@ ICON_JOBS = [
     (p, ICON, 92) for p in sorted(glob.glob(os.path.join(ROOT, "public/icons/system/*/*.png")))
 ]
 # (源路径, WebP 质量) —— 照片类背景：**保持原尺寸**、不转 alpha，只换格式
+#
+# 质量为什么从 82 调到 75（2026-09-17 重扫）：
+#   判据不是"文件多小"，而是"用户看到的那张图变了多少" —— 同时看 ①相对原图的 PSNR
+#   ②相对上一版产物的平均绝对像素差。深色图实测：
+#     q82 148.2K ／ q80 137.1K(均差 1.5) ／ q75 110.0K(2.1) ／ q70 102.6K(2.3) ／ q65 95.5K(2.4)
+#   q75 是拐点：一口气省 26%，再往下每 5 个质量点只多省 5%。均差 2.1/255 ≈ 0.8%，肉眼不可辨。
+#   也测了"降分辨率"这条看着更划算的路（1500px q78 省 29.7%），但它的失真(2.38)
+#   **大于**同等省幅的"只降质量"(q70 = 2.26)：缩放把整幅细节都磨掉，降质量只挑不显眼处省。
+#   所以**不缩尺寸**。（AVIF 也试过：同保真度下体积没有优势，不值当付兼容成本。）
 BG_JOBS: list[tuple[str, int]] = [
-    ("src/assets/bg-scene-dark.jpg", 82),
-    ("src/assets/bg-scene-light.jpg", 82),
+    ("src/assets/bg-scene-dark.jpg", 75),
+    ("src/assets/bg-scene-light.jpg", 75),
 ]
 
 
@@ -134,8 +154,10 @@ def main() -> int:
         skipped = len(m1 + m2 + m3)
         print(f"！有 {skipped} 项源文件已不存在（多为此前已 --clean 处理过）："
               f"{', '.join(m1 + m2 + m3)}")
-        print("  合计不含这些项，故**小于**历史累计节省；需要原图请从 git 取回：")
-        print("  git checkout -- src/assets/ public/icons/")
+        print("  合计不含这些项，故**小于**历史累计节省。原图不在 HEAD 里，"
+              "`git checkout --` 取不回来，要从删除它的那个提交的父提交取：")
+        print('    f=src/assets/taiji-dark.png; c=$(git log --diff-filter=D --format=%H -- "$f" | tail -1); git show "$c^:$f" > "$f"')
+        print("  （taiji 与 icons 在 36745d7 删的，bg-scene 在 0352c64 删的）")
     if not clean:
         print("（未删除原图；确认无误后加 --clean 重跑，或手动删）")
     return 0
