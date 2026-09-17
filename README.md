@@ -88,6 +88,8 @@ npm run typecheck  # 类型检查（tsc --noEmit）
 > 测试依赖 Node 22+（内核用原生 type stripping 直跑 .ts，无 tsx/ts-node）。
 > 当前测试覆盖：**内核 49 项 + 前端 51 项 = 100 项**。CI（` .github/workflows/ci.yml`）在每次 push / PR 跑 typecheck + build + 两套测试。
 > 文档里的这些数字由 `node tools/check-docs.mjs` 守着——写歪了会让 CI 红，不靠人眼扫。
+> 图片体积与 CSS 死代码另有两道会失败的门禁（`tools/img-weight.mjs`、`tools/css-dead-class.mjs`）：
+> 前者防"手写体积数字漂移"，后者防"又一整代旧界面把样式留在包里"——两个都会拦住上线。
 
 ---
 
