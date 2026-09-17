@@ -172,6 +172,53 @@ const shoot = async (page, name, scroll) => {
   const page = await browser.newPage();
   await page.setRequestInterception(true);
   page.on('request', (r) => (/\/(sw\.js|manifest\.webmanifest)(\?|$)/.test(r.url()) ? r.abort() : r.continue()));
+
+  /* 网络巡检：布局审计看不出「资源 404」——图片裂了照样不溢出、字号照样达标，
+     于是子路径部署最典型的故障（--base 写错、public/ 下文件被删、SW 缓存旧路径）
+     能在四视口全绿的情况下线上真实存在。删掉旧 PNG 换 WebP 时就是这种。
+     排除项：sw.js / manifest 是被主动 abort 的（见上），不算失败。
+
+     ⚠️ 采集方式必须走 CDP，不能用 page.on('response') / ('requestfinished')。
+     实测（本机 Chrome + puppeteer-core）：一旦开了 setRequestInterception(true)，
+     这两个高层事件对**图片**请求一条都收不到 —— 而拦截 sw.js 恰恰要靠它。
+     症状是"网络巡检永远 ✅"，看着像没问题，其实什么都没采到（0 条）。
+     同一次运行里对照：requestfinished 收到 0 条，CDP responseReceived 收到 8 条。 */
+  const netIssues = [];
+  const reqUrl = new Map();                       // requestId → url（loadingFailed 不带 url）
+  const isAuditAbort = (u) => /\/(sw\.js|manifest\.webmanifest)(\?|$)/.test(u);
+  /* 只查 status ≥ 400 还不够 —— 实测 vite preview 对不存在的资源不返回 404：
+     它走 SPA 回退，把 index.html 用 **200** 发回来。于是"图标文件被删了"在本地
+     表现成"200 拿到一坨 HTML"，状态码门禁一声不响；图片裂了但几何审计全绿。
+     所以同时校验 Content-Type 与被请求的扩展名（HTML 顶包 = 真缺失）。 */
+  const WANT = {
+    webp: 'image/webp', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg',
+    svg: 'image/svg+xml', css: 'text/css', js: 'javascript',
+    woff2: 'font/woff2', woff: 'font/woff', json: 'json', ico: 'image/',
+  };
+  const cdp = await page.target().createCDPSession();
+  await cdp.send('Network.enable');
+  cdp.on('Network.requestWillBeSent', (e) => reqUrl.set(e.requestId, e.request.url));
+  cdp.on('Network.loadingFailed', (e) => {
+    if (e.canceled) return;                        // 主动 abort（sw.js）会带 canceled
+    const u = reqUrl.get(e.requestId) || '(未知)';
+    if (isAuditAbort(u)) return;
+    netIssues.push({ s: 'FAIL', u, err: e.errorText || '' });
+  });
+  cdp.on('Network.responseReceived', ({ response }) => {
+    const u = response.url;
+    if (isAuditAbort(u)) return;
+    const s = response.status;
+    if (process.env.NETDEBUG && /\.(webp|png|svg|ico)$/.test(new URL(u).pathname)) {
+      console.log('  [net]', s, response.mimeType, u);
+    }
+    if (s >= 400) { netIssues.push({ s, u }); return; }
+    const ext = (new URL(u).pathname.split('.').pop() || '').toLowerCase();
+    const want = WANT[ext];
+    if (!want) return;
+    const ct = (response.mimeType || '').toLowerCase();
+    if (!ct.includes(want)) netIssues.push({ s: `顶包(${ct || '无类型'})`, u });
+  });
+
   await page.setViewport(DEVICES[dev]);
   await page.goto(BASE, { waitUntil: 'networkidle2' });
   await sleep(1800);
@@ -237,6 +284,40 @@ const shoot = async (page, name, scroll) => {
   report(`${dev} ⑥ 术语百科`, await probe(page));
   await shoot(page, `${dev}-10-glossary-deep`, 1200);
 
+  if (process.env.NETDEBUG) {
+    const info = await page.evaluate(() => ({
+      imgs: document.querySelectorAll('img').length,
+      sysCards: document.querySelectorAll('.gl-syscard').length,
+      firstSrcs: [...document.querySelectorAll('img')].slice(0, 4).map((i) => i.currentSrc || i.src || '(空)'),
+      h: document.documentElement.scrollHeight,
+    }));
+    console.log('  [dbg] 术语页状态:', JSON.stringify(info));
+  }
+
+  /* 收尾：把最后这一页整页滚一遍。
+     ⚠️ 不滚就抓不到 404 —— 术语页的图标是 loading="lazy" 的，没进过视口就根本不发请求，
+     于是"图标文件被删了"在审计里毫无痕迹（本机实测：删掉 bazi.webp 后整轮仍然全绿）。
+     懒加载资源必须"滚到了"才会暴露，网络巡检才有意义。 */
+  await page.evaluate(async () => {
+    const H = () => document.documentElement.scrollHeight;
+    for (let y = 0; y < H(); y += 600) {
+      window.scrollTo(0, y);
+      await new Promise((r) => setTimeout(r, 90));
+    }
+    window.scrollTo(0, 0);
+  });
+  await sleep(1200);
+
   await browser.close();
+  /* 网络巡检结果：按 URL 去重后打印。任何一条非空都意味着"页面看起来正常但资源缺了"
+     —— 图片会裂、字体回退、图标空白，而四视口几何审计全都是绿的。 */
+  const uniq = new Map();
+  for (const i of netIssues) uniq.set(`${i.s} ${i.u}`, i);
+  if (uniq.size) {
+    console.log(`\n❌ 网络巡检：${uniq.size} 个资源未正常返回（可能是 --base 写错 / public 下文件被删 / CDN 拦截）`);
+    for (const i of uniq.values()) console.log(`   ${i.s}  ${i.u}${i.err ? '  ' + i.err : ''}`);
+  } else {
+    console.log('\n✅ 网络巡检：本次走查所有资源均 < 400，无 404 / 请求失败');
+  }
   console.log(`\n截图 → ${OUT}/`);
 })();

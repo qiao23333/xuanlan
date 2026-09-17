@@ -25,8 +25,11 @@ import { MobileTabBar, type MobileTab } from './MobileTabBar';
 import { useRevealOnScroll } from './useReveal';
 // 山水画背景：放进 src/assets 由 Vite 处理，URL 自带内容哈希 —— 换图必然换 URL，
 // 不会被 Service Worker 的 cache-first 策略永久钉在旧图上（public/ 稳定文件名会）。
-import bgDark from './assets/bg-scene-dark.jpg';
-import bgLight from './assets/bg-scene-light.jpg';
+// 2026-09-17 起改用 WebP（q82）：这是首屏最大的单个资源，且按主题只下载一张。
+// 255.5K + 218.6K -> 148.2K + 129.6K（省 41%），PIL 实测 MAE≈2/255，肉眼不可分辨。
+// 生成方式：python tools/img-optimize.py（BG_JOBS 段），勿手改二进制。
+import bgDark from './assets/bg-scene-dark.webp';
+import bgLight from './assets/bg-scene-light.webp';
 import {
   loadHistory,
   saveReading,
