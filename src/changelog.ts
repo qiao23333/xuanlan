@@ -21,7 +21,7 @@ export interface Release {
 export const RELEASES: Release[] = [
   {
     version: '0.4.1',
-    date: '2026-09-14',
+    date: '2026-09-17',
     title: '更轻、更快、更清楚',
     latest: true,
     items: [
