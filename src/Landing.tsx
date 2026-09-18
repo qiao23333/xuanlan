@@ -4,7 +4,7 @@ import React from 'react';
 /** 参考稿文案。图标一律用单色字符（彩色 emoji 在金线主题里会跳色） */
 const FEATURES: { icon: string; title: string; desc: string }[] = [
   { icon: '⊞', title: '多体系融合', desc: '八大体系并排推演\n看见更完整的自己' },
-  { icon: '☯', title: 'AI 深度解读', desc: '结合古典智慧与现代算法\n提供个性化分析' },
+  { icon: '☯', title: '确定性解读', desc: '按古籍规则确定性计算\n可复现、可审计' },
   { icon: '▤', title: '结构化呈现', desc: '从命盘到建议\n清晰、易懂、可实践' },
   { icon: '✦', title: '探索自我成长', desc: '不仅是预测\n更是理解与选择' },
 ];

@@ -83,7 +83,7 @@ const nowParts = () => {
   return { year: d.getFullYear(), month: d.getMonth() + 1, day: d.getDate(), hour: d.getHours(), minute: d.getMinutes(), second: d.getSeconds() };
 };
 
-const APP_VERSION = '0.4.3';
+const APP_VERSION = '0.4.4';
 
 export default function App() {
   const [form, setForm] = useState<AppForm>(defaultForm);
