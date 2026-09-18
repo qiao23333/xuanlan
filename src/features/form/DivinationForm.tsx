@@ -29,15 +29,19 @@ const TOPICS: Array<{ id: TopicId; label: string }> = [
 
 /* 把 { 'qimen.juMethod': 'chaibu' } 写回嵌套对象 */
 function buildSchoolConfig(flat: Record<string, string>): import('../../core').SchoolConfig {
-  const cfg: any = {};
+  const cfg: Record<string, any> = {};
   for (const [key, val] of Object.entries(flat)) {
     const parts = key.split('.');
-    let cur = cfg;
+    const last = parts[parts.length - 1];
+    if (!last) continue;
+    let cur: Record<string, any> = cfg;
     for (let i = 0; i < parts.length - 1; i++) {
-      cur[parts[i]] = cur[parts[i]] ?? {};
-      cur = cur[parts[i]];
+      const seg = parts[i];
+      if (!seg) continue;
+      cur[seg] = cur[seg] ?? {};
+      cur = cur[seg];
     }
-    cur[parts[parts.length - 1]] = val;
+    cur[last] = val;
   }
   return cfg as import('../../core').SchoolConfig;
 }
@@ -79,7 +83,7 @@ export { CITIES, TOPICS, buildSchoolConfig };
 
 interface DivinationFormProps {
   form: AppForm;
-  setForm: (patch: Partial<AppForm>) => void;
+  setForm: React.Dispatch<React.SetStateAction<AppForm>>;
   schools: Record<string, string>;
   setSchools: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   loading: boolean;

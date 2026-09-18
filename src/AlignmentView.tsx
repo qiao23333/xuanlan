@@ -1,7 +1,7 @@
 import React from 'react';
-import type { Consensus, SystemId, TopicId } from './core';
+import type { AxisId, Consensus, SystemId, TopicId } from './core';
 import { SYSTEM_META } from './core';
-import { overallAgreement, AXIS_LABELS } from './core-meta';
+import { overallAgreement, AXIS_LABELS, DIM_NAMES } from './core-meta';
 
 /** 命盘类（长期结构） */
 const STRUCTURAL: SystemId[] = ['bazi', 'ziwei', 'astrolabe'];
@@ -9,29 +9,67 @@ const STRUCTURAL: SystemId[] = ['bazi', 'ziwei', 'astrolabe'];
 const SITUATIONAL: SystemId[] = ['qimen', 'liuren', 'xiaoliuren', 'meihua', 'tarot'];
 
 /**
- * 从 consensus 数据中提炼核心优势条目（参考图 Screen 03 右栏「核心优势」）。
- * 基于各轴加权均值排序，取 top 维度生成语义化优势描述。
+ * 每根轴、每个方向各一段文案。
+ *
+ * **这个表存在的理由，是修一个语义错误**：原实现叫「核心优势」，
+ * 取的是 `weightedMean` 最高的三条轴。但 weightedMean 是**方向**不是质量——
+ * `timing = +2` 是「宜进」，`−2` 是「宜守」，谁也不比谁「优」。
+ * 按数值降序取三条，等于系统性地专挑「指向积极那一端」的轴，
+ * 再一律裹成褒义词——于是它变成一台**夸人机器**，跟盘面其实无关。
+ *
+ * 现在的规则：按 |weightedMean|（倾向强度）取三条，并且**按方向说方向**。
  */
-export function deriveCoreAdvantages(consensus: Consensus[]): { icon: string; title: string; desc: string }[] {
-  const sorted = [...consensus].sort((a, b) => b.weightedMean - a.weightedMean);
-  const top = sorted.slice(0, 3);
+const FACE_COPY: Record<AxisId, { positive: { title: string; desc: string }; negative: { title: string; desc: string } }> = {
+  action: {
+    positive: { title: '此刻宜动', desc: '八家的信号偏向「推进」——原地等不如往前走一步。' },
+    negative: { title: '此刻宜静', desc: '八家的信号偏向「按住」——维持现状比换动作划算。' },
+  },
+  timing: {
+    positive: { title: '时机偏有利', desc: '往前压一段是划算的，重点是把节奏拉起来。' },
+    negative: { title: '时机偏不利', desc: '现在推不动，硬推只会消耗自己，等一等更稳。' },
+  },
+  social: {
+    positive: { title: '该借用外力', desc: '主动开口、找人合作，现在的信号支持这个。' },
+    negative: { title: '先靠自己', desc: '信号偏向减少外部牵扯，把精力收回到自己身上。' },
+  },
+  risk: {
+    positive: { title: '可以冒一点险', desc: '有余量去试——但要留退路，别一次压满。' },
+    negative: { title: '该收一收风险', desc: '现在不适合押注，先降杠杆、守住已有。' },
+  },
+  change: {
+    positive: { title: '该求变', desc: '换一套做法，比在旧做法上加大投入更有效。' },
+    negative: { title: '该守常', desc: '同一套做法现在还能用，别急着改。' },
+  },
+  auspicious: {
+    positive: { title: '整体偏顺', desc: '外部条件是帮忙的——借势比硬扛省力。' },
+    negative: { title: '整体偏耗', desc: '外部条件不帮忙，这时候少做事比多做事强。' },
+  },
+};
 
-  const ADV_TEMPLATES: Record<string, { icon: string; title: string; desc: string }> = {
-    action:     { icon: '🧠', title: '思想敏锐', desc: '洞察力强，善于在复杂局势中快速定位关键路径。' },
-    timing:     { icon: '⏱️', title: '时机把握', desc: '对节奏变化敏感，懂得在恰当的节点发力，避免盲目行动。' },
-    social:     { icon: '🤝', title: '人际融洽', desc: '善于协调各方关系，在团队与合作场景中能发挥桥梁作用。' },
-    risk:       { icon: '💪', title: '进取有力', desc: '敢于突破舒适区，面对挑战时展现出坚韧的行动力。' },
-    change:     { icon: '🔄', title: '适应力强', desc: '在变化中保持弹性，能较快调整策略以适应新环境。' },
-    auspicious: { icon: '🍀', title: '顺势而为', desc: '整体能量场较为顺畅，做事容易得到外部环境的支持。' },
-  };
+/**
+ * 从 consensus 里提炼「八家看你最明显的三个面」。
+ *
+ * 按**倾向强度**（|weightedMean|）排序，而不是按数值高低——见 FACE_COPY 的注释。
+ * 方向由 sign 决定；|mean| ≤ 0.3 视为这一面没有方向，直接说明白。
+ */
+export function deriveSalientFaces(consensus: Consensus[]): { title: string; desc: string }[] {
+  const sorted = [...consensus].sort((a, b) => Math.abs(b.weightedMean) - Math.abs(a.weightedMean));
 
-  return top.map((c) => {
-    const tpl = ADV_TEMPLATES[c.axis] ?? { icon: '✦', title: DIM_NAMES[c.axis] || c.axis, desc: `${AXIS_LABELS[c.axis]?.positive || c.axis}维度表现突出。` };
-    return { icon: tpl.icon, title: tpl.title, desc: tpl.desc };
+  return sorted.slice(0, 3).map((c) => {
+    const copy = FACE_COPY[c.axis];
+    if (Math.abs(c.weightedMean) <= 0.3) {
+      return {
+        title: `${DIM_NAMES[c.axis]}· 信号中性`,
+        desc: `这一面八家没给出方向（${c.sampleSize} 家参与，一致度 ${Math.round(c.agreement * 100)}%），得按你自己的判断走。`,
+      };
+    }
+    const side = c.weightedMean > 0 ? copy.positive : copy.negative;
+    return {
+      title: `${DIM_NAMES[c.axis]}· ${side.title}`,
+      desc: `${side.desc}（${c.sampleSize} 家参与，一致度 ${Math.round(c.agreement * 100)}%）`,
+    };
   });
 }
-
-/** 轴 → 中文展示名（贴近设计稿"人生维度"感） */
 
 interface AlignmentViewProps {
   consensus: Consensus[];
@@ -42,13 +80,15 @@ interface AlignmentViewProps {
  * 体系共识与分歧 —— 照参考图 Screen 03 左下双卡：
  * 卡1「体系共识与分歧」蓝青渐变甜甜圈 + 图例（高度一致/基本一致/存在分歧）；
  * 卡2「最大分歧」⚡ + 分歧轴 + 唱反调体系 chips + 分歧说明。
+ * 卡3「八家看你最明显的三个面」。
  */
 export function AlignmentView({ consensus, topic }: AlignmentViewProps) {
+  void topic;
   if (consensus.length === 0) return null;
 
   const overall = overallAgreement(consensus);
   const pct = Math.round(overall * 100);
-  const advantages = deriveCoreAdvantages(consensus);
+  const faces = deriveSalientFaces(consensus);
 
   // 统计各一致率区间的轴数
   const high = consensus.filter((c) => c.agreement >= 0.75).length;
@@ -70,6 +110,10 @@ export function AlignmentView({ consensus, topic }: AlignmentViewProps) {
           <div className="al-head">
             <h3>体系共识与分歧</h3>
           </div>
+          <p className="al-cap">
+            下面这个百分数是<b>八家彼此意见的一致程度</b>——分歧小不代表结论更准，
+            更不是给你打的分。
+          </p>
           <div className="al-body">
             <div className="al-donut-wrap">
               <svg viewBox="0 0 110 110" width="110" height="110" role="img" aria-label={`体系观点一致度 ${pct}%`}>
@@ -152,27 +196,28 @@ export function AlignmentView({ consensus, topic }: AlignmentViewProps) {
           </div>
         )}
 
-        {/* ===== 卡3：核心优势（参考图 Screen 03 右栏） ===== */}
+        {/* ===== 卡3：八家看你最明显的三个面 ===== */}
         <div className="al-card al-advantages-card xl-card">
           <div className="al-head">
             <h3>
-              <span className="al-trophy">🏆</span> 核心优势{' '}
-              <span className="sec-en">· KEY POINTS</span>
+              <span className="al-trophy">🎯</span> 八家看你最明显的三个面{' '}
+              <span className="sec-en">· TOP 3 SIGNALS</span>
             </h3>
           </div>
           <div className="al-adv-list">
-            {advantages.map((adv, i) => (
+            {faces.map((f, i) => (
               <div className="al-adv-item" key={i}>
-                <span className="al-adv-icon" aria-hidden="true">{adv.icon}</span>
+                <span className="al-adv-icon" aria-hidden="true">{i + 1}</span>
                 <div className="al-adv-text">
-                  <strong className="al-adv-title">{adv.title}</strong>
-                  <span className="al-adv-desc">{adv.desc}</span>
+                  <strong className="al-adv-title">{f.title}</strong>
+                  <span className="al-adv-desc">{f.desc}</span>
                 </div>
               </div>
             ))}
           </div>
           <p className="al-adv-note">
-            以上优势基于八大体系综合评分提取，代表多维共识中的突出特质。
+            按「八家在这件事上表态的强度」取前三，方向照实说——所以这里会出现
+            「该收一收风险」这类话，而不只是一味的好话。
           </p>
         </div>
       </div>

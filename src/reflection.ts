@@ -62,8 +62,9 @@ export const VERDICT_ORDER: Verdict[] = ['hit', 'partial', 'miss', 'unknown'];
 /** 从共识里挑出「当时最强调的一条」：偏离 0 最远且有至少两家参与。 */
 export function pickDominant(consensus: Consensus[]): DominantJudgement | null {
   const usable = consensus.filter((c) => c.sampleSize >= 2 && Math.abs(c.weightedMean) > 0.01);
-  if (!usable.length) return null;
-  let best = usable[0];
+  const first = usable[0];
+  if (!first) return null;
+  let best = first;
   for (const c of usable) {
     const better =
       Math.abs(c.weightedMean) > Math.abs(best.weightedMean) ||

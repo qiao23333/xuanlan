@@ -3,7 +3,7 @@ import type { CalculateResult, SystemId, Consensus } from './core';
 import { SYSTEM_META } from './core';
 import { SystemIcon, ACCENTS } from './systemIdentity';
 import { SystemDetailView } from './SystemDetailView';
-import type { AppForm } from '../features/form/DivinationForm';
+import type { AppForm } from './features/form/DivinationForm';
 
 interface SystemOverviewProps {
   result: CalculateResult;
@@ -21,7 +21,7 @@ interface SystemOverviewProps {
  */
 export function SystemOverview({ result, consensus, topic, form, showRaw, setShowRaw }: SystemOverviewProps) {
   const [activeId, setActiveId] = useState<SystemId | null>(null);
-  const detailRef = useRef<HTMLElement>(null);
+  const detailRef = useRef<HTMLDivElement>(null);
 
   // 找到当前激活的 chart
   const activeChart = activeId ? result.charts.find((c) => c.systemId === activeId) : null;

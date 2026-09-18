@@ -64,7 +64,7 @@ export default function ResultsView({
   onShare,
   onReroll,
 }: ResultsViewProps) {
-  const exportCurrent = () => {
+  const exportCurrent = async () => {
     if (!result || seed == null) return;
     const d = new Date();
     const r: SavedReading = {
@@ -98,8 +98,16 @@ export default function ResultsView({
       result,
       topicLabel: TOPIC_LABELS[form.topic] ?? form.topic,
     };
-    downloadText(`${safeFileName(form.name || '玄览')}-${seed}.md`, readingToMarkdown(r));
-    onFlash('已导出 Markdown');
+    // readingToMarkdown 是 async（它要动态载入内核来重算共识），这里必须 await。
+    // 原先漏了 await，downloadText 收到的是一个 Promise 对象 —— 导出的 .md
+    // 内容就是字符串 "[object Promise]"，而这一步还从来没被类型检查覆盖过。
+    try {
+      const md = await readingToMarkdown(r);
+      downloadText(`${safeFileName(form.name || '玄览')}-${seed}.md`, md);
+      onFlash('已导出 Markdown');
+    } catch {
+      onFlash('导出失败，请重试');
+    }
   };
 
   const exportJSON = () => {
@@ -174,19 +182,36 @@ export default function ResultsView({
         <ResultNav />
 
         <div className="results-main">
-          {/* ═══════ Level 1: 10秒抓到结论 ═══════ */}
+          {/* ═══════ Level 1: 10 秒拿到答案 ═══════ */}
           <div id="sec-summary">
             <ResultSummary
               consensus={consensus}
-              headline={report?.headline}
+              topic={form.topic}
               topicLabel={TOPIC_LABELS[form.topic] ?? form.topic}
-              qtext={form.qtext || undefined}
             />
           </div>
 
-          {/* ═══════ Level 2: 1分钟看懂全貌 ═══════ */}
+          {/* ═══════ Level 2: 1 分钟看懂「凭什么这么说」 ═══════
+              只留跟用户这个问题直接相关的两块：六维度怎么分的、该先看哪张卡。
+              方法论（共识度 / 分层 / 两派对峙）一律降到 Level 3 —— 它们讲的是
+              平台自己怎么运作，而不是用户问的那件事。 */}
           <div id="sec-axes">
             <DimensionGauges consensus={consensus} topic={form.topic} />
+          </div>
+          <div id="sec-path">
+            <TopicPath topic={form.topic} qtext={form.qtext} />
+          </div>
+
+          {/* ═══════ Level 3: 深读 ═══════ */}
+          <div id="sec-systems">
+            <SystemOverview
+              result={result}
+              consensus={consensus}
+              topic={form.topic}
+              form={form}
+              showRaw={showRaw}
+              setShowRaw={setShowRaw}
+            />
           </div>
           <div id="sec-align">
             <AlignmentView consensus={consensus} topic={form.topic} />
@@ -197,19 +222,6 @@ export default function ResultsView({
           </div>
           <div id="sec-dissent">
             <DissentView result={result} consensus={consensus} topic={form.topic} />
-          </div>
-          <TopicPath topic={form.topic} qtext={form.qtext} />
-
-          {/* ═══════ Level 3: 深度用户 ═══════ */}
-          <div id="sec-systems">
-            <SystemOverview
-              result={result}
-              consensus={consensus}
-              topic={form.topic}
-              form={form}
-              showRaw={showRaw}
-              setShowRaw={setShowRaw}
-            />
           </div>
           <div id="sec-report">
             {report && <SynthesisReport report={report} topic={form.topic} />}

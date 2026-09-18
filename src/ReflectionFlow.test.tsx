@@ -97,12 +97,13 @@ describe('复盘交互链路（点击路径实测）', () => {
     fireEvent.click(screen.getByText('记下这条'));
 
     expect(saved.length).toBe(1);
-    const [rec] = saved;
-    expect(rec.id).toBe('r1');
-    expect(rec.outcome?.verdict).toBe('partial');
-    expect(rec.outcome?.actualNote).toBe('跳了，但钱没涨');
+    const rec = saved[0];
+    expect(rec).toBeTruthy();
+    expect(rec?.id).toBe('r1');
+    expect(rec?.outcome?.verdict).toBe('partial');
+    expect(rec?.outcome?.actualNote).toBe('跳了，但钱没涨');
     // 主导判断被固化，日后算法演进也不会篡改这条复盘
-    expect(rec.outcome?.dominant).toEqual({
+    expect(rec?.outcome?.dominant).toEqual({
       axis: 'timing',
       dir: -1,
       mean: -1.4,
@@ -110,8 +111,8 @@ describe('复盘交互链路（点击路径实测）', () => {
       sampleSize: 6,
     });
     // 30 天前问的事，今天回来复盘
-    expect(rec.outcome?.daysAfter).toBe(30);
-    expect(rec.outcome?.resolvedAt).toBeTruthy();
+    expect(rec?.outcome?.daysAfter).toBe(30);
+    expect(rec?.outcome?.resolvedAt).toBeTruthy();
   });
 
   it('已标定的记录：列表上出现徽章，「撤销标注」可清空', async () => {
@@ -124,7 +125,7 @@ describe('复盘交互链路（点击路径实测）', () => {
     fireEvent.click(screen.getByText('复盘'));
     await waitFor(() => expect(screen.getByText(/当时最强调/)).toBeTruthy());
     fireEvent.click(screen.getByText('撤销标注'));
-    expect(saved[0].outcome).toBeNull();
+    expect(saved[0]?.outcome).toBeNull();
   });
 
   it('导出按钮等到 Markdown 生成后再下载（旧代码传的是 Promise，会存下 [object Promise]）', async () => {

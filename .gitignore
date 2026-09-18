@@ -14,6 +14,9 @@ npm-debug.log*
 # 视觉比对产物（截图 / 热力图 / 差异报告）——本地自查用，不入库
 shots/
 dist_old*/
+# 任何带后缀的构建产物（dist_v050/ 这种用来跑本地 preview 的验收目录）。
+# 之前只忽略了 dist_old*/，于是 dist_v050/ 一直以未跟踪状态挂着，容易被手滑提交。
+dist_*/
 
 # Vite 配置热重载临时产物
 vite.config.ts.timestamp-*.mjs

@@ -1,0 +1,26 @@
+{
+  "_comment": "前端（src/）的类型检查配置。**必须与 tsconfig.json 分开**：根配置只覆盖 packages/*/src（内核，无 DOM），而前端要 DOM lib、JSX、vite 与 vitest 的全局类型。2026-09 之前 src/ 下 40 多个文件根本不在任何 tsc 范围内——ResultSummary 里 AXIS_LABELS[...]?.name 这种必错的写法因此上线了，这条空洞就是那次的直接原因。",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "types": ["node", "vite/client", "vitest/globals"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "paths": {
+      "@core": ["./packages/core/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "vite.config.ts", "vitest.setup.ts"]
+}

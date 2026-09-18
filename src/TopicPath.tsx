@@ -51,6 +51,13 @@ const PATH: Record<TopicId, { lead: string; systems: SystemId[]; axes: AxisId[] 
     systems: ['ziwei', 'astrolabe', 'xiaoliuren'],
     axes: ['social', 'change'],
   },
+  // TopicId 里保留了 timing（择时）这一档，但表单暂未开放。补全它而不是
+  // 用 Partial 绕过去——Record<TopicId, …> 是穷尽的，漏一个键本该报错。
+  timing: {
+    lead: '择时：重点看「宜进 ↔ 宜守」，并对照命盘类给出的流年窗口——同样的准备，早一步和晚一步结果可能相反。',
+    systems: ['qimen', 'liuren', 'bazi'],
+    axes: ['timing', 'auspicious'],
+  },
 };
 
 export function TopicPath({ topic, qtext }: { topic: TopicId; qtext: string }) {

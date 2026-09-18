@@ -37,6 +37,7 @@ export function useModalA11y(onClose: () => void, opts?: { closeOnEscape?: boole
         if (f.length === 0) return;
         const first = f[0];
         const last = f[f.length - 1];
+        if (!first || !last) return;
         if (e.shiftKey && document.activeElement === first) {
           e.preventDefault();
           last.focus();

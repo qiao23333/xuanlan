@@ -83,7 +83,7 @@ const nowParts = () => {
   return { year: d.getFullYear(), month: d.getMonth() + 1, day: d.getDate(), hour: d.getHours(), minute: d.getMinutes(), second: d.getSeconds() };
 };
 
-const APP_VERSION = '0.4.4';
+const APP_VERSION = '0.5.0';
 
 export default function App() {
   const [form, setForm] = useState<AppForm>(defaultForm);
@@ -93,7 +93,10 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showRaw, setShowRaw] = useState<Record<string, boolean>>({});
-  const [history, setHistory] = useState<SavedReading[]>(() => loadHistory());
+  // 变量名刻意不叫 history：那会遮蔽全局 window.history，
+  // 于是 exitReadOnly 里的 history.replaceState(...) 变成「对数组调方法」→ 抛错，
+  // 「退出只读」按钮点了没反应。这类遮蔽正是前端纳入 tsc 后第一批抓到的。
+  const [readings, setReadings] = useState<SavedReading[]>(() => loadHistory());
   const [toast, setToast] = useState<string | null>(null);
   const [view, setView] = useState<'landing' | 'divination' | 'case' | 'glossary'>('landing');
   // 两段式流程：① 填写信息 → ② 推演结果。
@@ -177,7 +180,7 @@ export default function App() {
           topicLabel: TOPIC_LABELS[form.topic] ?? form.topic,
         };
         const list = saveReading(saved);
-        setHistory(list);
+        setReadings(list);
         flash(`已存入历史记录（共 ${list.length} 条）`);
       }
     } catch (err) {
@@ -305,8 +308,9 @@ export default function App() {
   }, []);
 
   const exitReadOnly = () => {
-    // 清除哈希，避免刷新后再次进入只读
-    history.replaceState(null, '', window.location.pathname + window.location.search);
+    // 清除哈希，避免刷新后再次进入只读。注意必须走 window.history —— 
+    // 本地那个同名 state 已经改名成 readings 了。
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
     setReadOnly(false);
     setResult(null);
     setSeed(null);
@@ -455,24 +459,24 @@ export default function App() {
 
           {!readOnly && (stage === 'form' || !result) && (
             <HistoryPanel
-              history={history}
+              history={readings}
               onRestore={restoreReading}
-              onDelete={(id) => setHistory(deleteReading(id))}
-              onClear={() => { setHistory(clearHistory()); flash('已清空历史记录'); }}
-              onToggleFavorite={(id) => setHistory(toggleFavorite(id))}
+              onDelete={(id) => setReadings(deleteReading(id))}
+              onClear={() => { setReadings(clearHistory()); flash('已清空历史记录'); }}
+              onToggleFavorite={(id) => setReadings(toggleFavorite(id))}
               onSetOutcome={(id, outcome) => {
-                setHistory(setOutcome(id, outcome));
+                setReadings(setOutcome(id, outcome));
                 flash(outcome ? '已记下这条复盘（仅保存在本机）' : '已撤销复盘标注');
               }}
               onExportAll={() => {
-                downloadText('玄览-历史备份.json', exportAllJson(history), 'application/json');
+                downloadText('玄览-历史备份.json', exportAllJson(readings), 'application/json');
                 flash('已导出全部历史（JSON 备份）');
               }}
               onImport={(file) => {
                 file.text().then((text) => {
                   try {
                     const { added, skipped } = importBackup(text);
-                    setHistory(loadHistory());
+                    setReadings(loadHistory());
                     flash(`导入完成：新增 ${added} 条 / 跳过重复 ${skipped} 条`);
                   } catch {
                     flash('备份解析失败，请确认是玄览导出的 JSON');

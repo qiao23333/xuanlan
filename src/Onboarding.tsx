@@ -53,7 +53,10 @@ export function Onboarding({ onClose }: { onClose: () => void }) {
   const [i, setI] = useState(0);
   const modalRef = useModalA11y(onClose);
   const total = STEPS.length;
-  const step = STEPS[i];
+  // STEPS 是非空字面量数组，但 noUncheckedIndexedAccess 看不到这一点。
+  // 这里不能直接 early-return：useModalA11y 的副作用（锁 body 滚动）已经执行了，
+  // 渲染 null 会让页面永远滚不动。所以退到第 0 步，而不是不渲染。
+  const step = STEPS[i] ?? STEPS[0]!;
   const last = i === total - 1;
 
   const finish = () => {

@@ -73,18 +73,22 @@ export function AdvisoryCouncil({
 
       <div className="council-stage">
         <svg className="council-svg" viewBox="0 0 360 360" role="img" aria-label="八顾问合议图">
-          {pos.map((p, i) => (
-            <line
-              key={`l${i}`}
-              x1={C}
-              y1={C}
-              x2={p.x}
-              y2={p.y}
-              stroke={leanColor(advisors[i].lean)}
-              strokeWidth={leanColor(advisors[i].lean) === 'var(--gold)' ? 1 : 1.6}
-              opacity={0.28}
-            />
-          ))}
+          {pos.map((p, i) => {
+            const a = advisors[i];
+            if (!a) return null;
+            return (
+              <line
+                key={`l${i}`}
+                x1={C}
+                y1={C}
+                x2={p.x}
+                y2={p.y}
+                stroke={leanColor(a.lean)}
+                strokeWidth={leanColor(a.lean) === 'var(--gold)' ? 1 : 1.6}
+                opacity={0.28}
+              />
+            );
+          })}
 
           <circle cx={C} cy={C} r={ringR} fill="none" stroke="var(--line)" strokeWidth={10} />
           <circle
@@ -108,6 +112,7 @@ export function AdvisoryCouncil({
 
           {pos.map((p, i) => {
             const a = advisors[i];
+            if (!a) return null;
             const col = leanColor(a.lean);
             const isSel = selected === a.systemId;
             return (

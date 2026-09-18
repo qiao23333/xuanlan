@@ -11,18 +11,18 @@ export class ErrorBoundary extends React.Component<
   { children: React.ReactNode; label?: string },
   { err: Error | null }
 > {
-  state: { err: Error | null } = { err: null };
+  override state: { err: Error | null } = { err: null };
 
   static getDerivedStateFromError(err: Error) {
     return { err };
   }
 
-  componentDidCatch(err: Error) {
+  override componentDidCatch(err: Error) {
     // 仅本地日志，不向外发送任何数据（产品无后端、无遥测）。
     console.error('[ErrorBoundary]', this.props.label ?? '模块', err);
   }
 
-  render() {
+  override render() {
     if (this.state.err) {
       return (
         <div className="err-boundary" role="alert">

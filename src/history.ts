@@ -148,7 +148,9 @@ export function importBackup(json: string): { list: SavedReading[]; added: numbe
       skipped++;
       continue;
     }
-    merged.push(migrate([r])[0]);
+    const m = migrate([r])[0];
+    if (!m) continue;
+    merged.push(m);
     added++;
   }
   const trimmed = merged.slice(0, MAX);
@@ -169,6 +171,7 @@ const TOPIC_LABELS: Record<string, string> = {
   study: '学业',
   health: '健康',
   relationship: '人际',
+  timing: '择时',
 };
 
 /**

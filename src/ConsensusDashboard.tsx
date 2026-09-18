@@ -12,6 +12,9 @@ const TOPIC_AXES: Record<TopicId, string[]> = {
   study: ['timing', 'auspicious'],
   health: ['auspicious'],
   relationship: ['social', 'change'],
+  // TopicId 含 timing（择时），表单暂未开放 —— 但 Record<TopicId,…> 是穷尽的，
+  // 漏键本就该被类型检查抓住（此前前端整片不在 tsc 范围内，所以没抓到）。
+  timing: ['timing', 'auspicious'],
 };
 
 /** 一致率 → 颜色：高=玉(稳)，中=金，低=红(分歧大) */

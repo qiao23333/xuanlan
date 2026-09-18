@@ -187,7 +187,7 @@ html.js-reveal .history > .reveal {
   /* 手机端可读性下限：承担信息量的小字统一抬到 12px（纯装饰的英文小字不管） */
   .f2-label { font-size: 12.5px; }
   .f2-field-hint { font-size: 12px; line-height: 1.7; }
-  .dg-level, .dg-sub, .rs-tag, .pb-topic, .so-desc, .so-action { font-size: 12px; }
+  .dg-level, .dg-sub, .pb-topic, .so-desc, .so-action { font-size: 12px; }
   .readonly-banner { flex-direction: column; align-items: flex-start; gap: 10px; font-size: 12px; padding: 12px 13px; }
   .readonly-banner .btn-gold { width: 100%; justify-content: center; }
 
@@ -230,12 +230,23 @@ html.js-reveal .history > .reveal {
 
   /* 结论卡：太极 + 正文 + 右侧竖排，手机必须竖排堆叠。
      否则 200px 的太极轮会把正文挤到 ~130px 宽，标题只能逐字换行。
-     （原写的 .rs-headline 也不存在，真实类名是 .rs-title） */
+     （这条注释里的 .rs-headline / .rs-title 两个类名都已随 v0.5 首屏重做移除） */
   .result-summary { padding: 16px 15px; border-radius: 18px; }
   .rs-layout { flex-direction: column; align-items: center; gap: 12px; }
   .rs-body { width: 100%; }
   .rs-sidebar { display: none; }
-  .rs-title { font-size: 17px; line-height: 1.5; letter-spacing: 2px; }
+
+  /* v0.5 首屏裁断层：手机上太极轮要隐藏。
+     它现在是 180px 高的图片，占了首屏三分之一，把「结论」推到折叠线以下 ——
+     而这一版改造的全部目的就是让结论第一眼可见。品牌标识导航栏已经有了。 */
+  .rs-taiji-wrap { display: none; }
+  .rs-call { font-size: 1.08rem; line-height: 1.7; }
+  .rs-so { font-size: 0.86rem; padding-left: 1rem; }
+  .rs-verdict { padding-left: 0.8rem; }
+  .rs-ask { font-size: 0.84rem; margin-bottom: 0.7rem; }
+  .rs-meta-row { gap: 6px 10px; }
+  .rs-hint { flex-basis: 100%; }
+  .rs-aside-item { flex-wrap: wrap; gap: 4px 8px; }
 
   /* 六大维度：3 列 */
   .dg-grid { grid-template-columns: repeat(3, 1fr); gap: 10px 2px; }
@@ -244,6 +255,9 @@ html.js-reveal .history > .reveal {
   .dg-label { font-size: 12px; }
   .dg-head-row { flex-wrap: wrap; gap: 4px 8px; }
   .dg-sub { flex-basis: 100%; }
+  /* 「本题主判」徽章是绝对定位、悬在环上方，窄屏两行格子会被上一行压住 → 加大行距让位 */
+  .dg-item.is-main { margin-top: 6px; }
+  .dg-badge { top: -0.7rem; }
 
   /* 对齐度：双卡转纵向 */
   .al-body { flex-direction: column; align-items: stretch; gap: 16px; }
@@ -272,8 +286,7 @@ html.js-reveal .history > .reveal {
   .wall { grid-template-columns: 1fr; }
 
   /* 综合报告 / 长文本可读性（原 .syn-body/.report-body 均不存在，已换成真实类名） */
-  .syn-headline, .syn-question, .syn-axis, .syn-sys, .syn-caveat,
-  .rs-desc, .rs-quote { font-size: 13.5px; line-height: 1.85; }
+  .syn-headline, .syn-question, .syn-axis, .syn-sys, .syn-caveat { font-size: 13.5px; line-height: 1.85; }
   .syn-sensitivity { font-size: 12.5px; line-height: 1.8; }
 
   /* ---------- 3.5 输入页 ---------- */

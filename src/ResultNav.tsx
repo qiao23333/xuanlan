@@ -7,13 +7,22 @@ export interface ResultSection {
   level: 1 | 2 | 3;
 }
 
+/**
+ * 顺序 = 结果页真实顺序，改一个必须改另一个。
+ *
+ * 翻转的理由：原先 Level 2 放的是「共识与分歧 / 分层 / 两派对峙」——
+ * 这三块讲的全是**平台自己**（八家一致不一致、两层方法论），用户的问题
+ * 反而被挤到 Level 3。现在 Level 2 只留与问题直接相关的两块（六维度怎么分、
+ * 该先看什么），方法论一律降级进深读。
+ */
 export const RESULT_SECTIONS: ResultSection[] = [
-  { id: 'sec-summary', label: '一句话结论', level: 1 },
-  { id: 'sec-axes', label: '六轴倾向', level: 2 },
-  { id: 'sec-align', label: '共识与分歧', level: 2 },
-  { id: 'sec-layers', label: '命盘 / 卜卦分层', level: 2 },
-  { id: 'sec-dissent', label: '两派对峙', level: 2 },
+  { id: 'sec-summary', label: '结论', level: 1 },
+  { id: 'sec-axes', label: '六大维度', level: 2 },
+  { id: 'sec-path', label: '该先看什么', level: 2 },
   { id: 'sec-systems', label: '八大体系', level: 3 },
+  { id: 'sec-align', label: '共识与分歧', level: 3 },
+  { id: 'sec-layers', label: '命盘 / 卜卦分层', level: 3 },
+  { id: 'sec-dissent', label: '两派对峙', level: 3 },
   { id: 'sec-report', label: '综合研判', level: 3 },
 ];
 
@@ -30,7 +39,7 @@ const LEVEL_LABEL: Record<number, string> = {
  * 当前所在章节用 IntersectionObserver 自动高亮。
  */
 export function ResultNav({ extra }: { extra?: React.ReactNode }) {
-  const [active, setActive] = useState<string>(RESULT_SECTIONS[0].id);
+  const [active, setActive] = useState<string>(RESULT_SECTIONS[0]?.id ?? '');
 
   useEffect(() => {
     const els = RESULT_SECTIONS.map((s) => document.getElementById(s.id)).filter(

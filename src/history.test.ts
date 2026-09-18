@@ -39,12 +39,12 @@ describe('history 存储与备份', () => {
 
   it('migrate 为旧数据补全 favorite 默认字段', () => {
     const out = migrate([{ id: 'x', savedAt: '', profile: {} as any, schools: {}, seed: 1, result: {} as any, topicLabel: '' }]);
-    expect(out[0].favorite).toBe(false);
+    expect(out[0]?.favorite).toBe(false);
   });
 
   it('toggleFavorite 切换收藏标记', () => {
     const saved = saveReading(makeReading({ id: 'a' }));
-    expect(saved[0].favorite).toBeFalsy();
+    expect(saved[0]?.favorite).toBeFalsy();
     const toggled = toggleFavorite('a');
     expect(toggled.find((r) => r.id === 'a')?.favorite).toBe(true);
     toggleFavorite('a');

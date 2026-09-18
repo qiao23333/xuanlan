@@ -1,15 +1,26 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { ConsensusDashboard } from './ConsensusDashboard';
-import type { Consensus } from './core';
+import type { Assertion, Consensus, SystemId } from './core';
+
+/** 离群断言。Consensus.outliers 是完整 Assertion[]，只补 systemId 过不了类型检查。 */
+const olig = (systemId: SystemId): Assertion => ({
+  systemId,
+  schoolId: 'default',
+  topicId: 'general',
+  axis: 'action',
+  score: 1,
+  confidence: 1,
+  evidence: [],
+});
 
 const mockConsensus: Consensus[] = [
-  { axis: 'action', weightedMean: 0.8, agreement: 0.75, outliers: [{ systemId: 'tarot' }], sampleSize: 8 },
-  { axis: 'timing', weightedMean: -0.3, agreement: 0.6, outliers: [{ systemId: 'bazi' }], sampleSize: 8 },
+  { axis: 'action', weightedMean: 0.8, agreement: 0.75, outliers: [olig('tarot')], sampleSize: 8 },
+  { axis: 'timing', weightedMean: -0.3, agreement: 0.6, outliers: [olig('bazi')], sampleSize: 8 },
   { axis: 'social', weightedMean: 1.2, agreement: 0.9, outliers: [], sampleSize: 8 },
-  { axis: 'risk', weightedMean: -0.5, agreement: 0.55, outliers: [{ systemId: 'qimen' }, { systemId: 'liuren' }], sampleSize: 8 },
+  { axis: 'risk', weightedMean: -0.5, agreement: 0.55, outliers: [olig('qimen'), olig('liuren')], sampleSize: 8 },
   { axis: 'change', weightedMean: 0.2, agreement: 0.7, outliers: [], sampleSize: 8 },
-  { axis: 'auspicious', weightedMean: 0.6, agreement: 0.8, outliers: [{ systemId: 'astrolabe' }], sampleSize: 8 },
+  { axis: 'auspicious', weightedMean: 0.6, agreement: 0.8, outliers: [olig('astrolabe')], sampleSize: 8 },
 ];
 
 describe('ConsensusDashboard', () => {

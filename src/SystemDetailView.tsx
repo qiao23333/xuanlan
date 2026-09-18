@@ -14,7 +14,7 @@ import { SystemRenderer } from './renderers';
 import { InterpretationBlock } from './Interpretation';
 import { SystemEvidence } from './SystemEvidence';
 import { DimensionGauges } from './DimensionGauges';
-import { deriveCoreAdvantages } from './AlignmentView';
+import { deriveSalientFaces } from './AlignmentView';
 import type { AppForm } from './features/form/DivinationForm';
 
 interface SystemDetailViewProps {
@@ -103,19 +103,19 @@ function ConsensusDonut({ consensus }: { consensus: Consensus[] }) {
   );
 }
 
-/** 核心优势卡（复用 AlignmentView 的提炼逻辑） */
+/** 三个最明显的面（复用 AlignmentView 的提炼逻辑；按倾向强度取，不按数值高低） */
 function KeyPoints({ consensus }: { consensus: Consensus[] }) {
-  const advantages = deriveCoreAdvantages(consensus);
+  const faces = deriveSalientFaces(consensus);
   return (
     <div className="sd-keypoints">
-      <h4 className="sd-block-title">核心优势<span className="sec-en"> · KEY POINTS</span></h4>
+      <h4 className="sd-block-title">最明显的三个面<span className="sec-en"> · TOP 3 SIGNALS</span></h4>
       <div className="al-adv-list">
-        {advantages.map((adv, i) => (
+        {faces.map((f, i) => (
           <div className="al-adv-item" key={i}>
-            <span className="al-adv-icon" aria-hidden="true">{adv.icon}</span>
+            <span className="al-adv-icon" aria-hidden="true">{i + 1}</span>
             <div className="al-adv-text">
-              <strong className="al-adv-title">{adv.title}</strong>
-              <span className="al-adv-desc">{adv.desc}</span>
+              <strong className="al-adv-title">{f.title}</strong>
+              <span className="al-adv-desc">{f.desc}</span>
             </div>
           </div>
         ))}

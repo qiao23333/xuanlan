@@ -91,7 +91,7 @@ describe('复盘回路 reflection', () => {
       expect(career?.counts.miss).toBe(1);
       expect(s.byTopic.find((t) => t.topic === 'romance')?.counts.partial).toBe(1);
       // 主题按样本数降序
-      expect(s.byTopic[0].topic).toBe('career');
+      expect(s.byTopic[0]?.topic).toBe('career');
     });
 
     it('对照条目按复盘时间倒序', () => {
@@ -100,8 +100,8 @@ describe('复盘回路 reflection', () => {
         makeReading({ outcome: mkOutcome('miss', '2026-03-01T00:00:00.000Z') }),
       ];
       const s = summarizeReflection(list);
-      expect(s.pairs[0].outcome.verdict).toBe('miss');
-      expect(s.pairs[1].outcome.verdict).toBe('hit');
+      expect(s.pairs[0]?.outcome.verdict).toBe('miss');
+      expect(s.pairs[1]?.outcome.verdict).toBe('hit');
     });
 
     it('空历史不炸，judged 为 0', () => {
